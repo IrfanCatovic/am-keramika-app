@@ -19,12 +19,8 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
+	database.ConnectDB()
 
 	r := gin.Default()
-
-	r.GET("/health", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"message": "AM keramika backend radi"})
-	})
-
 	r.Run(":" + port)
 }
