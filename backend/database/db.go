@@ -8,6 +8,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/driver/postgres"	
 	"github.com/joho/godotenv"
+	"am-keramika-backend/models"
 )
 
 var DB *gorm.DB //Global database connection
@@ -32,6 +33,11 @@ if err != nil {
 }
 
 	DB = database
+
+	err = DB.AutoMigrate(&models.User{})
+	if err != nil {
+		log.Fatal("Neuspjela migracija modela: ", err)
+	}
 	fmt.Println("Uspješna konekcija na bazu")
 }
 
