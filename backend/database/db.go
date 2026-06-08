@@ -1,8 +1,23 @@
 package database
 
+
+import (
+	"fmt"
+	"log"
+	"os"
+	"gorm.io/gorm"
+	"gorm.io/driver/postgres"	
+	"github.com/joho/godotenv"
+)
+
 var DB *gorm.DB //Global database connection
 
 func ConnectDB() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Nije pronađen .env file")
+	}
+
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", 
 	os.Getenv("DB_HOST"), 
 	os.Getenv("DB_PORT"), 
@@ -16,7 +31,7 @@ if err != nil {
 	log.Fatal("Neuspjela konekcija na bazu: ", err)
 }
 
-DB = database
-log.Println("Uspješna konekcija na bazu")
+	DB = database
+	fmt.Println("Uspješna konekcija na bazu")
 }
 

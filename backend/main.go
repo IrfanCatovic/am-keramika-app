@@ -3,10 +3,11 @@ package main
 import (
 	"log"
 	"os"
-	"net/http"
+
 
 	"github.com/gin-gonic/gin"	
 	"github.com/joho/godotenv"
+	"am-keramika-backend/database"
 )
 
 func main() {
@@ -19,8 +20,8 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
-	database.ConnectDB()
 
+	database.ConnectDB()
 	r := gin.Default()
 	r.Run(":" + port)
 }
