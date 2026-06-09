@@ -24,7 +24,10 @@ func main() {
 	}
 
 	database.ConnectDB()
-	err = database.DB.AutoMigrate(&models.User{})
+	err = database.DB.AutoMigrate(
+		&models.User{}, 
+		&models.Category{},
+	)
 	if err != nil {
 		log.Fatal("Neuspjela migracija modela: ", err)
 	}
@@ -34,7 +37,7 @@ func main() {
 	r.POST("/users", handlers.CreateUser)
 	r.GET("/users/:username", handlers.GetUserByUsername)
 	r.DELETE("/users/:id", handlers.DeleteUser)
-	
+
 	err = r.Run(":" + port)
 	if err != nil {
 		log.Fatal("Neuspjela pokretanje servera: ", err)
