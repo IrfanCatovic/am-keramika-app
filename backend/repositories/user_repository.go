@@ -37,3 +37,9 @@ func CreateUser(user *models.User) error {
 	}
 	return result.Error
 }
+
+func DeleteUser(id string) error {
+	result := database.DB.Delete(&models.User{}, id)//ovo je prazan user model, on preko ovoga zakljuci sam da treba da trazi u users tabeli po id-u
+
+	return result.Error
+}

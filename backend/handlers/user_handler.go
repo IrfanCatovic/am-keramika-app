@@ -42,3 +42,13 @@ func GetUserByUsername(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"data": user})
 }
+
+func DeleteUser(c *gin.Context){
+	id := c.Param("id")
+	err := repositories.DeleteUser(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspjelo brisanje korisnika"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Korisnik obrisan"})
+}

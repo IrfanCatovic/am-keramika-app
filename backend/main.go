@@ -33,7 +33,8 @@ func main() {
 	r.GET("/users", handlers.GetUsers)
 	r.POST("/users", handlers.CreateUser)
 	r.GET("/users/:username", handlers.GetUserByUsername)
-
+	r.DELETE("/users/:id", handlers.DeleteUser)
+	
 	err = r.Run(":" + port)
 	if err != nil {
 		log.Fatal("Neuspjela pokretanje servera: ", err)
