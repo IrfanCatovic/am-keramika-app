@@ -27,6 +27,7 @@ func main() {
 	err = database.DB.AutoMigrate(
 		&models.User{}, 
 		&models.Category{},
+		&models.Product{},
 	)
 	if err != nil {
 		log.Fatal("Neuspjela migracija modela: ", err)
