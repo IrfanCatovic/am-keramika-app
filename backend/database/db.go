@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/driver/postgres"	
 	"github.com/joho/godotenv"
-	"am-keramika-backend/models"
+
 )
 
 var DB *gorm.DB //Global database connection

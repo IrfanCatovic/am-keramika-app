@@ -31,6 +31,8 @@ func main() {
 
 	r := gin.Default()
 	r.GET("/users", handlers.GetUsers)
+	r.POST("/users", handlers.CreateUser)
+	r.GET("/users/:username", handlers.GetUserByUsername)
 
 	err = r.Run(":" + port)
 	if err != nil {
