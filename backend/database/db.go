@@ -31,13 +31,7 @@ database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 if err != nil {
 	log.Fatal("Neuspjela konekcija na bazu: ", err)
 }
-
 	DB = database
-
-	err = DB.AutoMigrate(&models.User{})
-	if err != nil {
-		log.Fatal("Neuspjela migracija modela: ", err)
-	}
 	fmt.Println("Uspješna konekcija na bazu")
 }
 

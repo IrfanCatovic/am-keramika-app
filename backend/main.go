@@ -8,6 +8,8 @@ import (
 	"github.com/gin-gonic/gin"	
 	"github.com/joho/godotenv"
 	"am-keramika-backend/database"
+	"am-keramika-backend/models"
+	"am-keramika-backend/handlers"
 )
 
 func main() {
@@ -22,6 +24,16 @@ func main() {
 	}
 
 	database.ConnectDB()
+	err = database.DB.AutoMigrate(&models.User{})
+	if err != nil {
+		log.Fatal("Neuspjela migracija modela: ", err)
+	}
+
 	r := gin.Default()
-	r.Run(":" + port)
+	r.GET("/users", handlers.GetUsers)
+
+	err = r.Run(":" + port)
+	if err != nil {
+		log.Fatal("Neuspjela pokretanje servera: ", err)
+	}
 }
