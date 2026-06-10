@@ -38,3 +38,18 @@ func GetAllProducts(c *gin.Context) {
 
 	c.JSON(200, products)
 }
+
+func GetProductById(c *gin.Context) {
+	id := c.Param("id")
+
+	product, err := repositories.GetProductById(id)
+	if err != nil {
+		c.JSON(404, gin.H{
+			"message": "Proizvod nije pronadjen",
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(200, product)
+}

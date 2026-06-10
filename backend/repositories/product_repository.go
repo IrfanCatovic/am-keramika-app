@@ -19,3 +19,14 @@ func GetAllProducts() ([]models.Product, error) {
   return products, result.Error
 }
 
+func GetProductById(id string) (*models.Product, error) {
+	var product models.Product
+
+	result := database.DB.Preload("Category").First(&product, id)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return &product, nil 
+}
