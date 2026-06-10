@@ -30,3 +30,10 @@ func GetProductById(id string) (*models.Product, error) {
 
 	return &product, nil 
 }
+
+func UpdateProduct(product *models.Product) error {
+
+	result := database.DB.Save(&product)
+
+	return result.Error
+}

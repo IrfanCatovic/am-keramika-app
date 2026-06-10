@@ -46,6 +46,7 @@ func main() {
 	r.POST("/products", handlers.CreateProduct)
 	r.GET("/products", handlers.GetAllProducts)
 	r.GET("/products/:id", handlers.GetProductById)
+	r.PUT("/products/:id", handlers.UpdateProduct)
 
 	err = r.Run(":" + port)
 	if err != nil {

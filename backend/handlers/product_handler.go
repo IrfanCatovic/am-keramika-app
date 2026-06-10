@@ -53,3 +53,36 @@ func GetProductById(c *gin.Context) {
 
 	c.JSON(200, product)
 }
+
+
+
+func UpdateProduct(c *gin.Context) {
+
+	id := c.Param("id")
+
+	product, err := repositories.GetProductById(id)
+	if err != nil {
+		c.JSON(404, gin.H{
+			"message": "Proizvod nije pronadjen",
+			"error": err.Error(),
+		})
+		return
+	}
+
+	err = c.ShouldBindJSON(product)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Neispravni podaci", "error": err.Error()})
+		return
+	}
+
+	err = repositories.UpdateProduct(product)
+	if err != nil {
+		c.JSON(500, gin.H{
+			"message": "Greska pri azuriranju proizvoda",
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(200, product)
+}
