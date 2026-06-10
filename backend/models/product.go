@@ -13,9 +13,9 @@ type Product struct {
 
 	Unit string `gorm:"not null"`
 
-	PruchasePrice float64 `gorm:"not null"`
-	MarginPercent float64 `gorm:"default:0.0"`
-	VatPercent float64 `gorm:"default:0.0"`
+	PruchasePrice *float64 
+	MarginPercent *float64 
+	VatPercent *float64 //zvezdica znaci da je ovo optional moze biti prazno 
 	SalePrice float64 `gorm:"not null"`
 
 	StockQuantity int `gorm:"default:0"`

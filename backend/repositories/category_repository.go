@@ -1,13 +1,11 @@
 package repositories
 
 import ("am-keramika-backend/models"
-	"am-keramika-backend/database"
-	"gorm.io/gorm")
+	"am-keramika-backend/database")
 
 
 func CreateCategory(category models.Category) error {
 	result := database.DB.Create(&category)
-
 	return result.Error
 }
 
