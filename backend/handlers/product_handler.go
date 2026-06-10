@@ -1,17 +1,24 @@
 package handlers
 
+import (
+	"net/http"
+	"am-keramika-backend/models"
+	"am-keramika-backend/repositories"
+	"github.com/gin-gonic/gin"
+)
 
 func CreateProduct(c *gin.Context) {
 	var product models.Product
 	if err := c.ShouldBindJSON(&product); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Neispravni podaci",)
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Neispravni podaci", "error": err.Error()})
 		return
 	}
 
-	err = repositories.CreateProduct(&product)
+	err := repositories.CreateProduct(&product)
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message": "Greska pri kreiranju proizvoda",
+			"error": err.Error(),
 		})
 		return
 	}
@@ -24,6 +31,7 @@ func GetAllProducts(c *gin.Context) {
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message": "Greska pri ucitavanju proizvoda",
+			"error": err.Error(),
 		})
 		return
 	}

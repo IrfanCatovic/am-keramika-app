@@ -38,8 +38,13 @@ func main() {
 	r.POST("/users", handlers.CreateUser)
 	r.GET("/users/:username", handlers.GetUserByUsername)
 	r.DELETE("/users/:id", handlers.DeleteUser)
+
+
 	r.POST("/categories", handlers.CreateCategory)
 	r.GET("/categories", handlers.GetCategories)
+
+	r.POST("/products", handlers.CreateProduct)
+	r.GET("/products", handlers.GetAllProducts)
 
 	err = r.Run(":" + port)
 	if err != nil {
