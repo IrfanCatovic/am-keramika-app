@@ -5,25 +5,31 @@ import (
 	"am-keramika-backend/models"
 	"am-keramika-backend/repositories"
 	"github.com/gin-gonic/gin"
+	"am-keramika-backend/dto"
 )
 
 func CreateProduct(c *gin.Context) {
-	var product models.Product
-	if err := c.ShouldBindJSON(&product); err != nil {
+	var req dto.CreateProductRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Neispravni podaci", "error": err.Error()})
 		return
 	}
 
-	err := repositories.CreateProduct(&product)
-	if err != nil {
-		c.JSON(500, gin.H{
-			"message": "Greska pri kreiranju proizvoda",
-			"error": err.Error(),
-		})
-		return
+	product := models.Product{
+		Name: req.Name,
+		CategoryID: req.CategoryID,
+		Unit: req.Unit,
+		SalePrice: req.SalePrice,
+		StockQuantity: req.StockQuantity,
+		Description: req.Description,
 	}
 
-	c.JSON(201, product)
+	err := repositories.CreateProduct(&product)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Greska pri kreiranju proizvoda", "error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, product)
 }
 
 func GetAllProducts(c *gin.Context) {
@@ -59,7 +65,6 @@ func GetProductById(c *gin.Context) {
 func UpdateProduct(c *gin.Context) {
 
 	id := c.Param("id")
-
 	product, err := repositories.GetProductById(id)
 	if err != nil {
 		c.JSON(404, gin.H{
@@ -69,11 +74,20 @@ func UpdateProduct(c *gin.Context) {
 		return
 	}
 
-	err = c.ShouldBindJSON(product)
+	var req dto.UpdateProductRequest
+
+	err = c.ShouldBindJSON(&req)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Neispravni podaci", "error": err.Error()})
 		return
 	}
+
+	product.Name = req.Name
+	product.CategoryID = req.CategoryID
+	product.Unit = req.Unit
+	product.SalePrice = req.SalePrice
+	product.StockQuantity = req.StockQuantity
+	product.Description = req.Description
 
 	err = repositories.UpdateProduct(product)
 	if err != nil {
