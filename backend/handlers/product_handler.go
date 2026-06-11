@@ -105,7 +105,7 @@ func DeactivateProduct(c *gin.Context) {
 	id := c.Param("id")
 	err := repositories.DeactivateProduct(id)
 	if err != nil {
-		c.JSON(500, gin.H{
+		c.JSON(404, gin.H{
 			"message": "Greska pri deaktiviranju proizvoda",
 			"error": err.Error(),
 		})

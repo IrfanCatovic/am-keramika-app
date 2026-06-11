@@ -3,6 +3,7 @@ package repositories
 import (
 	"am-keramika-backend/database"
 	"am-keramika-backend/models"
+	"errors"
 )
 
 func CreateProduct(product *models.Product) error {
@@ -37,5 +38,14 @@ func UpdateProduct(product *models.Product) error {
 
 func DeactivateProduct(id string) error {
 	result := database.DB.Model(&models.Product{}).Where("id = ?", id).Update("active", false)
-	return result.Error
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return errors.New("proizvod nije pronađen")
+	}
+
+	return nil 
 }
