@@ -33,7 +33,8 @@ func CreateProduct(c *gin.Context) {
 }
 
 func GetAllProducts(c *gin.Context) {
-	products, err := repositories.GetAllProducts()
+	search := c.Query("search")
+	products, err := repositories.GetAllProducts(search)
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message": "Greska pri ucitavanju proizvoda",

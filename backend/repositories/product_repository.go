@@ -12,10 +12,16 @@ func CreateProduct(product *models.Product) error {
 	return result.Error	
 }
 
-func GetAllProducts() ([]models.Product, error) {
+func GetAllProducts(search string) ([]models.Product, error) {
   var products []models.Product
 
-  result := database.DB.Preload("Category").Find(&products)
+  query := database.DB.Preload("Category").Where("active = ?", true)
+
+  if search != "" {
+	query = query.Where("name ILIKE ?", "%"+search+"%")
+  }
+
+  result := query.Find(&products)//ako je search prazan, vrati sve proizvode, ako nije, vrati proizvode koji sadrze search u imenu
 
   return products, result.Error
 }
