@@ -32,3 +32,15 @@ func GetCategories(c *gin.Context) {
 	c.JSON(http.StatusOK, categories)
 	return
 }
+
+func GetCategoryById(c *gin.Context) {
+
+	id := c.Param("id")
+	category, err := repositories.GetCategoryByID(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message":"greska pri dobavljanju kategorije",}) 
+		return
+	}
+	c.JSON(http.StatusOK, category)
+	return
+}

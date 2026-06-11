@@ -18,3 +18,13 @@ func GetCategories() ([]models.Category, error) {
 	return categories, nil
 }
 
+
+func GetCategoryByID(id string)(*models.Category, error) {
+	var category models.Category
+
+	result := database.DB.Preload("Products").First(&category, id)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &category, nil
+}

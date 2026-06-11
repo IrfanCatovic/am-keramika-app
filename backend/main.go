@@ -42,6 +42,7 @@ func main() {
 
 	r.POST("/categories", handlers.CreateCategory)
 	r.GET("/categories", handlers.GetCategories)
+	r.GET("/categories/:id", handlers.GetCategoryById)
 
 	r.POST("/products", handlers.CreateProduct)
 	r.GET("/products", handlers.GetAllProducts)

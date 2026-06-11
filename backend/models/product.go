@@ -8,7 +8,7 @@ type Product struct {
 	Slug string `gorm:"unique;not null"`
 	Description string
 
-	CategoryID int `gorm:"not null"`
+	CategoryID uint `gorm:"not null"`
 	Category Category `gorm:"foreignKey:CategoryID"`
 
 	Unit string `gorm:"not null"`
@@ -18,8 +18,8 @@ type Product struct {
 	VatPercent *float64 //zvezdica znaci da je ovo optional moze biti prazno 
 	SalePrice float64 `gorm:"not null"`
 
-	StockQuantity int `gorm:"default:0"`
-	MinStockQuantity int `gorm:"default:0"`
+	StockQuantity float64 `gorm:"default:0"`
+	MinStockQuantity float64 `gorm:"default:0"`
 
 	HasVariants bool `gorm:"default:false"`
 
