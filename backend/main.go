@@ -48,6 +48,7 @@ func main() {
 	r.GET("/products", handlers.GetAllProducts)
 	r.GET("/products/:id", handlers.GetProductById)
 	r.PUT("/products/:id", handlers.UpdateProduct)
+	r.PUT("/products/:id/deactivate", handlers.DeactivateProduct)
 
 	err = r.Run(":" + port)
 	if err != nil {

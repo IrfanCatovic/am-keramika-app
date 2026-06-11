@@ -21,7 +21,6 @@ func GetAllProducts() ([]models.Product, error) {
 
 func GetProductById(id string) (*models.Product, error) {
 	var product models.Product
-
 	result := database.DB.Preload("Category").First(&product, id)
 
 	if result.Error != nil {
@@ -32,8 +31,11 @@ func GetProductById(id string) (*models.Product, error) {
 }
 
 func UpdateProduct(product *models.Product) error {
-
 	result := database.DB.Save(&product)
+	return result.Error
+}
 
+func DeactivateProduct(id string) error {
+	result := database.DB.Model(&models.Product{}).Where("id = ?", id).Update("active", false)
 	return result.Error
 }

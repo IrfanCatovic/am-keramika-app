@@ -100,3 +100,19 @@ func UpdateProduct(c *gin.Context) {
 
 	c.JSON(200, product)
 }
+
+func DeactivateProduct(c *gin.Context) {
+	id := c.Param("id")
+	err := repositories.DeactivateProduct(id)
+	if err != nil {
+		c.JSON(500, gin.H{
+			"message": "Greska pri deaktiviranju proizvoda",
+			"error": err.Error(),
+		})
+		return
+	}
+	c.JSON(200, gin.H{
+		"message": "Proizvod je deaktiviran",
+	})
+}
+
