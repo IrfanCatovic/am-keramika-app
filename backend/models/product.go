@@ -4,21 +4,25 @@ import "gorm.io/gorm"
 
 type Product struct {
 	gorm.Model
-	Name string `gorm:"not null"`
+
+	Name string
+
 	Slug string `gorm:"unique;not null"`
+
 	Description string
 
-	CategoryID uint `gorm:"not null"`
+	CategoryID uint
 	Category Category `gorm:"foreignKey:CategoryID"`
 
-	Unit string `gorm:"not null"`
+	Unit string
 
-	PruchasePrice *float64 
-	MarginPercent *float64 
-	VatPercent *float64 //zvezdica znaci da je ovo optional moze biti prazno 
-	SalePrice float64 `gorm:"not null"`
+	PurchasePrice *float64
+	MarginPercent *float64
+	VatPercent *float64
 
-	StockQuantity float64 `gorm:"default:0"`
+	SalePrice float64
+
+	StockQuantity float64
 	MinStockQuantity float64 `gorm:"default:0"`
 
 	HasVariants bool `gorm:"default:false"`
@@ -26,5 +30,4 @@ type Product struct {
 	IsActive bool `gorm:"default:true"`
 	IsOnSale bool `gorm:"default:false"`
 	ShowOnHomepage bool `gorm:"default:false"`
-	
 }
