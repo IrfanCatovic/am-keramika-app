@@ -28,6 +28,7 @@ func main() {
 		&models.User{}, 
 		&models.Category{},
 		&models.Product{},
+		&models.InventoryMovement{},
 	)
 	if err != nil {
 		log.Fatal("Neuspjela migracija modela: ", err)
