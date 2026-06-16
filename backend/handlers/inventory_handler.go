@@ -47,3 +47,22 @@ func AdjustStock(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Stok prilagođen", "data": req})
 }
 
+func SellStock(c *gin.Context) {
+	var req dto.SellStockRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Neuspjelo bindovanje JSON-a", "error": err.Error()})
+		return
+	}
+
+	//Privremeno dok nema autentifikacije
+	//kasnije ce se dobiti iz JWT tokena
+	createdByUserID := uint(7) //privremeno dok nema autentifikacije
+
+	err := repositories.SellStock(req.ProductID, req.Quantity, req.Note, createdByUserID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspjelo prodajanje stoka", "error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Stok prodat", "data": req})
+}

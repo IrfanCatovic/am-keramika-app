@@ -13,4 +13,8 @@ type AdjustStockRequest struct {
 	Note string `json:"note"`
 }
 
-
+type SellStockRequest struct {
+	ProductID uint `json:"productID" binding:"required"`
+	Quantity float64 `json:"quantity" binding:"required,gt=0"`
+	Note string `json:"note"`
+}
