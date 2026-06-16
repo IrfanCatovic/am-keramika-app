@@ -5,7 +5,7 @@ import (
 	"am-keramika-backend/models"
 )
 
-func AddStock(productID uint, quantity float64, note string, createdByUserI	D uint) error {
+func AddStock(productID uint, quantity float64, note string, createdByUserID uint) error {
 	tx := database.DB.Begin() //ovde kreiramo transakciju
 
 	var product models.Product 

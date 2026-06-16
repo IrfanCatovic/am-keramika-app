@@ -51,6 +51,8 @@ func main() {
 	r.PUT("/products/:id", handlers.UpdateProduct)
 	r.PUT("/products/:id/deactivate", handlers.DeactivateProduct)
 
+	r.POST("/inventory/add", handlers.AddStock)
+
 	err = r.Run(":" + port)
 	if err != nil {
 		log.Fatal("Neuspjela pokretanje servera: ", err)
