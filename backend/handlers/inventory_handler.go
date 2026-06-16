@@ -58,11 +58,19 @@ func SellStock(c *gin.Context) {
 	//kasnije ce se dobiti iz JWT tokena
 	createdByUserID := uint(7) //privremeno dok nema autentifikacije
 
-	err := repositories.SellStock(req.ProductID, req.Quantity, req.Note, createdByUserID)
+	result, err := repositories.SellStock(req.ProductID, req.Quantity, req.Note, createdByUserID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspjelo prodajanje stoka", "error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Stok prodat", "data": req})
+	response := gin.H{
+		"message": "Prodaja uspjesno evidentirana"
+	}
+
+	if result.Warning != "" {
+		response["warning"] = result.Warning
+	}
+
+	c.JSON(http.StatusOK, response)
 }

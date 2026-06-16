@@ -6,6 +6,10 @@ import (
 	"errors"
 )
 
+type SellStockResult struct{
+	Warning string
+}
+
 func AddStock(productID uint, quantity float64, note string, createdByUserID uint) error {
 	tx := database.DB.Begin() //ovde kreiramo transakciju
 
@@ -76,19 +80,27 @@ func AdjustStock(productID uint, quantity float64, note string, createdByUserID 
 	return tx.Commit().Error
 }
 
-func SellStock(productID uint, quantity float64, note string, createdByUserID uint) error {
+func SellStock(productID uint, quantity float64, note string, createdByUserID uint) (*SellStockResult, error) {
 	tx := database.DB.Begin()
 
 	var product models.Product
 	err := tx.First(&product, productID).Error
 	if err != nil {
 		tx.Rollback()
-		return err
+		return nil, err
 	}
 
 	if product.StockQuantity < quantity {
 		tx.Rollback()
-		return errors.New("nema dovoljno robe na stanju")
+		return nil, errors.New("nema dovoljno robe na stanju")
+	}
+
+	product.StockQuantity -= quantity
+
+	err = tx.Save(&product).Error
+	if err != nil {
+		tx.Rollback()
+		return nil, err
 	}
 
 	movement := models.InventoryMovement{
@@ -102,9 +114,20 @@ func SellStock(productID uint, quantity float64, note string, createdByUserID ui
 	err = tx.Create(&movement).Error
 	if err != nil {
 		tx.Rollback()
-		return err
+		return nil, err
 	}
 
-	return tx.Commit().Error
+	err = tx.Commit().Error
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+	result := &SellStockResult{}
+
+	if product.StockQuantity < product.MinStockQuantity {
+		result.Warning = "Proizvod je pao ispod minimalnog lagera"
+	}
+
+	return result, nil
 
 }
