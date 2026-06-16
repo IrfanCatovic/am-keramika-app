@@ -11,4 +11,8 @@ type InventoryMovement struct {
 	Quantity float64
 	Note string
 
+
+	CreatedByUserID uint
+	CreatedByUser User `gorm:"foreignKey:CreatedByUserID"`
+	
 }
