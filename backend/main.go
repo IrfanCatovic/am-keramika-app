@@ -52,6 +52,7 @@ func main() {
 	r.PUT("/products/:id/deactivate", handlers.DeactivateProduct)
 
 	r.POST("/inventory/add", handlers.AddStock)
+	r.POST("/inventory/adjust", handlers.AdjustStock)
 
 	err = r.Run(":" + port)
 	if err != nil {

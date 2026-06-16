@@ -39,3 +39,39 @@ func AddStock(productID uint, quantity float64, note string, createdByUserID uin
 
 	return tx.Commit().Error	
 }
+
+func AdjustStock(productID uint, quantity float64, note string, createdByUserID uint) error {
+	tx := database.DB.Begin()
+
+	var product models.Product
+	err := tx.First(&product, productID).Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	product.StockQuantity += quantity
+
+	err = tx.Save(&product).Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	movement := models.InventoryMovement{
+		ProductID: productID,
+		CreatedByUserID: createdByUserID,
+		MovementType: "adjust",
+		Quantity: quantity,
+		Note: note,
+	}
+
+	err = tx.Create(&movement).Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit().Error
+}
+
