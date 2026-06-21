@@ -9,7 +9,7 @@ import (
 )
 
 func CreateInvoice(req dto.CreateInvoiceRequest, createdByUserID uint) (*models.Invoice, error) {
- 	tx := database.GetDB().Begin()
+ 	tx := database.DB.Begin()
 	
 	invoice := models.Invoice{
 		CreatedByUserID: createdByUserID,
@@ -31,12 +31,12 @@ func CreateInvoice(req dto.CreateInvoiceRequest, createdByUserID uint) (*models.
 		err:= tx.First(&product, item.ProductID).Error
 		if err != nil {
 			tx.Rollback()
-			return nil, err
+			return nil, errors.New("proizvod nije pronađen")
 		}
 
-		if product.Stock < item.Quantity {
+		if product.StockQuantity < item.Quantity {
 			tx.Rollback()
-			return nil, errors.New("nema dovoljno stoka")
+			return nil, errors.New("nema dovoljno stoka na skladištu")
 		}
 
 		unitPrice := product.SalePrice
@@ -56,7 +56,7 @@ func CreateInvoice(req dto.CreateInvoiceRequest, createdByUserID uint) (*models.
 		return nil, err
 	}
 
-	product.Stock -= item.Quantity
+	product.StockQuantity -= item.Quantity
 
 	err = tx.Save(&product).Error
 	if err != nil {
@@ -64,7 +64,7 @@ func CreateInvoice(req dto.CreateInvoiceRequest, createdByUserID uint) (*models.
 		return nil, err
 	}
 
-	movement := models.Movement{
+	movement := models.InventoryMovement{
 		ProductID: product.ID,
 		CreatedByUserID: createdByUserID,
 		MovementType: "sale",

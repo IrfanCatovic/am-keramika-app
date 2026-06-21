@@ -56,6 +56,8 @@ func main() {
 	r.POST("/inventory/add", handlers.AddStock)
 	r.POST("/inventory/adjust", handlers.AdjustStock)
 	r.POST("/inventory/sell", handlers.SellStock)
+
+	r.POST("/invoices", handlers.CreateInvoice)
 	
 
 	err = r.Run(":" + port)
