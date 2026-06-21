@@ -65,12 +65,11 @@ func SellStock(c *gin.Context) {
 	}
 
 	response := gin.H{
-		"message": "Prodaja uspjesno evidentirana"
-	}
+		"message": "Prodaja uspjesno evidentirana",
+	}	
 
 	if result.Warning != "" {
 		response["warning"] = result.Warning
 	}
-
 	c.JSON(http.StatusOK, response)
 }

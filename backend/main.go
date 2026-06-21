@@ -29,6 +29,8 @@ func main() {
 		&models.Category{},
 		&models.Product{},
 		&models.InventoryMovement{},
+		&models.Invoice{},
+		&models.InvoiceItem{},
 	)
 	if err != nil {
 		log.Fatal("Neuspjela migracija modela: ", err)
@@ -54,6 +56,7 @@ func main() {
 	r.POST("/inventory/add", handlers.AddStock)
 	r.POST("/inventory/adjust", handlers.AdjustStock)
 	r.POST("/inventory/sell", handlers.SellStock)
+	
 
 	err = r.Run(":" + port)
 	if err != nil {
