@@ -116,10 +116,12 @@ func GetInvoiceByID(id uint) (*models.Invoice, error) {
 	return &invoice, nil
 }
 
-func GetAllInvoices() ([]models.Invoice, error) {
+func GetAllInvoices(page int, limit int) ([]models.Invoice, error) {
 	var invoices []models.Invoice
 
-	err := database.DB.Order("created_at DESC").Find(&invoices).Error
+	offset := (page - 1) * limit
+
+	err := database.DB.Order("created_at DESC").Offset(offset).Limit(limit).Find(&invoices).Error
 
 	if err != nil {
 		return nil, err

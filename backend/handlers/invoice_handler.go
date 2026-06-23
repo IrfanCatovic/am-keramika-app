@@ -64,8 +64,27 @@ func GetInvoiceByID(c *gin.Context) {
 }
 
 func GetAllInvoices(c *gin.Context) {
+	pageStr := c.Query("page")
+	limitStr := c.Query("limit")
 
-	invoices, err := repositories.GetAllInvoices()
+	page := 1
+	limit := 20
+
+	if pageStr != "" {
+		parsedPage, err := strconv.Atoi(pageStr)
+		if err == nil && parsedPage > 0 {
+			page = parsedPage
+		}
+	}
+
+	if limitStr != "" {
+		parsedLimit, err := strconv.Atoi(limitStr)
+		if err == nil && parsedLimit > 0 && parsedLimit <= 50 {
+			limit = parsedLimit
+		}
+	}
+
+	invoices, err := repositories.GetAllInvoices(page, limit)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspjelo dobavljanje faktura"})
 		return
