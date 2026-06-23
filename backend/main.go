@@ -58,7 +58,7 @@ func main() {
 	r.POST("/inventory/sell", handlers.SellStock)
 
 	r.POST("/invoices", handlers.CreateInvoice)
-	
+	r.GET("/invoices/:id", handlers.GetInvoiceByID)
 
 	err = r.Run(":" + port)
 	if err != nil {

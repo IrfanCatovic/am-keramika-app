@@ -5,6 +5,7 @@ import(
 	"am-keramika-backend/dto"
 	"net/http"
 	"github.com/gin-gonic/gin"
+	"strconv"
 )
 
 func CreateInvoice(c *gin.Context) {
@@ -25,4 +26,22 @@ func CreateInvoice(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"invoice": invoice})
+}
+
+func GetInvoiceByID(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID nije validan"})
+		return
+	}
+
+	invoice, err := repositories.GetInvoiceByID(uint(id))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Račun nije pronađen"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"invoice": invoice})
+
 }

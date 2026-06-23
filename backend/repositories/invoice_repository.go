@@ -101,3 +101,16 @@ func CreateInvoice(req dto.CreateInvoiceRequest, createdByUserID uint) (*models.
 
 	return &invoice, nil
 }
+
+func GetInvoiceByID(id uint) (*models.Invoice, error) {
+
+	var invoice models.Invoice
+
+	err := database.DB.Preload("Items").Preload("Items.Product").First(&invoice, id).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &invoice, nil
+}
