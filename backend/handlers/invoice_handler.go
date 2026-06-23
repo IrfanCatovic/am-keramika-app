@@ -1,11 +1,12 @@
 package handlers
 
-import(
-	"am-keramika-backend/repositories"
+import (
 	"am-keramika-backend/dto"
+	"am-keramika-backend/repositories"
 	"net/http"
-	"github.com/gin-gonic/gin"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 func CreateInvoice(c *gin.Context) {
@@ -42,6 +43,22 @@ func GetInvoiceByID(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"invoice": invoice})
+	response := dto.InvoiceResponse{
+		ID:          invoice.ID,
+		TotalAmount: invoice.TotalAmount,
+		Status:      invoice.Status,
+		Items:       []dto.InvoiceItemResponse{},
+	}
 
+	for _, item := range invoice.Items {
+		response.Items = append(response.Items, dto.InvoiceItemResponse{
+			ProductID:   item.ProductID,
+			ProductName: item.Product.Name,
+			Quantity:    item.Quantity,
+			UnitPrice:   item.UnitPrice,
+			TotalPrice:  item.TotalPrice,
+		})
+	}
+
+	c.JSON(http.StatusOK, response)
 }
