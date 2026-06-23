@@ -4,12 +4,12 @@ import (
 	"log"
 	"os"
 
-
-	"github.com/gin-gonic/gin"	
-	"github.com/joho/godotenv"
 	"am-keramika-backend/database"
-	"am-keramika-backend/models"
 	"am-keramika-backend/handlers"
+	"am-keramika-backend/models"
+
+	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -25,7 +25,7 @@ func main() {
 
 	database.ConnectDB()
 	err = database.DB.AutoMigrate(
-		&models.User{}, 
+		&models.User{},
 		&models.Category{},
 		&models.Product{},
 		&models.InventoryMovement{},
@@ -41,7 +41,6 @@ func main() {
 	r.POST("/users", handlers.CreateUser)
 	r.GET("/users/:username", handlers.GetUserByUsername)
 	r.DELETE("/users/:id", handlers.DeleteUser)
-
 
 	r.POST("/categories", handlers.CreateCategory)
 	r.GET("/categories", handlers.GetCategories)
@@ -59,6 +58,7 @@ func main() {
 
 	r.POST("/invoices", handlers.CreateInvoice)
 	r.GET("/invoices/:id", handlers.GetInvoiceByID)
+	r.GET("/invoices", handlers.GetAllInvoices)
 
 	err = r.Run(":" + port)
 	if err != nil {

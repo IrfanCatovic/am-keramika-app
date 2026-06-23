@@ -26,3 +26,11 @@ type InvoiceResponse struct {
 	Status       string                `json:"status"`
 	Items        []InvoiceItemResponse `json:"items"`
 }
+
+type InvoiceListResponse struct {
+	ID           uint    `json:"id"`
+	CustomerName string  `json:"customerName"`
+	TotalAmount  float64 `json:"totalAmount"`
+	Status       string  `json:"status"`
+	CreatedAt    string  `json:"createdAt"`
+}

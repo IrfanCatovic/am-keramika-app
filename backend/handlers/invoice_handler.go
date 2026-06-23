@@ -62,3 +62,25 @@ func GetInvoiceByID(c *gin.Context) {
 
 	c.JSON(http.StatusOK, response)
 }
+
+func GetAllInvoices(c *gin.Context) {
+
+	invoices, err := repositories.GetAllInvoices()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspjelo dobavljanje faktura"})
+		return
+	}
+
+	response := []dto.InvoiceListResponse{}
+	for _, invoice := range invoices {
+		response = append(response, dto.InvoiceListResponse{
+			ID:           invoice.ID,
+			CustomerName: invoice.CustomerName,
+			TotalAmount:  invoice.TotalAmount,
+			Status:       invoice.Status,
+			CreatedAt:    invoice.CreatedAt.Format("2006-01-02 15:04"),
+		})
+	}
+	c.JSON(http.StatusOK, response)
+
+}

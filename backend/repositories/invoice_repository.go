@@ -115,3 +115,16 @@ func GetInvoiceByID(id uint) (*models.Invoice, error) {
 
 	return &invoice, nil
 }
+
+func GetAllInvoices() ([]models.Invoice, error) {
+	var invoices []models.Invoice
+
+	err := database.DB.Order("created_at DESC").Find(&invoices).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return invoices, nil
+
+}
