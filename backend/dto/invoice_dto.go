@@ -1,7 +1,8 @@
 package dto
 
 type CreateInvoiceRequest struct {
-	Items []CreateInvoiceItemRequest `json:"items" binding:"required"`
+	CustomerName string                     `json:"customerName" `
+	Items        []CreateInvoiceItemRequest `json:"items" binding:"required"`
 }
 
 type CreateInvoiceItemRequest struct {
@@ -19,8 +20,9 @@ type InvoiceItemResponse struct {
 }
 
 type InvoiceResponse struct {
-	ID          uint                  `json:"id"`
-	TotalAmount float64               `json:"totalAmount"`
-	Status      string                `json:"status"`
-	Items       []InvoiceItemResponse `json:"items"`
+	ID           uint                  `json:"id"`
+	CustomerName string                `json:"customerName"`
+	TotalAmount  float64               `json:"totalAmount"`
+	Status       string                `json:"status"`
+	Items        []InvoiceItemResponse `json:"items"`
 }

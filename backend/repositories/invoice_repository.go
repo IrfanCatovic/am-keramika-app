@@ -3,19 +3,20 @@ package repositories
 import (
 	"errors"
 
-	"am-keramika-backend/models"
 	"am-keramika-backend/database"
 	"am-keramika-backend/dto"
+	"am-keramika-backend/models"
 )
 
 func CreateInvoice(req dto.CreateInvoiceRequest, createdByUserID uint) (*models.Invoice, error) {
- 	tx := database.DB.Begin()
-	
+	tx := database.DB.Begin()
+
 	invoice := models.Invoice{
 		CreatedByUserID: createdByUserID,
-		Status: "paid",
-		TotalAmount: 0,
-	}	
+		CustomerName:    req.CustomerName,
+		Status:          "paid",
+		TotalAmount:     0,
+	}
 
 	err := tx.Create(&invoice).Error //kreira fakturu u bazi da bi dobili ID fakture
 	if err != nil {
@@ -28,7 +29,7 @@ func CreateInvoice(req dto.CreateInvoiceRequest, createdByUserID uint) (*models.
 	for _, item := range req.Items {
 		var product models.Product
 
-		err:= tx.First(&product, item.ProductID).Error
+		err := tx.First(&product, item.ProductID).Error
 		if err != nil {
 			tx.Rollback()
 			return nil, errors.New("proizvod nije pronađen")
@@ -43,43 +44,43 @@ func CreateInvoice(req dto.CreateInvoiceRequest, createdByUserID uint) (*models.
 		totalPrice := unitPrice * item.Quantity
 
 		invoiceItem := models.InvoiceItem{
-			InvoiceID: invoice.ID,
-			ProductID: product.ID,
-			Quantity: item.Quantity,
-			UnitPrice: unitPrice,
+			InvoiceID:  invoice.ID,
+			ProductID:  product.ID,
+			Quantity:   item.Quantity,
+			UnitPrice:  unitPrice,
 			TotalPrice: totalPrice,
+		}
+
+		err = tx.Create(&invoiceItem).Error
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+
+		product.StockQuantity -= item.Quantity
+
+		err = tx.Save(&product).Error
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+
+		movement := models.InventoryMovement{
+			ProductID:       product.ID,
+			CreatedByUserID: createdByUserID,
+			MovementType:    "sale",
+			Quantity:        item.Quantity,
+			Note:            "Prodaja kroz racun",
+		}
+
+		err = tx.Create(&movement).Error
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+
+		totalAmount += totalPrice
 	}
-
-	err = tx.Create(&invoiceItem).Error
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-
-	product.StockQuantity -= item.Quantity
-
-	err = tx.Save(&product).Error
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-
-	movement := models.InventoryMovement{
-		ProductID: product.ID,
-		CreatedByUserID: createdByUserID,
-		MovementType: "sale",
-		Quantity: item.Quantity,
-		Note: "Prodaja kroz racun",
-	}
-
-	err = tx.Create(&movement).Error
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-
-	totalAmount += totalPrice
-}
 
 	invoice.TotalAmount = totalAmount
 
