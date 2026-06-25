@@ -116,19 +116,23 @@ func GetInvoiceByID(id uint) (*models.Invoice, error) {
 	return &invoice, nil
 }
 
-func GetAllInvoices(page int, limit int) ([]models.Invoice, int64, error) {
+func GetAllInvoices(page int, limit int, customerName string) ([]models.Invoice, int64, error) {
 	var invoices []models.Invoice
 	var total int64
 	
+	query := database.DB.Model(&models.Invoice{})
+	if customerName != "" {
+		query = query.Where("customer_name LIKE ?", "%"+customerName+"%")
+	}
 
 	offset := (page - 1) * limit
 
-	err := database.DB.Model(&models.Invoice{}).Count(&total).Error
+	err := query.Count(&total).Error
 	if err != nil {
 		return nil, 0, err
 	}
 	
-	err = database.DB.Order("created_at DESC").Limit(limit).Offset(offset).Find(&invoices).Error
+	err = query.Order("created_at DESC").Limit(limit).Offset(offset).Find(&invoices).Error
 	if err != nil {
 		return nil, 0, err
 	}
