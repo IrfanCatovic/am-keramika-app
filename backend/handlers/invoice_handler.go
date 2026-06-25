@@ -5,7 +5,7 @@ import (
 	"am-keramika-backend/repositories"
 	"net/http"
 	"strconv"
-
+	"math"
 	"github.com/gin-gonic/gin"
 )
 
@@ -84,13 +84,14 @@ func GetAllInvoices(c *gin.Context) {
 		}
 	}
 
-	invoices, err := repositories.GetAllInvoices(page, limit)
+	invoices, total, err := repositories.GetAllInvoices(page, limit)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspjelo dobavljanje faktura"})
 		return
 	}
 
-	response := []dto.InvoiceListResponse{}
+
+	response := []dto.InvoiceListResponse{}	
 	for _, invoice := range invoices {
 		response = append(response, dto.InvoiceListResponse{
 			ID:           invoice.ID,
@@ -100,6 +101,13 @@ func GetAllInvoices(c *gin.Context) {
 			CreatedAt:    invoice.CreatedAt.Format("2006-01-02 15:04"),
 		})
 	}
-	c.JSON(http.StatusOK, response)
+	totalPages := int(math.Ceil(float64(total) / float64(limit)))
+	c.JSON(http.StatusOK, dto.PaginatedInvoiceResponse{
+		Data: response,
+		Page: page,
+		Limit: limit,
+		Total: total,
+		TotalPages: totalPages,
+	})
 
 }

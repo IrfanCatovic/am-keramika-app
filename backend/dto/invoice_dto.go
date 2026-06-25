@@ -34,3 +34,12 @@ type InvoiceListResponse struct {
 	Status       string  `json:"status"`
 	CreatedAt    string  `json:"createdAt"`
 }
+
+type PaginatedInvoiceResponse struct {
+
+	Data []InvoiceListResponse `json:"data"`
+	Page int `json:"page"`
+	Limit int `json:"limit"`
+	Total int64 `json:"total"`
+	TotalPages int `json:"totalPages"`
+}
