@@ -120,7 +120,7 @@ func GetAllInvoices(page int, limit int, customerName string) ([]models.Invoice,
 	var invoices []models.Invoice
 	var total int64
 	
-	query := database.DB.Model(&models.Invoice{})
+	query := database.DB.Model(&models.Invoice{}) //Radicemo sa invoice tabelom
 	if customerName != "" {
 		query = query.Where("customer_name LIKE ?", "%"+customerName+"%")
 	}
