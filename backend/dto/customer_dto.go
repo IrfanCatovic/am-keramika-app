@@ -17,6 +17,22 @@ type CustomerListResponse struct {
 	Phone string `json:"phone"`
 }
 
+type CustomerDetailsResponse struct {
+	ID uint `json:"id"`
+	Name string `json:"name"`
+	Phone string `json:"phone"`
+	Debt float64 `json:"debt"`
+	Invoices []CustomerInvoiceResponse `json:"invoices"`
+}
+
+type CustomerInvoiceResponse struct {
+	ID uint `json:"id"`
+	TotalAmount float64 `json:"totalAmount"`
+	Status string `json:"status"`
+	CreatedAt string `json:"createdAt"`
+}
+
+
 type PaginatedCustomerResponse struct {
 	Data []CustomerListResponse `json:"data"`
 	Page int `json:"page"`

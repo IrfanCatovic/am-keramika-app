@@ -32,3 +32,14 @@ func GetAllCustomers(page int, limit int) ([]models.Customer, int64, error) {
 	return customers, total, nil
 
 }
+
+func GetCustomerByID(id uint) (*models.Customer, error) {
+	var customer models.Customer
+	
+	err := database.DB.Preload("Invoices").First(&customer, id).Error
+
+	if err != nil {
+		return nil, err
+	}
+	return &customer, nil
+}

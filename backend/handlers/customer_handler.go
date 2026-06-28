@@ -79,3 +79,34 @@ func GetAllCustomers(c *gin.Context) {
 	})
 	return
 }
+
+func GetCustomerByID(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid customer ID", "error": err.Error()})
+		return
+	}
+	customer, err := repositories.GetCustomerByID(uint(id))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to get customer", "error": err.Error()})
+		return
+	}
+	response := dto.CustomerDetailsResponse{
+		ID: customer.ID,
+		Name: customer.Name,
+		Phone: customer.Phone,
+		Debt: 0,
+		Invoices: []dto.CustomerInvoiceResponse{},
+	}
+
+	for _, invoice := range customer.Invoices {
+		response.Invoices = append(response.Invoices, dto.CustomerInvoiceResponse{
+			ID: invoice.ID,
+			TotalAmount: invoice.TotalAmount,
+			Status: invoice.Status,
+			CreatedAt: invoice.CreatedAt.Format("2006-01-02 15:04"),
+		})
+	}
+	c.JSON(http.StatusOK, response)
+	return
+}
