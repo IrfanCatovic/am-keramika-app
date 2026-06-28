@@ -1,6 +1,10 @@
 package repositories
 
-import "am-keramika-backend/database"
+import (
+	"am-keramika-backend/database"
+	"am-keramika-backend/models"
+)
+
 
 func CreateCustomer(customer *models.Customer) error {
 

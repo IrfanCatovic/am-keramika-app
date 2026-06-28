@@ -5,3 +5,8 @@ type CreateCustomerRequest struct {
 	Phone string `json:"phone"`
 }
 
+type CustomerResponse struct {
+	ID uint `json:"id"`
+	Name string `json:"name"`
+	Phone string `json:"phone"`
+}

@@ -25,8 +25,12 @@ func CreateCustomer(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to create customer", "error": err.Error()})
 		return
 	}
-
-	c.JSON(http.StatusOK, gin.H{"customer": customer})
+	response := dto.CustomerResponse{ //pravimo rucno response da bi vratili klijentu sta je neophodno, a ne sve iz modela
+		ID: customer.ID,
+		Name: customer.Name,
+		Phone: customer.Phone,
+	}
+	c.JSON(http.StatusOK, gin.H{"customer": response})
 	return
 }
 
