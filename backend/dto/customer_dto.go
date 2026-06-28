@@ -16,3 +16,11 @@ type CustomerListResponse struct {
 	Name string `json:"name"`
 	Phone string `json:"phone"`
 }
+
+type PaginatedCustomerResponse struct {
+	Data []CustomerListResponse `json:"data"`
+	Page int `json:"page"`
+	Limit int `json:"limit"`
+	Total int64 `json:"total"`
+	TotalPages int `json:"total_pages"`
+}

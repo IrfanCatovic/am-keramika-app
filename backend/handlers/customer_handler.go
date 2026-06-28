@@ -6,6 +6,8 @@ import (
 	"am-keramika-backend/repositories"
 	"net/http"
 	"github.com/gin-gonic/gin"
+	"strconv"
+	"math"
 )
 
 func CreateCustomer(c *gin.Context) {
@@ -34,3 +36,46 @@ func CreateCustomer(c *gin.Context) {
 	return
 }
 
+func GetAllCustomers(c *gin.Context) {
+	pageStr := c.Query("page")
+	limitStr := c.Query("limit")
+
+	page, limit := 1, 20
+	if pageStr != "" {
+		parsedPage, err := strconv.Atoi(pageStr)
+		if err == nil && parsedPage > 0 {
+			page = parsedPage
+		}
+	}
+	if limitStr != "" {
+		parsedLimit, err := strconv.Atoi(limitStr)
+		if err == nil && parsedLimit > 0 && parsedLimit <= 50 {
+			limit = parsedLimit
+		}
+	}
+
+	customers, total, err := repositories.GetAllCustomers(page, limit)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to get customers", "error": err.Error()})
+		return
+	}
+
+	response := []dto.CustomerListResponse{}
+	for _, customer := range customers {
+		response = append(response, dto.CustomerListResponse{
+			ID: customer.ID,
+			Name: customer.Name,
+			Phone: customer.Phone,
+		})
+	}
+
+	totalPages := int(math.Ceil(float64(total) / float64(limit))) // zaokruzuje broj strana na vecu npr 63 / 20 = 3.15, pa je 4 strana
+	c.JSON(http.StatusOK, dto.PaginatedCustomerResponse{
+		Data: response,
+		Page: page,
+		Limit: limit,
+		Total: total,
+		TotalPages: totalPages,
+	})
+	return
+}

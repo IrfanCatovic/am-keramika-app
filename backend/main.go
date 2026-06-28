@@ -61,6 +61,10 @@ func main() {
 	r.GET("/invoices/:id", handlers.GetInvoiceByID)
 	r.GET("/invoices", handlers.GetAllInvoices)
 
+	r.POST("/customers", handlers.CreateCustomer)
+	r.GET("/customers", handlers.GetAllCustomers)
+	
+
 	err = r.Run(":" + port)
 	if err != nil {
 		log.Fatal("Neuspjela pokretanje servera: ", err)
