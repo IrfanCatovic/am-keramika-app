@@ -31,6 +31,7 @@ func main() {
 		&models.InventoryMovement{},
 		&models.Invoice{},
 		&models.InvoiceItem{},
+		&models.Customer{},
 	)
 	if err != nil {
 		log.Fatal("Neuspjela migracija modela: ", err)

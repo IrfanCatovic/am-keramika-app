@@ -8,7 +8,8 @@ type Invoice struct {
 	CreatedByUserID uint
 	CreatedByUser   User `gorm:"foreignKey:CreatedByUserID"`
 
-	CustomerName string
+	CustomerID *uint
+	Customer   *Customer `gorm:"foreignKey:CustomerID"`
 
 	TotalAmount float64       `gorm:"not null"`
 	Status      string        `gorm:"not null"`
