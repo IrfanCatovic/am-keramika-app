@@ -10,3 +10,9 @@ type CustomerResponse struct {
 	Name string `json:"name"`
 	Phone string `json:"phone"`
 }
+
+type CustomerListResponse struct {
+	ID uint `json:"id"`
+	Name string `json:"name"`
+	Phone string `json:"phone"`
+}
