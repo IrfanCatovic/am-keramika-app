@@ -13,7 +13,7 @@ func CreateInvoice(req dto.CreateInvoiceRequest, createdByUserID uint) (*models.
 
 	invoice := models.Invoice{
 		CreatedByUserID: createdByUserID,
-		CustomerName:    req.CustomerName,
+		CustomerID: 	 req.CustomerID,
 		Status:          "paid",
 		TotalAmount:     0,
 	}
@@ -116,14 +116,12 @@ func GetInvoiceByID(id uint) (*models.Invoice, error) {
 	return &invoice, nil
 }
 
-func GetAllInvoices(page int, limit int, customerName string) ([]models.Invoice, int64, error) {
+func GetAllInvoices(page int, limit int) ([]models.Invoice, int64, error) {
 	var invoices []models.Invoice
 	var total int64
-	
+		
 	query := database.DB.Model(&models.Invoice{}) //Radicemo sa invoice tabelom
-	if customerName != "" {
-		query = query.Where("customer_name LIKE ?", "%"+customerName+"%")
-	}
+
 
 	offset := (page - 1) * limit
 
@@ -132,7 +130,7 @@ func GetAllInvoices(page int, limit int, customerName string) ([]models.Invoice,
 		return nil, 0, err
 	}
 	
-	err = query.Order("created_at DESC").Limit(limit).Offset(offset).Find(&invoices).Error
+	err = query.Preload("Customer").Order("created_at DESC").Limit(limit).Offset(offset).Find(&invoices).Error
 	if err != nil {
 		return nil, 0, err
 	}

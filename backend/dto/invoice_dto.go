@@ -7,7 +7,7 @@ type CreateInvoiceRequest struct {
 
 type CreateInvoiceItemRequest struct {
 	ProductID uint `json:"productID" binding:"required"`
-
+	CustomerID *uint `json:"customerID"`
 	Quantity float64 `json:"quantity" binding:"required,gt=0"`
 }
 
