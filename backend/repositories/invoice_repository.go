@@ -107,7 +107,7 @@ func GetInvoiceByID(id uint) (*models.Invoice, error) {
 
 	var invoice models.Invoice
 
-	err := database.DB.Preload("Items").Preload("Items.Product").First(&invoice, id).Error
+	err := database.DB.Preload("Customer").Preload("Items").Preload("Items.Product").First(&invoice, id).Error
 
 	if err != nil {
 		return nil, err

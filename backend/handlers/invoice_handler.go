@@ -49,6 +49,13 @@ func GetInvoiceByID(c *gin.Context) {
 		Status:      invoice.Status,
 		Items:       []dto.InvoiceItemResponse{},
 	}
+	if invoice.Customer != nil {
+		response.Customer = &dto.CustomerResponse{
+			ID: invoice.Customer.ID,
+			Name: invoice.Customer.Name,
+			Phone: invoice.Customer.Phone,
+		}
+	}
 
 	for _, item := range invoice.Items {
 		response.Items = append(response.Items, dto.InvoiceItemResponse{

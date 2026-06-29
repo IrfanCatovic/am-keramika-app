@@ -1,13 +1,12 @@
 package dto
 
 type CreateInvoiceRequest struct {
-	CustomerName string                     `json:"customerName" `
+	CustomerID *uint `json:"customerID"`
 	Items        []CreateInvoiceItemRequest `json:"items" binding:"required"`
 }
 
 type CreateInvoiceItemRequest struct {
 	ProductID uint `json:"productID" binding:"required"`
-	CustomerID *uint `json:"customerID"`
 	Quantity float64 `json:"quantity" binding:"required,gt=0"`
 }
 
@@ -21,7 +20,10 @@ type InvoiceItemResponse struct {
 
 type InvoiceResponse struct {
 	ID           uint                  `json:"id"`
-	CustomerName string                `json:"customerName"`
+	Customer *CustomerResponse `json:"customer,omitempty"` // Ovde se koristi CustomerResponse  
+	// ID uint `json:"id"`
+	// Name string `json:"name"`
+	// Phone string `json:"phone"` 
 	TotalAmount  float64               `json:"totalAmount"`
 	Status       string                `json:"status"`
 	Items        []InvoiceItemResponse `json:"items"`
