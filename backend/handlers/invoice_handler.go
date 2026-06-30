@@ -75,6 +75,7 @@ func GetInvoiceByID(c *gin.Context) {
 func GetAllInvoices(c *gin.Context) {
 	pageStr := c.Query("page")
 	limitStr := c.Query("limit")
+	search := c.Query("search")
 
 	page := 1
 	limit := 20
@@ -93,7 +94,7 @@ func GetAllInvoices(c *gin.Context) {
 		}
 	}
 
-	invoices, total, err := repositories.GetAllInvoices(page, limit)
+	invoices, total, err := repositories.GetAllInvoices(page, limit, search)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspjelo dobavljanje faktura"})
 		return

@@ -116,12 +116,16 @@ func GetInvoiceByID(id uint) (*models.Invoice, error) {
 	return &invoice, nil
 }
 
-func GetAllInvoices(page int, limit int) ([]models.Invoice, int64, error) {
+func GetAllInvoices(page int, limit int, search string) ([]models.Invoice, int64, error) {
 	var invoices []models.Invoice
 	var total int64
 		
 	query := database.DB.Model(&models.Invoice{}) //Radicemo sa invoice tabelom
 
+	if search != "" {
+		query = query.Joins("JOIN customers ON customers.id = invoices.customer_id"). //radimo JOIN tj INNER JOIN sa customers tabelom, jer se fakture spajaju sa kupcima preko customer_id
+		Where("customers.name LIKE ?", "%"+search+"%") //Inner join ne vraca nule ako nema kupca, dok left join vraca nule ako nema kupca
+	}
 
 	offset := (page - 1) * limit
 
