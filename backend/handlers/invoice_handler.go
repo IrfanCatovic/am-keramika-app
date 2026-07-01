@@ -78,8 +78,16 @@ func GetAllInvoices(c *gin.Context) {
 	search := c.Query("search")
 	status := c.Query("status")
 
+	sort := c.Query("sort")
+	direction := c.Query("direction")
+
 	page := 1
 	limit := 20
+
+	if status != "" && !models.IsValidInvoiceStatus(status) { //imamo u model invoce status koji je ovog tipa sa mogucnostima paid i unpaid
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Neispravan status fakture"})
+		return
+	}
 
 	if pageStr != "" {
 		parsedPage, err := strconv.Atoi(pageStr)
@@ -94,8 +102,16 @@ func GetAllInvoices(c *gin.Context) {
 			limit = parsedLimit
 		}
 	}
+	if sort != "" && !models.IsValidInvoiceSort(sort) {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Neispravan sort fakture"})
+		return
+	}
+	if direction != "" && !models.IsValidSortDirection(direction) {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Neispravan direction fakture"})
+		return
+	}
 
-	invoices, total, err := repositories.GetAllInvoices(page, limit, search, status)
+	invoices, total, err := repositories.GetAllInvoices(page, limit, search, status, sort, direction)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspjelo dobavljanje faktura"})
 		return

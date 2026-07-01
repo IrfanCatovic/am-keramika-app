@@ -12,6 +12,32 @@ type Invoice struct {
 	Customer   *Customer `gorm:"foreignKey:CustomerID"`
 
 	TotalAmount float64       `gorm:"not null"`
-	Status      string        `gorm:"not null"`
+	Status      InvoiceStatus `gorm:"not null"`
 	Items       []InvoiceItem `gorm:"foreignKey:InvoiceID"`
 }
+
+type InvoiceStatus string
+
+const (
+	InvoiceStatusPaid   InvoiceStatus = "paid"
+	InvoiceStatusUnpaid InvoiceStatus = "unpaid"
+)
+
+func IsValidInvoiceStatus(status string) bool {
+	return status == string(InvoiceStatusPaid) ||
+		status == string(InvoiceStatusUnpaid)
+}
+//imamo status tipa InvoiceStatus koji je string i ima mogucnosti paid i unpaid
+//ovo je funkcija koja provjerava da li je status validan
+//u handleru posle na osnovu ove funkcije provjeravamo da li je status validan i ako nije, vracamo error
+
+
+func IsValidInvoiceSort(status string) bool {
+	return status == "createdAt" || 
+		status == "totalAmount"
+}
+
+func IsValidSortDirection(direction string) bool {
+	return direction == "asc" || direction == "desc"
+}
+
