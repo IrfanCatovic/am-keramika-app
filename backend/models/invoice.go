@@ -12,6 +12,7 @@ type Invoice struct {
 	Customer   *Customer `gorm:"foreignKey:CustomerID"`
 
 	TotalAmount float64       `gorm:"not null"`
+	PaidAmount  float64       `gorm:"not null;default:0"`
 	Status      InvoiceStatus `gorm:"not null"`
 	Items       []InvoiceItem `gorm:"foreignKey:InvoiceID"`
 }
@@ -21,11 +22,17 @@ type InvoiceStatus string
 const (
 	InvoiceStatusPaid   InvoiceStatus = "paid"
 	InvoiceStatusUnpaid InvoiceStatus = "unpaid"
-)
+	InvoiceStatusPartiallyPaid InvoiceStatus = "partiallyPaid"
+	InvoiceStatusCancelled InvoiceStatus = "cancelled"
+)	
 
 func IsValidInvoiceStatus(status string) bool {//ako je jedan od ova dva stringa, vrati true
-	return status == string(InvoiceStatusPaid) ||
-		status == string(InvoiceStatusUnpaid)
+	switch InvoiceStatus(status) {
+		case InvoiceStatusPaid, InvoiceStatusUnpaid, InvoiceStatusPartiallyPaid, InvoiceStatusCancelled:
+			return true
+		default:
+			return false
+	}
 }
 //imamo status tipa InvoiceStatus koji je string i ima mogucnosti paid i unpaid
 //ovo je funkcija koja provjerava da li je status validan
