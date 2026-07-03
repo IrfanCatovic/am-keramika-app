@@ -23,7 +23,7 @@ const (
 	InvoiceStatusUnpaid InvoiceStatus = "unpaid"
 )
 
-func IsValidInvoiceStatus(status string) bool {
+func IsValidInvoiceStatus(status string) bool {//ako je jedan od ova dva stringa, vrati true
 	return status == string(InvoiceStatusPaid) ||
 		status == string(InvoiceStatusUnpaid)
 }

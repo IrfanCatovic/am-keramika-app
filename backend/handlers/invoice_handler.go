@@ -3,6 +3,7 @@ package handlers
 import (
 	"am-keramika-backend/dto"
 	"am-keramika-backend/repositories"
+	"am-keramika-backend/models"
 	"net/http"
 	"strconv"
 	"math"
@@ -46,7 +47,7 @@ func GetInvoiceByID(c *gin.Context) {
 	response := dto.InvoiceResponse{
 		ID:          invoice.ID,
 		TotalAmount: invoice.TotalAmount,
-		Status:      invoice.Status,
+		Status:      string(invoice.Status),
 		Items:       []dto.InvoiceItemResponse{},
 	}
 	if invoice.Customer != nil {
@@ -129,7 +130,7 @@ func GetAllInvoices(c *gin.Context) {
 			ID:           invoice.ID,
 			CustomerName: customerName,
 			TotalAmount:  invoice.TotalAmount,
-			Status:       invoice.Status,
+			Status:       string(invoice.Status),
 			CreatedAt:    invoice.CreatedAt.Format("2006-01-02 15:04"),
 		})
 	}

@@ -116,7 +116,7 @@ func GetInvoiceByID(id uint) (*models.Invoice, error) {
 	return &invoice, nil
 }
 
-func GetAllInvoices(page int, limit int, search string, status string) ([]models.Invoice, int64, error) {
+func GetAllInvoices(page int, limit int, search string, status string, sort string, direction string) ([]models.Invoice, int64, error) {
 	var invoices []models.Invoice
 	var total int64
 		
@@ -124,11 +124,21 @@ func GetAllInvoices(page int, limit int, search string, status string) ([]models
 
 	if search != "" {
 		query = query.Joins("JOIN customers ON customers.id = invoices.customer_id"). //radimo JOIN tj INNER JOIN sa customers tabelom, jer se fakture spajaju sa kupcima preko customer_id
-		Where("customers.name LIKE ?", "%"+search+"%") //Inner join ne vraca nule ako nema kupca, dok left join vraca nule ako nema kupca
+		Where("customers.name ILIKE ?", "%"+search+"%") //Inner join ne vraca nule ako nema kupca, dok left join vraca nule ako nema kupca
 	}
 
 	if status != "" {
 		query = query.Where("invoices.status = ?", status)
+	}
+
+	sortColumn := "created_at"
+	sortDirection := "DESC"
+
+	if sort == "totalAmount" {
+		sortColumn = "total_amount"
+	}
+	if direction == "asc" {
+		sortDirection = "ASC"
 	}
 
 	offset := (page - 1) * limit
@@ -138,7 +148,7 @@ func GetAllInvoices(page int, limit int, search string, status string) ([]models
 		return nil, 0, err
 	}
 	
-	err = query.Preload("Customer").Order("created_at DESC").Limit(limit).Offset(offset).Find(&invoices).Error
+	err = query.Preload("Customer").Order(sortColumn + " " + sortDirection).Limit(limit).Offset(offset).Find(&invoices).Error
 	if err != nil {
 		return nil, 0, err
 	}

@@ -103,7 +103,7 @@ func GetCustomerByID(c *gin.Context) {
 		response.Invoices = append(response.Invoices, dto.CustomerInvoiceResponse{
 			ID: invoice.ID,
 			TotalAmount: invoice.TotalAmount,
-			Status: invoice.Status,
+			Status: string(invoice.Status),
 			CreatedAt: invoice.CreatedAt.Format("2006-01-02 15:04"),
 		})
 	}
