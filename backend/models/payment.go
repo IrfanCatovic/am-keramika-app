@@ -9,6 +9,8 @@ type Payment struct {
 	CreatedByUserID uint `gorm:"not null"`
 	TotalAmount float64 `gorm:"not null"`
 
+	Customer Customer `gorm:"foreignKey:CustomerID"`
+	CreatedByUser User `gorm:"foreignKey:CreatedByUserID"`
 	Allocations []PaymentAllocation `gorm:"foreignKey:PaymentID"`
 }
 
