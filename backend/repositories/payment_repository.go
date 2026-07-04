@@ -27,6 +27,25 @@ func CreatePayment(req dto.CreatePaymentRequest, createdByUserID uint) (models.P
 		return models.Payment{}, err
 	}
 
+	//Provera da li postoji slice sa raspodelom racuna i da li postoji duplikat raspodele racuna
+	if len(req.Allocations) == 0 {
+		tx.Rollback()
+		return models.Payment{}, errors.New("Uplata mora imati bar jedna racun")
+	}
+
+	seenInvoiceIDs := make(map[uint]bool)
+	for  _, allocationReq := range req.Allocations { 
+		if allocationReq.Amount <= 0 {
+			tx.Rollback()
+			return models.Payment{}, errors.New("iznos alokacije mora biti pozitivan")
+		}
+		if seenInvoiceIDs[allocationReq.InvoiceID] {
+			tx.Rollback()
+			return models.Payment{}, errors.New("isti račun ne može biti dodat dva puta u jednoj uplati")
+		}
+
+		seenInvoiceIDs[allocationReq.InvoiceID] = true
+	}
 
 	tx.Rollback()
 
