@@ -67,6 +67,7 @@ func main() {
 	r.GET("/customers", handlers.GetAllCustomers)
 	r.GET("/customers/:id", handlers.GetCustomerByID)
 	
+	r.POST("/payments", handlers.CreatePayment)
 
 	err = r.Run(":" + port)
 	if err != nil {
