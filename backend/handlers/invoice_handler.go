@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"strings"
 	"am-keramika-backend/dto"
 	"am-keramika-backend/repositories"
 	"am-keramika-backend/models"
@@ -144,4 +145,47 @@ func GetAllInvoices(c *gin.Context) {
 		TotalPages: totalPages,
 	})
 
+}
+
+func GetCustomerOpenInvoices(c *gin.Context) {
+	customerIDParam := c.Param("id")
+
+	customerIDUint64, err := strconv.ParseUint(customerIDParam, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "neispravan ID kupca"})
+		return
+	}
+
+	customerID := uint(customerIDUint64)
+	invoices, err := repositories.GetOpenInvoicesByCustomerID(customerID)
+
+	if err != nil {
+		statusCode := http.StatusInternalServerError
+
+		if strings.Contains(err.Error(), "kupac nije pronađen") {
+			statusCode = http.StatusNotFound
+		}
+
+		c.JSON(statusCode, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	response := []dto.InvoiceListResponse{}
+	for _, invoice := range invoices {
+		remainingAmount := invoice.TotalAmount - invoice.PaidAmount
+		response = append(response, dto.InvoiceListResponse{
+			ID: invoice.ID,
+			TotalAmount: invoice.TotalAmount,
+			PaidAmount: invoice.PaidAmount,
+			RemainingAmount: remainingAmount,
+			Status: string(invoice.Status),
+			CreatedAt: invoice.CreatedAt.Format("2006-01-02 15:04"),
+		})
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"data":    response,
+		"message": "Otvoreni racuni kupca su uspesno ucitani",
+	})
 }
