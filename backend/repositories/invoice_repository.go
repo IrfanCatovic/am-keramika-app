@@ -187,3 +187,24 @@ func GetAllInvoices(page int, limit int, search string, status string, sort stri
 	return invoices, total, nil
 }
 	
+
+func GetOpenInvoicesByCustomerID(customerID uint)([]models.Invoice, error) {
+	var customer models.Customer
+
+	err := database.DB.First(&customer, customerID).Error
+	if err != nil {
+		return nil, errors.New("kupac nije pronađen")
+	}
+	
+	var invoices []models.Invoice
+
+	err = database.DB.Where("customer_id = ? AND status IN ?", customerID, []models.InvoiceStatus{
+		models.InvoiceStatusUnpaid,
+		models.InvoiceStatusPartiallyPaid,
+	}).Order("created_at DESC").Find(&invoices).Error
+
+	if err != nil {
+		return nil, err
+	}
+	return invoices, nil
+}

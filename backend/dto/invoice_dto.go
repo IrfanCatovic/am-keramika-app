@@ -33,6 +33,7 @@ type InvoiceListResponse struct {
 	ID           uint    `json:"id"`
 	CustomerName string  `json:"customerName"`
 	TotalAmount  float64 `json:"totalAmount"`
+	PaidAmount   float64 `json:"paidAmount"`
 	Status       string  `json:"status"`
 	CreatedAt    string  `json:"createdAt"`
 }
@@ -44,4 +45,12 @@ type PaginatedInvoiceResponse struct {
 	Limit int `json:"limit"`
 	Total int64 `json:"total"`
 	TotalPages int `json:"totalPages"`
+}
+
+type CustomerOpenInvoicesResponse struct {
+	ID           uint    `json:"id"`
+	TotalAmount  float64 `json:"totalAmount"`
+	PaidAmount   float64 `json:"paidAmount"`
+	RemainingAmount float64 `json:"remainingAmount"`
+	CreatedAt    string  `json:"createdAt"`
 }

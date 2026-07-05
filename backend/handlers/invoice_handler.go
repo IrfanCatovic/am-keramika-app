@@ -130,6 +130,7 @@ func GetAllInvoices(c *gin.Context) {
 			ID:           invoice.ID,
 			CustomerName: customerName,
 			TotalAmount:  invoice.TotalAmount,
+			PaidAmount:  invoice.PaidAmount,
 			Status:       string(invoice.Status),
 			CreatedAt:    invoice.CreatedAt.Format("2006-01-02 15:04"),
 		})
