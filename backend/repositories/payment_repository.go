@@ -2,7 +2,7 @@ package repositories
 
 import (
 	"errors"
-
+	"fmt"
 	"am-keramika-backend/dto"
 	"am-keramika-backend/models"
 	"am-keramika-backend/database"
@@ -66,6 +66,15 @@ func CreatePayment(req dto.CreatePaymentRequest, createdByUserID uint) (models.P
 		if invoice.CustomerID == nil || *invoice.CustomerID != customer.ID {
 			tx.Rollback()
 			return models.Payment{}, errors.New("racun ne pripada kupcu")
+		}
+
+		if invoice.Status == models.InvoiceStatusPaid {
+			tx.Rollback()
+			return models.Payment{}, fmt.Errorf("racun %d je vec placen", invoice.ID)
+		}
+		if invoice.Status == models.InvoiceStatusCancelled {
+			tx.Rollback()
+			return models.Payment{}, fmt.Errorf("ne moze se izvrsiti uplata na storniran racun %d", invoice.ID)
 		}
 
 		remainingAmount := invoice.TotalAmount - invoice.PaidAmount

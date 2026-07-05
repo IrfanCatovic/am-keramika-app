@@ -2,6 +2,7 @@ package handlers
 
 import (
 
+	"strings"
 	"net/http"
 	"am-keramika-backend/dto"
 	"am-keramika-backend/models"
@@ -59,8 +60,20 @@ func CreatePayment(c *gin.Context) {
 
 	payment, err := repositories.CreatePayment(req, userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspesno kreiranje uplate" ,"error": err.Error()})
-		return
+		statusCode := http.StatusInternalServerError
+			errorMessage := err.Error()
+			if strings.Contains(errorMessage, "vec placen") ||
+				strings.Contains(errorMessage, "storniran") ||
+				strings.Contains(errorMessage, "ne pripada") ||
+				strings.Contains(errorMessage, "ne postoji") ||
+				strings.Contains(errorMessage, "iznos") {
+				statusCode = http.StatusBadRequest //ovaj ceo error radi samo da bi bratili greske 400 jer to su greske korisnika, a ne 500 neocekivane greske
+	}
+
+	c.JSON(statusCode, gin.H{
+		"error": errorMessage,
+	})
+	return
 	}
 
 	response := buildPaymentResponse(payment)
