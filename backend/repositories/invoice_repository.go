@@ -6,16 +6,33 @@ import (
 	"am-keramika-backend/database"
 	"am-keramika-backend/dto"
 	"am-keramika-backend/models"
+	"gorm.io/gorm"
 )
 
 func CreateInvoice(req dto.CreateInvoiceRequest, createdByUserID uint) (*models.Invoice, error) {
 	tx := database.DB.Begin()
 
+	if req.CustomerID != nil {
+		var customer models.Customer
+
+		err := tx.First(&customer, *req.CustomerID).Error
+		if err != nil {
+			tx.Rollback()
+			return nil, errors.New("kupac nije pronađen")
+		}
+	}
+
+	invoiceStatus := models.InvoiceStatusPaid
+	if req.CustomerID != nil {
+		invoiceStatus = models.InvoiceStatusUnpaid
+	}
+
 	invoice := models.Invoice{
 		CreatedByUserID: createdByUserID,
 		CustomerID: 	 req.CustomerID,
-		Status:          "paid",
+		Status:          invoiceStatus,
 		TotalAmount:     0,
+		PaidAmount:      0,
 	}
 
 	err := tx.Create(&invoice).Error //kreira fakturu u bazi da bi dobili ID fakture
@@ -82,7 +99,22 @@ func CreateInvoice(req dto.CreateInvoiceRequest, createdByUserID uint) (*models.
 		totalAmount += totalPrice
 	}
 
-	invoice.TotalAmount = totalAmount
+	invoice.TotalAmount = totalAmount 
+
+	if req.CustomerID == nil {
+		invoice.PaidAmount = totalAmount
+		invoice.Status = models.InvoiceStatusPaid
+	} else {
+		invoice.PaidAmount = 0
+		invoice.Status = models.InvoiceStatusUnpaid
+
+		err = tx.Model(&models.Customer{}).Where("id = ?", *req.CustomerID).Update("total_debt", gorm.Expr("total_debt + ?", totalAmount)).Error
+
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+	}
 
 	err = tx.Save(&invoice).Error
 	if err != nil {

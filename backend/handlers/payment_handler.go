@@ -69,16 +69,11 @@ func CreatePayment(c *gin.Context) {
 				strings.Contains(errorMessage, "iznos") {
 				statusCode = http.StatusBadRequest //ovaj ceo error radi samo da bi bratili greske 400 jer to su greske korisnika, a ne 500 neocekivane greske
 	}
-
 	c.JSON(statusCode, gin.H{
 		"error": errorMessage,
 	})
 	return
 	}
-
 	response := buildPaymentResponse(payment)
-
 	c.JSON(http.StatusOK, gin.H{"message": "Uplata je uspesno kreirana", "data": response})
-
-	
 }
