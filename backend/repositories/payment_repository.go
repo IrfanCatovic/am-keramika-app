@@ -6,7 +6,7 @@ import (
 	"am-keramika-backend/dto"
 	"am-keramika-backend/models"
 	"am-keramika-backend/database"
-
+	"math"
 	"gorm.io/gorm"
 )
 
@@ -25,6 +25,18 @@ func CreatePayment(req dto.CreatePaymentRequest, createdByUserID uint) (models.P
 			return models.Payment{}, errors.New("kupac ne postoji")
 		}
 		return models.Payment{}, err
+	}
+
+	var allocationTotal float64 = 0.0
+
+	for _, allocationReq := range req.Allocations {
+		allocationTotal += allocationReq.Amount
+	}
+
+	if math.Abs(allocationTotal-req.TotalAmount) > 0.01 { //Pošto koristimo float64, direktno poređenje može nekad biti nezgodno zbog decimala. 
+	// Kod nas su verovatno cene cele ili sa dve decimale, ali dobra praksa je da koristimo malu toleranciju.
+		tx.Rollback()
+		return models.Payment{}, errors.New("ukupan iznos uplate se ne poklapa sa raspodelom po racunima")
 	}
 
 	//Provera da li postoji slice sa raspodelom racuna i da li postoji duplikat raspodele racuna
