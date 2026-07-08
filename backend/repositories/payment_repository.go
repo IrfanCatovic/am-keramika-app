@@ -29,6 +29,11 @@ func CreatePayment(req dto.CreatePaymentRequest, createdByUserID uint) (models.P
 
 	var allocationTotal float64 = 0.0
 
+	if req.TotalAmount <= 0 {
+		tx.Rollback()
+		return models.Payment{}, errors.New("ukupan iznos uplate mora biti pozitivan")
+	}
+
 	for _, allocationReq := range req.Allocations {
 		allocationTotal += allocationReq.Amount
 	}
@@ -174,4 +179,27 @@ func CreatePayment(req dto.CreatePaymentRequest, createdByUserID uint) (models.P
 		return payment, nil
 	}
 	return createdPayment, nil
+}
+
+func GetPaymentsByCustomerID(customerID uint) ([]models.Payment, error) {
+	var payments []models.Payment
+
+	err := database.DB.First(&customer, customerID).Error
+	if err != nil {
+		return nil, err
+	}
+
+	var payments []models.Payment
+	err = database.DB.
+	Preload("Customer").
+	Preload("CreatedByUser").
+	Preload("Allocations").
+	Preload("Allocations.Invoice").
+	Where("customer_id = ?", customerID).
+	Order("created_at DESC").
+	Find(&payments).Error
+	if err != nil {
+		return nil, err
+	}
+	return payments, nil
 }
