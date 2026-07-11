@@ -35,3 +35,5 @@ if err != nil {
 	fmt.Println("Uspješna konekcija na bazu")
 }
 
+//ovde moramo edit da uradimo kasnije
+
