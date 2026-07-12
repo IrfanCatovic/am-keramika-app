@@ -77,3 +77,33 @@ func CreatePayment(c *gin.Context) {
 	response := buildPaymentResponse(payment)
 	c.JSON(http.StatusOK, gin.H{"message": "Uplata je uspesno kreirana", "data": response})
 }
+
+func GetCustomerPayments(c *gin.Context) {
+	customerID := c.Param("id")
+
+	customerIDUint64, err := strconv.ParseUint(customerID, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Neispravan format kupca ID-ja"})
+		return
+	}
+
+	customerID := uint(customerIDUint64)
+
+	payments, err := repositories.GetPaymentsByCustomerID(customerID)
+	if err != nil {
+		statusCode := http.StatusInternalServerError
+
+		if strings.Contains(err.Error(), "kupac nije pronađen") {
+			statusCode = http.StatusNotFound
+		}
+
+		c.JSON(statusCode, gin.H{"error": err.Error()})
+		return
+	}
+
+	response := []dto.PaymentResponse{}
+	for _, payment := range payments {
+		response = append(response, buildPaymentResponse(payment))
+	}
+	c.JSON(http.StatusOK, gin.H{"data": response})
+}
