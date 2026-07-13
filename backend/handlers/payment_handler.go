@@ -107,3 +107,25 @@ func GetCustomerPayments(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"data": response})
 }
+
+func GetPaymentByID(c *gin.Context) {
+	paymentIDParam := c.Param("id")
+	paymentIDUint64, err := strconv.ParseUint(paymentIDParam, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "neispravan ID uplate",})
+		return
+	}
+
+	paymentID := uint(paymentIDUint64)
+	payment, err := repositories.GetPaymentByID(paymentID)
+	if err != nil {
+		statusCode := http.StatusInternalServerError
+		if strings.Contains(err.Error(), "uplata nije pronađena") {
+			statusCode = http.StatusNotFound
+		}
+		c.JSON(statusCode, gin.H{"error": err.Error()})
+		return
+	}
+	response := buildPaymentResponse(*payment)
+	c.JSON(http.StatusOK, gin.H{"data": response, "message": "Uplata je uspesno ucitana"})
+}

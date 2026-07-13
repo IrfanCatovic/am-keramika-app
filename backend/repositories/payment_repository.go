@@ -205,3 +205,21 @@ func GetPaymentsByCustomerID(customerID uint) ([]models.Payment, error) {
 	}
 	return payments, nil
 }
+
+func GetPaymentByID(paymentID uint) (*models.Payment, error) {
+	var payment models.Payment
+	err := database.DB.
+	Preload("Customer").
+	Preload("CreatedByUser").
+	Preload("Allocations").
+	Preload("Allocations.Invoice").
+	First(&payment, paymentID).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("uplata nije pronađena")
+		}
+
+		return nil, err
+	}
+	return &payment, nil
+}
