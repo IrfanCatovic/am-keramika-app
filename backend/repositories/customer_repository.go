@@ -1,8 +1,11 @@
 package repositories
 
 import (
+	"errors"
+	"gorm.io/gorm"
 	"am-keramika-backend/database"
 	"am-keramika-backend/models"
+	"am-keramika-backend/dto"
 )
 
 
@@ -42,4 +45,42 @@ func GetCustomerByID(id uint) (*models.Customer, error) {
 		return nil, err
 	}
 	return &customer, nil
+}
+
+func GetCustomerFinancialSummary(customerID uint) (*dto.CustomerFinancialSummaryResponse, error) {
+	var customer models.Customer
+	err := database.DB.First(&customer, customerID).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("customer not found")
+		}
+		return nil, err
+	}
+
+	var openInvoicesCount int64
+
+	err = database.DB.Model(&models.Invoice{}).Where("customer_id = ? AND status IN ?", customerID, 
+	[]models.InvoiceStatus{models.InvoiceStatusUnpaid, models.InvoiceStatusPartiallyPaid}).Count(&openInvoicesCount).Error //countamo broj otvorenih racuna, nisu placeni ili delimicno
+
+	if err != nil {
+		return nil, err
+	}
+
+	var paymentsCount int64
+	err = database.DB.Model(&models.Payment{}).Where("customer_id = ?", customerID).Count(&paymentsCount).Error //countamo broj placanja
+
+	if err != nil {
+		return nil, err
+	}
+
+	response := dto.CustomerFinancialSummaryResponse{
+		ID: customer.ID,
+		Name: customer.Name,
+		Phone: customer.Phone,
+		TotalDebt: customer.TotalDebt,
+		OpenInvoicesCount: openInvoicesCount,
+		PaymentsCount: paymentsCount,
+	}
+
+	return &response, nil
 }

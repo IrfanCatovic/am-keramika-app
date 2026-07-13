@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"github.com/gin-gonic/gin"
 	"strconv"
+	"strings"
 	"math"
 )
 
@@ -108,5 +109,31 @@ func GetCustomerByID(c *gin.Context) {
 		})
 	}
 	c.JSON(http.StatusOK, response)
+	return
+}
+
+func GetCustomerFinancialSummary(c *gin.Context) {
+	customerIDParam := c.Param("id")
+	customerIDUint64, err := strconv.ParseUint(customerIDParam, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "neispravan ID kupca"})
+		return
+	}
+	customerID := uint(customerIDUint64)
+	summary, err := repositories.GetCustomerFinancialSummary(customerID)
+	if err != nil {
+		statusCode := http.StatusInternalServerError
+
+		if strings.Contains(err.Error(), "kupac nije pronadjen") {
+			statusCode = http.StatusNotFound
+		}
+		c.JSON(statusCode, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": summary, "message": "Finansijski pregled kupca je uspesno ucitan"})
 	return
 }

@@ -40,3 +40,13 @@ type PaginatedCustomerResponse struct {
 	Total int64 `json:"total"`
 	TotalPages int `json:"total_pages"`
 }
+
+type CustomerFinancialSummaryResponse struct {
+	ID uint `json:"id"`
+	Name string `json:"name"`
+	Phone string `json:"phone"`
+	TotalDebt float64 `json:"totalDebt"`
+	OpenInvoicesCount int64 `json:"openInvoicesCount"`
+	PaymentsCount int64 `json:"paymentsCount"`
+}
+
