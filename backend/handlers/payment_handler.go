@@ -1,7 +1,7 @@
 package handlers
 
 import (
-
+	"strconv"
 	"strings"
 	"net/http"
 	"am-keramika-backend/dto"
@@ -79,9 +79,9 @@ func CreatePayment(c *gin.Context) {
 }
 
 func GetCustomerPayments(c *gin.Context) {
-	customerID := c.Param("id")
+	customerIDParam := c.Param("id")
 
-	customerIDUint64, err := strconv.ParseUint(customerID, 10, 32)
+	customerIDUint64, err := strconv.ParseUint(customerIDParam, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Neispravan format kupca ID-ja"})
 		return

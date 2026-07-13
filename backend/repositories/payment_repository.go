@@ -27,12 +27,13 @@ func CreatePayment(req dto.CreatePaymentRequest, createdByUserID uint) (models.P
 		return models.Payment{}, err
 	}
 
-	var allocationTotal float64 = 0.0
+	
 
 	if req.TotalAmount <= 0 {
 		tx.Rollback()
 		return models.Payment{}, errors.New("ukupan iznos uplate mora biti pozitivan")
 	}
+	var allocationTotal float64 = 0.0
 
 	for _, allocationReq := range req.Allocations {
 		allocationTotal += allocationReq.Amount
@@ -40,6 +41,7 @@ func CreatePayment(req dto.CreatePaymentRequest, createdByUserID uint) (models.P
 
 	if math.Abs(allocationTotal-req.TotalAmount) > 0.01 { //Pošto koristimo float64, direktno poređenje može nekad biti nezgodno zbog decimala. 
 	// Kod nas su verovatno cene cele ili sa dve decimale, ali dobra praksa je da koristimo malu toleranciju.
+	//total koji nam je stigao sa frontenda kao total i zbir svih iznosa putanja racuna da je isti zaokruzuje se i da bude min razlika za 0.01 to je praksa
 		tx.Rollback()
 		return models.Payment{}, errors.New("ukupan iznos uplate se ne poklapa sa raspodelom po racunima")
 	}
@@ -183,13 +185,13 @@ func CreatePayment(req dto.CreatePaymentRequest, createdByUserID uint) (models.P
 
 func GetPaymentsByCustomerID(customerID uint) ([]models.Payment, error) {
 	var payments []models.Payment
+	var customer models.Customer
 
 	err := database.DB.First(&customer, customerID).Error
 	if err != nil {
 		return nil, err
 	}
 
-	var payments []models.Payment
 	err = database.DB.
 	Preload("Customer").
 	Preload("CreatedByUser").

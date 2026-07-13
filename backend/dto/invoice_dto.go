@@ -34,6 +34,7 @@ type InvoiceListResponse struct {
 	CustomerName string  `json:"customerName"`
 	TotalAmount  float64 `json:"totalAmount"`
 	PaidAmount   float64 `json:"paidAmount"`
+	RemainingAmount float64 `json:"remainingAmount"`
 	Status       string  `json:"status"`
 	CreatedAt    string  `json:"createdAt"`
 }

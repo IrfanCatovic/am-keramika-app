@@ -2,6 +2,7 @@ package dto
 
 type CreatePaymentRequest struct {
 	CustomerID uint `json:"customerID" binding:"required"`
+	TotalAmount float64 `json:"totalAmount" binding:"required,gt=0"`
 	Allocations []CreatePaymentAllocationRequest `json:"allocations" binding:"required,min=1"`
 	}
 
