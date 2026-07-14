@@ -34,6 +34,8 @@ func main() {
 		&models.Customer{},
 		&models.Payment{},
 		&models.PaymentAllocation{},
+		&models.InvoiceCancellation{},
+		&models.Refund{},
 	)
 	if err != nil {
 		log.Fatal("Neuspjela migracija modela: ", err)

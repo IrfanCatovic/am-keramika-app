@@ -156,8 +156,8 @@ func CreateInvoice(req dto.CreateInvoiceRequest, createdByUserID uint) (*models.
 	err = database.DB.Preload("Items").Preload("Items.Product").First(&invoice, invoice.ID).Error
 	if err != nil {
 		return nil, err
+		}
 	}
-
 	return &invoice, nil
 }
 
@@ -233,4 +233,111 @@ func GetOpenInvoicesByCustomerID(customerID uint)([]models.Invoice, error) {
 		return nil, err
 	}
 	return invoices, nil
+}
+
+func CancelInvoice(id uint, req dto.CancelInvoiceRequest, createdByUserID uint) (*models.InvoiceCancellation, error) {
+	var invoice models.Invoice
+
+	tx := database.DB.Begin()
+
+	err := tx.Model(&models.Invoice{}).Preload("Items").First(&invoice, id).Error
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	if invoice.Status == models.InvoiceStatusCancelled {
+		tx.Rollback()
+		return nil, errors.New("racun je vec otkazan")
+	}
+
+	remainingAmount := invoice.TotalAmount - invoice.PaidAmount
+	refundedAmount := invoice.PaidAmount
+
+	
+
+	for _, item := range invoice.Items { //items je slice of InvoiceItem
+		var product models.Product
+		err = tx.First(&product, item.ProductID).Error
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+		product.StockQuantity += item.Quantity
+		err = tx.Save(&product).Error
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+		inventoryMovement := models.InventoryMovement{
+			ProductID: item.ProductID,
+			CreatedByUserID: createdByUserID,
+			MovementType: "return",
+			Quantity: item.Quantity,
+			Note: "Otkazan racun",
+		}
+		err = tx.Create(&inventoryMovement).Error
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+	}	
+
+	if invoice.CustomerID != nil {
+		var customer models.Customer
+		err = tx.First(&customer, *invoice.CustomerID).Error
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+		customer.TotalDebt -= remainingAmount
+		err = tx.Save(&customer).Error
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+	}
+ 
+	if refundedAmount > 0 {
+		refund := models.Refund{
+			InvoiceID: invoice.ID,
+			CreatedByUserID: createdByUserID,
+			Amount: refundedAmount,
+			Reason: req.Reason,
+		}
+		err = tx.Create(&refund).Error
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+	}
+
+	invoiceCancellation := models.InvoiceCancellation{
+		InvoiceID: invoice.ID,
+		CreatedByUserID: createdByUserID,
+		Reason: req.Reason,
+		DebtReducedAmount: remainingAmount,
+		RefundedAmount: refundedAmount,
+	}
+	err = tx.Create(&invoiceCancellation).Error
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	invoice.Status = models.InvoiceStatusCancelled
+	err = tx.Save(&invoice).Error
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+
+	err = tx.Commit().Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &invoiceCancellation, nil
+
 }
