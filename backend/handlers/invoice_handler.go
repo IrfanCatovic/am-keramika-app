@@ -189,3 +189,40 @@ func GetCustomerOpenInvoices(c *gin.Context) {
 		"message": "Otvoreni racuni kupca su uspesno ucitani",
 	})
 }
+
+func CancelInvoice(c *gin.Context) {
+	invoiceIDParam := c.Param("id")
+	invoiceIDUint64, err := strconv.ParseUint(invoiceIDParam, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "neispravan ID fakture"})
+		return
+	}
+	invoiceID := uint(invoiceIDUint64)
+
+	var req dto.CancelInvoiceRequest
+	err = c.ShouldBindJSON(&req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	createdByUserID := uint(7)
+	invoiceCancellation, err := repositories.CancelInvoice(invoiceID, req, createdByUserID)
+	if err != nil {
+
+		statusCode := http.StatusInternalServerError
+		if strings.Contains(err.Error(), "vec otkazan") {
+			statusCode = http.StatusBadRequest
+		}
+
+		if strings.Contains(err.Error(), "record not found") {
+			statusCode = http.StatusNotFound
+		}
+
+		c.JSON(statusCode, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data":invoiceCancellation,"message": "Racun je uspesno storniran",})
+	return
+}

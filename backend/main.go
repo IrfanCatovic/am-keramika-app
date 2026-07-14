@@ -65,6 +65,7 @@ func main() {
 	r.POST("/invoices", handlers.CreateInvoice)
 	r.GET("/invoices/:id", handlers.GetInvoiceByID)
 	r.GET("/invoices", handlers.GetAllInvoices)
+	r.PUT("/invoices/:id/cancel", handlers.CancelInvoice)
 
 	r.POST("/customers", handlers.CreateCustomer)
 	r.GET("/customers", handlers.GetAllCustomers)
