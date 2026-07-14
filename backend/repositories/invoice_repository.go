@@ -82,6 +82,32 @@ func CreateInvoice(req dto.CreateInvoiceRequest, createdByUserID uint) (*models.
 			return nil, err
 		}
 
+		//ovaj blok radimo ako nema kupca odmah cim se napravi racun pravi se i placanje i raspodela placanja na racun
+		if req.CustomerID == nil {
+			payment := models.Payment{
+				CustomerID: nil,
+				CreatedByUserID: createdByUserID,
+				TotalAmount: totalAmount,
+		}
+
+		err = tx.Create(&payment).Error
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+
+		allocation := models.PaymentAllocation{
+			PaymentID: payment.ID,
+			InvoiceID: invoice.ID,
+			Amount: totalAmount,
+		}
+		err = tx.Create(&allocation).Error
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+
+
 		movement := models.InventoryMovement{
 			ProductID:       product.ID,
 			CreatedByUserID: createdByUserID,
