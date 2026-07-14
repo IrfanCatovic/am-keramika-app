@@ -1,7 +1,7 @@
 package dto
 
 type CreatePaymentRequest struct {
-	CustomerID uint `json:"customerID" binding:"required"`
+	CustomerID uint `json:"customerID,omitempty" binding:"required"`
 	TotalAmount float64 `json:"totalAmount" binding:"required,gt=0"`
 	Allocations []CreatePaymentAllocationRequest `json:"allocations" binding:"required,min=1"`
 	}
@@ -13,7 +13,7 @@ type CreatePaymentAllocationRequest struct {
 
 type PaymentResponse struct {
 	ID uint `json:"id"`
-	CustomerID uint `json:"customerID"`
+	CustomerID *uint `json:"customerID,omitempty"`
 	CreatedByUserID uint `json:"createdByUserID"`
 	TotalAmount float64 `json:"totalAmount"`
 	CreatedAt string `json:"createdAt"`

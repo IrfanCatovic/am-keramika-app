@@ -120,7 +120,7 @@ func CreatePayment(req dto.CreatePaymentRequest, createdByUserID uint) (models.P
 	}
 
 	payment := models.Payment{
-		CustomerID: customer.ID,
+		CustomerID: &customer.ID, //pointer 
 		CreatedByUserID: createdByUserID,
 		TotalAmount: totalAmount,
 	}
