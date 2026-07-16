@@ -9,7 +9,7 @@ type DailyReportResponse struct{
 	RefundsCount int64 `json:"refundsCount"`
 }
 
-type PeriodicReportResponse struct{
+type PeriodReportResponse struct{
 	FromDate string `json:"fromDate"`
 	ToDate string `json:"toDate"`
 	TotalPayments float64 `json:"totalPayments"`

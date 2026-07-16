@@ -5,6 +5,7 @@ import (
 	"am-keramika-backend/dto"
 	"am-keramika-backend/database"
 	"am-keramika-backend/models"
+
 )
 
 type financialStats struct {
@@ -73,7 +74,7 @@ func GetDailyReport(startDate time.Time, endDate time.Time)(*dto.DailyReportResp
 	return &response, nil
 }
 
-func GetPeriodicReport(startDate time.Time, endDate time.Time)(*dto.PeriodicReportResponse, error){
+func GetPeriodReport(startDate time.Time, endDate time.Time)(*dto.PeriodReportResponse, error){
 	stats, err := getFinancialStatsByPeriod(startDate, endDate)
 	if err != nil {
 		return nil, err
@@ -82,7 +83,7 @@ func GetPeriodicReport(startDate time.Time, endDate time.Time)(*dto.PeriodicRepo
 	displayToDate := endDate.AddDate(0, 0, -1) //ovo je samo da ne prikazujemo korisniku kako mi radimo sa vremenom jer kod nas prikazuje report < 31.Jul, a on je stavio 30. Jul 
 
 
-	response := dto.PeriodicReportResponse{
+	response := dto.PeriodReportResponse{
 		FromDate: startDate.Format("2006-01-02"),
 		ToDate: displayToDate.Format("2006-01-02"),
 		TotalPayments: stats.TotalPayments,

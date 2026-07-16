@@ -77,6 +77,7 @@ func main() {
 	r.GET("/payments/:id", handlers.GetPaymentByID)
 
 	r.GET("/reports/daily", handlers.GetDailyReport)
+	r.GET("/reports/period", handlers.GetPeriodReport)
 	err = r.Run(":" + port)
 	if err != nil {
 		log.Fatal("Neuspjela pokretanje servera: ", err)
