@@ -16,6 +16,11 @@ type financialStats struct {
 	RefundsCount  int64
 }
 
+tpye dailyAmountRow struct {
+	Date string `gorm:"column:date"`
+	Total float64 `gorm:"column:total"`
+}
+
 func getFinancialStatsByPeriod(startDate time.Time, endDate time.Time)(financialStats, error){
 	var paymentStats struct {
 		Total float64 `gorm:"column:total"`
