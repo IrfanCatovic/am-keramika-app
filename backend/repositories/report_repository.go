@@ -7,8 +7,15 @@ import (
 	"am-keramika-backend/models"
 )
 
-func GetDailyReport(startDate time.Time, endDate time.Time)(*dto.DailyReportResponse, error){
+type financialStats struct {
+	TotalPayments float64
+	TotalRefunds  float64
+	NetCash       float64
+	PaymentsCount int64
+	RefundsCount  int64
+}
 
+func getFinancialStatsByPeriod(startDate time.Time, endDate time.Time)(financialStats, error){
 	var paymentStats struct {
 		Total float64 `gorm:"column:total"`
 		Count int64 `gorm:"column:count"`
@@ -20,9 +27,10 @@ func GetDailyReport(startDate time.Time, endDate time.Time)(*dto.DailyReportResp
 	Scan(&paymentStats).Error
 
 	if err != nil {
-		return nil, err
+		return financialStats{}, err
 	}
 
+	
 	var refundStats struct {
 		Total float64 `gorm:"column:total"`
 		Count int64 `gorm:"column:count"`
@@ -34,18 +42,55 @@ func GetDailyReport(startDate time.Time, endDate time.Time)(*dto.DailyReportResp
 	Scan(&refundStats).Error
 
 	if err != nil {
+		return financialStats{}, err
+	}
+
+	stats := financialStats{
+		TotalPayments: paymentStats.Total,
+		TotalRefunds:  refundStats.Total,
+		NetCash:       paymentStats.Total - refundStats.Total,
+		PaymentsCount: paymentStats.Count,
+		RefundsCount:  refundStats.Count,
+	}
+	return stats, nil
+}
+
+func GetDailyReport(startDate time.Time, endDate time.Time)(*dto.DailyReportResponse, error){
+	stats, err := getFinancialStatsByPeriod(startDate, endDate)
+	if err != nil {
 		return nil, err
 	}
 
-	netCash := paymentStats.Total - refundStats.Total
-	response := &dto.DailyReportResponse{
+	response := dto.DailyReportResponse{
 		Date: startDate.Format("2006-01-02"),
-		TotalPayments: paymentStats.Total,
-		TotalRefunds: refundStats.Total,
-		NetCash: netCash,
-		PaymentsCount: paymentStats.Count,
-		RefundsCount: refundStats.Count,
+		TotalPayments: stats.TotalPayments,
+		TotalRefunds: stats.TotalRefunds,
+		NetCash: stats.NetCash,
+		PaymentsCount: stats.PaymentsCount,
+		RefundsCount: stats.RefundsCount,
 	}
 
-	return response, nil
+	return &response, nil
+}
+
+func GetPeriodicReport(startDate time.Time, endDate time.Time)(*dto.PeriodicReportResponse, error){
+	stats, err := getFinancialStatsByPeriod(startDate, endDate)
+	if err != nil {
+		return nil, err
+	}
+
+	displayToDate := endDate.AddDate(0, 0, -1) //ovo je samo da ne prikazujemo korisniku kako mi radimo sa vremenom jer kod nas prikazuje report < 31.Jul, a on je stavio 30. Jul 
+
+
+	response := dto.PeriodicReportResponse{
+		FromDate: startDate.Format("2006-01-02"),
+		ToDate: displayToDate.Format("2006-01-02"),
+		TotalPayments: stats.TotalPayments,
+		TotalRefunds: stats.TotalRefunds,
+		NetCash: stats.NetCash,
+		PaymentsCount: stats.PaymentsCount,
+		RefundsCount: stats.RefundsCount,
+	}
+
+	return &response, nil
 }
