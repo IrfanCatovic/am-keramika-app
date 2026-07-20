@@ -16,13 +16,13 @@ type financialStats struct {
 	RefundsCount  int64
 }
 
-tpye dailyAmountRow struct {
+type dailyAmountRow struct {
 	Date string `gorm:"column:date"`
 	Total float64 `gorm:"column:total"`
 }
 
 
-
+//pomocna funkcija za dobijanje finansijskih podataka za period
 func getFinancialStatsByPeriod(startDate time.Time, endDate time.Time)(financialStats, error){
 	var paymentStats struct {
 		Total float64 `gorm:"column:total"`
@@ -63,7 +63,9 @@ func getFinancialStatsByPeriod(startDate time.Time, endDate time.Time)(financial
 	return stats, nil
 }
 
-func getDailyBreakdownByPeriod(startDate time.Time, endDate time.Time)([]dailyAmountRow, error){
+
+//pomocna funkcija za dobijanje dnevnog breakdowna za period
+func getDailyBreakdownByPeriod(startDate time.Time, endDate time.Time)([]dto.DailyBreakdownResponse, error){
 	var paymentRows []dailyAmountRow
 	err := database.DB.Model(&models.Payment{}).
 	Select(`TO_CHAR(created_at AT TIME ZONE 'Europe/Belgrade', 'YYYY-MM-DD') AS date, COALESCE(SUM(total_amount),0) AS total`).
@@ -76,7 +78,49 @@ func getDailyBreakdownByPeriod(startDate time.Time, endDate time.Time)([]dailyAm
 		return nil, err
 	}
 
+	var refundRows []dailyAmountRow
+
+	err = database.DB.Model(&models.Refund{}).
+	Where("created_at >= ? AND created_at < ?", startDate, endDate).
+	Group(`TO_CHAR(created_at AT TIME ZONE 'Europe/Belgrade', 'YYYY-MM-DD')`).
+	Select(`TO_CHAR(created_at AT TIME ZONE 'Europe/Belgrade', 'YYYY-MM-DD') AS date, COALESCE(SUM(amount),0) AS total`).
+	Order("date ASC").
+	Scan(&refundRows).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	paymentTotalsByDate := make(map[string]float64)
+
+	for _, row := range paymentRows {
+		paymentTotalsByDate[row.Date] = row.Total
+	}
+
+	refundTotalsByDate := make(map[string]float64)
+	for _, row := range refundRows {
+		refundTotalsByDate[row.Date] = row.Total
+	}
+
+	breakdown := []dto.DailyBreakdownResponse{}
+	for currentDate := startDate; currentDate.Before(endDate); currentDate = currentDate.AddDate(0, 0, 1) {
+		dateKey := currentDate.Format("2006-01-02")
+
+		totalPayments := paymentTotalsByDate[dateKey]
+		totalRefunds := refundTotalsByDate[dateKey]
+
+		day := dto.DailyBreakdownResponse{
+			Date: dateKey,
+			TotalPayments: totalPayments,
+			TotalRefunds: totalRefunds,
+			NetCash: totalPayments - totalRefunds,
+		}
+
+		breakdown = append(breakdown, day)
+	}
+	return breakdown, nil
 }
+
 
 func GetDailyReport(startDate time.Time, endDate time.Time)(*dto.DailyReportResponse, error){
 	stats, err := getFinancialStatsByPeriod(startDate, endDate)
@@ -96,8 +140,14 @@ func GetDailyReport(startDate time.Time, endDate time.Time)(*dto.DailyReportResp
 	return &response, nil
 }
 
+
 func GetPeriodReport(startDate time.Time, endDate time.Time)(*dto.PeriodReportResponse, error){
 	stats, err := getFinancialStatsByPeriod(startDate, endDate)
+	if err != nil {
+		return nil, err
+	}
+
+	dailyBreakdown, err := getDailyBreakdownByPeriod(startDate, endDate)
 	if err != nil {
 		return nil, err
 	}
@@ -113,6 +163,7 @@ func GetPeriodReport(startDate time.Time, endDate time.Time)(*dto.PeriodReportRe
 		NetCash: stats.NetCash,
 		PaymentsCount: stats.PaymentsCount,
 		RefundsCount: stats.RefundsCount,
+		DailyBreakdown: dailyBreakdown,
 	}
 
 	return &response, nil
