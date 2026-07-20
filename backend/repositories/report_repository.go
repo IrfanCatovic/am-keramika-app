@@ -147,9 +147,12 @@ func GetPeriodReport(startDate time.Time, endDate time.Time)(*dto.PeriodReportRe
 		return nil, err
 	}
 
-	dailyBreakdown, err := getDailyBreakdownByPeriod(startDate, endDate)
-	if err != nil {
-		return nil, err
+	dailyBreakdown := make([]dto.DailyBreakdownResponse, 0)
+	if !endDate.After(startDate.AddDate(0, 0, 31)) {
+		dailyBreakdown, err = getDailyBreakdownByPeriod(startDate, endDate)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	displayToDate := endDate.AddDate(0, 0, -1) //ovo je samo da ne prikazujemo korisniku kako mi radimo sa vremenom jer kod nas prikazuje report < 31.Jul, a on je stavio 30. Jul 
