@@ -16,7 +16,7 @@ type financialStats struct {
 	RefundsCount  int64
 }
 
-type dailyAmountRow struct {
+type periodAmountRow struct {
 	Date string `gorm:"column:date"`
 	Total float64 `gorm:"column:total"`
 }
@@ -66,7 +66,7 @@ func getFinancialStatsByPeriod(startDate time.Time, endDate time.Time)(financial
 
 //pomocna funkcija za dobijanje dnevnog breakdowna za period
 func getDailyBreakdownByPeriod(startDate time.Time, endDate time.Time)([]dto.DailyBreakdownResponse, error){
-	var paymentRows []dailyAmountRow
+	var paymentRows []periodAmountRow
 	err := database.DB.Model(&models.Payment{}).
 	Select(`TO_CHAR(created_at AT TIME ZONE 'Europe/Belgrade', 'YYYY-MM-DD') AS date, COALESCE(SUM(total_amount),0) AS total`).
 	Where("created_at >= ? AND created_at < ?", startDate, endDate).
@@ -78,7 +78,7 @@ func getDailyBreakdownByPeriod(startDate time.Time, endDate time.Time)([]dto.Dai
 		return nil, err
 	}
 
-	var refundRows []dailyAmountRow
+	var refundRows []periodAmountRow
 
 	err = database.DB.Model(&models.Refund{}).
 	Where("created_at >= ? AND created_at < ?", startDate, endDate).
@@ -170,4 +170,8 @@ func GetPeriodReport(startDate time.Time, endDate time.Time)(*dto.PeriodReportRe
 	}
 
 	return &response, nil
+}
+
+func getMonthlyBreakdownByPeriod(startDate time.Time, endDate time.Time)([]dto.PeriodReportResponse, error){
+
 }
