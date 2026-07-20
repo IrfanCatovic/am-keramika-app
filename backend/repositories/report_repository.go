@@ -21,6 +21,8 @@ tpye dailyAmountRow struct {
 	Total float64 `gorm:"column:total"`
 }
 
+
+
 func getFinancialStatsByPeriod(startDate time.Time, endDate time.Time)(financialStats, error){
 	var paymentStats struct {
 		Total float64 `gorm:"column:total"`
@@ -59,6 +61,21 @@ func getFinancialStatsByPeriod(startDate time.Time, endDate time.Time)(financial
 		RefundsCount:  refundStats.Count,
 	}
 	return stats, nil
+}
+
+func getDailyBreakdownByPeriod(startDate time.Time, endDate time.Time)([]dailyAmountRow, error){
+	var paymentRows []dailyAmountRow
+	err := database.DB.Model(&models.Payment{}).
+	Select(`TO_CHAR(created_at AT TIME ZONE 'Europe/Belgrade', 'YYYY-MM-DD') AS date, COALESCE(SUM(total_amount),0) AS total`).
+	Where("created_at >= ? AND created_at < ?", startDate, endDate).
+	Group(`TO_CHAR(created_at AT TIME ZONE 'Europe/Belgrade', 'YYYY-MM-DD')`).
+	Order("date ASC").
+	Scan(&paymentRows).Error
+
+	if err != nil {
+		return nil, err
+	}
+
 }
 
 func GetDailyReport(startDate time.Time, endDate time.Time)(*dto.DailyReportResponse, error){
