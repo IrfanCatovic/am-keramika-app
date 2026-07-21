@@ -72,12 +72,14 @@ func main() {
 	r.GET("/customers/:id", handlers.GetCustomerByID)
 	r.GET("/customers/:id/financial-summary", handlers.GetCustomerFinancialSummary)
 	r.GET("/customers/:id/payments", handlers.GetCustomerPayments)
-	
+
 	r.POST("/payments", handlers.CreatePayment)
 	r.GET("/payments/:id", handlers.GetPaymentByID)
 
 	r.GET("/reports/daily", handlers.GetDailyReport)
 	r.GET("/reports/period", handlers.GetPeriodReport)
+	r.GET("/reports/sales-summary", handlers.GetSalesSummaryReport)
+
 	err = r.Run(":" + port)
 	if err != nil {
 		log.Fatal("Neuspjela pokretanje servera: ", err)
