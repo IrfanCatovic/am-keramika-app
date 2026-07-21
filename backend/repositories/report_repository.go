@@ -1,11 +1,10 @@
 package repositories
 
 import (
-	"time"
-	"am-keramika-backend/dto"
 	"am-keramika-backend/database"
+	"am-keramika-backend/dto"
 	"am-keramika-backend/models"
-
+	"time"
 )
 
 type financialStats struct {
@@ -17,43 +16,41 @@ type financialStats struct {
 }
 
 type periodAmountRow struct {
-	Date string `gorm:"column:date"`
+	Date  string  `gorm:"column:date"`
 	Total float64 `gorm:"column:total"`
 }
 
-type salesStats struct{
-	TotalSales float64
+type salesStats struct {
+	TotalSales        float64
 	OutstandingAmount float64
-	InvoicesCount int64
+	InvoicesCount     int64
 }
 
-
-//pomocna funkcija za dobijanje finansijskih podataka za period
-func getFinancialStatsByPeriod(startDate time.Time, endDate time.Time)(financialStats, error){
+// pomocna funkcija za dobijanje finansijskih podataka za period
+func getFinancialStatsByPeriod(startDate time.Time, endDate time.Time) (financialStats, error) {
 	var paymentStats struct {
 		Total float64 `gorm:"column:total"`
-		Count int64 `gorm:"column:count"`
+		Count int64   `gorm:"column:count"`
 	}
 
 	err := database.DB.Model(&models.Payment{}).
-	Select("COALESCE(SUM(total_amount), 0) AS total, COUNT(*) AS count",).
-	Where("created_at >= ? AND created_at < ?", startDate, endDate).
-	Scan(&paymentStats).Error
+		Select("COALESCE(SUM(total_amount), 0) AS total, COUNT(*) AS count").
+		Where("created_at >= ? AND created_at < ?", startDate, endDate).
+		Scan(&paymentStats).Error
 
 	if err != nil {
 		return financialStats{}, err
 	}
 
-	
 	var refundStats struct {
 		Total float64 `gorm:"column:total"`
-		Count int64 `gorm:"column:count"`
+		Count int64   `gorm:"column:count"`
 	}
 
 	err = database.DB.Model(&models.Refund{}).
-	Select("COALESCE(SUM(amount), 0) AS total, COUNT(*) AS count",).
-	Where("created_at >= ? AND created_at < ?", startDate, endDate).
-	Scan(&refundStats).Error
+		Select("COALESCE(SUM(amount), 0) AS total, COUNT(*) AS count").
+		Where("created_at >= ? AND created_at < ?", startDate, endDate).
+		Scan(&refundStats).Error
 
 	if err != nil {
 		return financialStats{}, err
@@ -69,28 +66,27 @@ func getFinancialStatsByPeriod(startDate time.Time, endDate time.Time)(financial
 	return stats, nil
 }
 
-
-//pomocna funkcija za dobijanje mesecnog breakdowna za period - ako je duze od 31 dan grupisemo odgovore po mesecima 
-func getMonthlyBreakdownByPeriod(startDate time.Time, endDate time.Time)([]dto.PeriodBreakdownResponse, error){
+// pomocna funkcija za dobijanje mesecnog breakdowna za period - ako je duze od 31 dan grupisemo odgovore po mesecima
+func getMonthlyBreakdownByPeriod(startDate time.Time, endDate time.Time) ([]dto.PeriodBreakdownResponse, error) {
 	var paymentRows []periodAmountRow
 
 	err := database.DB.Model(&models.Payment{}).
-	Where("created_at >= ? AND created_at < ?", startDate, endDate).
-	Group(`TO_CHAR(created_at AT TIME ZONE 'Europe/Belgrade', 'YYYY-MM')`).
-	Select(`TO_CHAR(created_at AT TIME ZONE 'Europe/Belgrade', 'YYYY-MM') AS date, COALESCE(SUM(total_amount),0) AS total`).
-	Order("date ASC").
-	Scan(&paymentRows).Error
+		Where("created_at >= ? AND created_at < ?", startDate, endDate).
+		Group(`TO_CHAR(created_at AT TIME ZONE 'Europe/Belgrade', 'YYYY-MM')`).
+		Select(`TO_CHAR(created_at AT TIME ZONE 'Europe/Belgrade', 'YYYY-MM') AS date, COALESCE(SUM(total_amount),0) AS total`).
+		Order("date ASC").
+		Scan(&paymentRows).Error
 	if err != nil {
 		return nil, err
 	}
 
 	var refundRows []periodAmountRow
 	err = database.DB.Model(&models.Refund{}).
-	Where("created_at >= ? AND created_at < ?", startDate, endDate).
-	Group(`TO_CHAR(created_at AT TIME ZONE 'Europe/Belgrade', 'YYYY-MM')`).
-	Select(`TO_CHAR(created_at AT TIME ZONE 'Europe/Belgrade', 'YYYY-MM') AS date, COALESCE(SUM(amount),0) AS total`).
-	Order("date ASC").
-	Scan(&refundRows).Error
+		Where("created_at >= ? AND created_at < ?", startDate, endDate).
+		Group(`TO_CHAR(created_at AT TIME ZONE 'Europe/Belgrade', 'YYYY-MM')`).
+		Select(`TO_CHAR(created_at AT TIME ZONE 'Europe/Belgrade', 'YYYY-MM') AS date, COALESCE(SUM(amount),0) AS total`).
+		Order("date ASC").
+		Scan(&refundRows).Error
 	if err != nil {
 		return nil, err
 	}
@@ -106,37 +102,37 @@ func getMonthlyBreakdownByPeriod(startDate time.Time, endDate time.Time)([]dto.P
 		refundTotalsByMonth[row.Date] = row.Total
 	}
 
-	currentMonth := time.Date(startDate.Year(), startDate.Month(), 1, 0, 0, 0, 0, startDate.Location(),)
+	currentMonth := time.Date(startDate.Year(), startDate.Month(), 1, 0, 0, 0, 0, startDate.Location())
 	breakdown := []dto.PeriodBreakdownResponse{}
 	for currentMonth.Before(endDate) {
 		dateKey := currentMonth.Format("2006-01")
-	
+
 		totalPayments := paymentTotalsByMonth[dateKey]
 		totalRefunds := refundTotalsByMonth[dateKey]
-	
+
 		month := dto.PeriodBreakdownResponse{
 			Period:        dateKey,
 			TotalPayments: totalPayments,
 			TotalRefunds:  totalRefunds,
 			NetCash:       totalPayments - totalRefunds,
 		}
-	
+
 		breakdown = append(breakdown, month)
-	
+
 		currentMonth = currentMonth.AddDate(0, 1, 0)
 	}
 	return breakdown, nil
 }
 
-//pomocna funkcija za dobijanje dnevnog breakdowna za period
-func getDailyBreakdownByPeriod(startDate time.Time, endDate time.Time)([]dto.PeriodBreakdownResponse, error){
+// pomocna funkcija za dobijanje dnevnog breakdowna za period
+func getDailyBreakdownByPeriod(startDate time.Time, endDate time.Time) ([]dto.PeriodBreakdownResponse, error) {
 	var paymentRows []periodAmountRow
 	err := database.DB.Model(&models.Payment{}).
-	Select(`TO_CHAR(created_at AT TIME ZONE 'Europe/Belgrade', 'YYYY-MM-DD') AS date, COALESCE(SUM(total_amount),0) AS total`).
-	Where("created_at >= ? AND created_at < ?", startDate, endDate).
-	Group(`TO_CHAR(created_at AT TIME ZONE 'Europe/Belgrade', 'YYYY-MM-DD')`).
-	Order("date ASC").
-	Scan(&paymentRows).Error
+		Select(`TO_CHAR(created_at AT TIME ZONE 'Europe/Belgrade', 'YYYY-MM-DD') AS date, COALESCE(SUM(total_amount),0) AS total`).
+		Where("created_at >= ? AND created_at < ?", startDate, endDate).
+		Group(`TO_CHAR(created_at AT TIME ZONE 'Europe/Belgrade', 'YYYY-MM-DD')`).
+		Order("date ASC").
+		Scan(&paymentRows).Error
 
 	if err != nil {
 		return nil, err
@@ -145,11 +141,11 @@ func getDailyBreakdownByPeriod(startDate time.Time, endDate time.Time)([]dto.Per
 	var refundRows []periodAmountRow
 
 	err = database.DB.Model(&models.Refund{}).
-	Where("created_at >= ? AND created_at < ?", startDate, endDate).
-	Group(`TO_CHAR(created_at AT TIME ZONE 'Europe/Belgrade', 'YYYY-MM-DD')`).
-	Select(`TO_CHAR(created_at AT TIME ZONE 'Europe/Belgrade', 'YYYY-MM-DD') AS date, COALESCE(SUM(amount),0) AS total`).
-	Order("date ASC").
-	Scan(&refundRows).Error
+		Where("created_at >= ? AND created_at < ?", startDate, endDate).
+		Group(`TO_CHAR(created_at AT TIME ZONE 'Europe/Belgrade', 'YYYY-MM-DD')`).
+		Select(`TO_CHAR(created_at AT TIME ZONE 'Europe/Belgrade', 'YYYY-MM-DD') AS date, COALESCE(SUM(amount),0) AS total`).
+		Order("date ASC").
+		Scan(&refundRows).Error
 
 	if err != nil {
 		return nil, err
@@ -174,10 +170,10 @@ func getDailyBreakdownByPeriod(startDate time.Time, endDate time.Time)([]dto.Per
 		totalRefunds := refundTotalsByDate[dateKey]
 
 		day := dto.PeriodBreakdownResponse{
-			Period: dateKey,
+			Period:        dateKey,
 			TotalPayments: totalPayments,
-			TotalRefunds: totalRefunds,
-			NetCash: totalPayments - totalRefunds,
+			TotalRefunds:  totalRefunds,
+			NetCash:       totalPayments - totalRefunds,
 		}
 
 		breakdown = append(breakdown, day)
@@ -185,49 +181,49 @@ func getDailyBreakdownByPeriod(startDate time.Time, endDate time.Time)([]dto.Per
 	return breakdown, nil
 }
 
-//pomocna funkcija daje nam podatke o prodaji, neplacenoj sumi i broju racuna za period 
-func getSalesStatsByPeriod(startDate time.Time, endDate time.Time)(salesStats, error){
+// pomocna funkcija daje nam podatke o prodaji, neplacenoj sumi i broju racuna za period
+func getSalesStatsByPeriod(startDate time.Time, endDate time.Time) (salesStats, error) {
 	var invoiceStats struct {
-		TotalSales float64 `gorm:"column:total_sales"`
+		TotalSales        float64 `gorm:"column:total_sales"`
 		OutstandingAmount float64 `gorm:"column:outstanding_amount"`
-		Count int64 `gorm:"column:count"`
+		Count             int64   `gorm:"column:count"`
 	}
 
 	err := database.DB.Model(&models.Invoice{}).
-	Select("COALESCE(SUM(total_amount), 0) AS total_sales, COALESCE(SUM(total_amount - paid_amount), 0) AS outstanding_amount, COUNT(*) AS count").
-	Where("created_at >= ? AND created_at < ? AND status != ?", startDate, endDate, models.InvoiceStatusCancelled).
-	Scan(&invoiceStats).Error
+		Select("COALESCE(SUM(total_amount), 0) AS total_sales, COALESCE(SUM(total_amount - paid_amount), 0) AS outstanding_amount, COUNT(*) AS count").
+		Where("created_at >= ? AND created_at < ? AND status != ?", startDate, endDate, models.InvoiceStatusCancelled).
+		Scan(&invoiceStats).Error
 	if err != nil {
 		return salesStats{}, err
 	}
 	stats := salesStats{
-		TotalSales: invoiceStats.TotalSales,
+		TotalSales:        invoiceStats.TotalSales,
 		OutstandingAmount: invoiceStats.OutstandingAmount,
-		InvoicesCount: invoiceStats.Count,
+		InvoicesCount:     invoiceStats.Count,
 	}
 	return stats, nil
 }
 
-func GetDailyReport(startDate time.Time, endDate time.Time)(*dto.DailyReportResponse, error){
+func GetDailyReport(startDate time.Time, endDate time.Time) (*dto.DailyReportResponse, error) {
 	stats, err := getFinancialStatsByPeriod(startDate, endDate)
 	if err != nil {
 		return nil, err
 	}
 
 	response := dto.DailyReportResponse{
-		Date: startDate.Format("2006-01-02"),
+		Date:          startDate.Format("2006-01-02"),
 		TotalPayments: stats.TotalPayments,
-		TotalRefunds: stats.TotalRefunds,
-		NetCash: stats.NetCash,
+		TotalRefunds:  stats.TotalRefunds,
+		NetCash:       stats.NetCash,
 		PaymentsCount: stats.PaymentsCount,
-		RefundsCount: stats.RefundsCount,
+		RefundsCount:  stats.RefundsCount,
 	}
 
 	return &response, nil
 }
 
-//glavna funkcija za dobijanje podataka o periodu
-func GetPeriodReport(startDate time.Time, endDate time.Time)(*dto.PeriodReportResponse, error){
+// glavna funkcija za dobijanje podataka o periodu
+func GetPeriodReport(startDate time.Time, endDate time.Time) (*dto.PeriodReportResponse, error) {
 	stats, err := getFinancialStatsByPeriod(startDate, endDate)
 	if err != nil {
 		return nil, err
@@ -239,8 +235,6 @@ func GetPeriodReport(startDate time.Time, endDate time.Time)(*dto.PeriodReportRe
 	} else {
 		groupBy = "day"
 	}
-	
-
 
 	breakdown := make([]dto.PeriodBreakdownResponse, 0)
 	if groupBy == "day" {
@@ -252,25 +246,24 @@ func GetPeriodReport(startDate time.Time, endDate time.Time)(*dto.PeriodReportRe
 		return nil, err
 	}
 
-	displayToDate := endDate.AddDate(0, 0, -1) //ovo je samo da ne prikazujemo korisniku kako mi radimo sa vremenom jer kod nas prikazuje report < 31.Jul, a on je stavio 30. Jul 
-
+	displayToDate := endDate.AddDate(0, 0, -1) //ovo je samo da ne prikazujemo korisniku kako mi radimo sa vremenom jer kod nas prikazuje report < 31.Jul, a on je stavio 30. Jul
 
 	response := dto.PeriodReportResponse{
-		FromDate: startDate.Format("2006-01-02"),
-		ToDate: displayToDate.Format("2006-01-02"),
+		FromDate:      startDate.Format("2006-01-02"),
+		ToDate:        displayToDate.Format("2006-01-02"),
 		TotalPayments: stats.TotalPayments,
-		TotalRefunds: stats.TotalRefunds,
-		NetCash: stats.NetCash,
+		TotalRefunds:  stats.TotalRefunds,
+		NetCash:       stats.NetCash,
 		PaymentsCount: stats.PaymentsCount,
-		RefundsCount: stats.RefundsCount,
-		GroupBy: groupBy,
-		Breakdown: breakdown,
+		RefundsCount:  stats.RefundsCount,
+		GroupBy:       groupBy,
+		Breakdown:     breakdown,
 	}
 
 	return &response, nil
 }
 
-func GetSalesSummaryReport(startDate time.Time, endDate time.Time)(*dto.SalesSummaryReportResponse, error){
+func GetSalesSummaryReport(startDate time.Time, endDate time.Time) (*dto.SalesSummaryReportResponse, error) {
 
 	salesStats, err := getSalesStatsByPeriod(startDate, endDate)
 	if err != nil {
@@ -281,17 +274,18 @@ func GetSalesSummaryReport(startDate time.Time, endDate time.Time)(*dto.SalesSum
 		return nil, err
 	}
 
+	displayToDate := endDate.AddDate(0, 0, -1) //ovo je samo da ne prikazujemo korisniku kako mi radimo sa vremenom jer kod nas prikazuje report < 31.Jul,
+	// a on je stavio 30. Jul
 	response := dto.SalesSummaryReportResponse{
-		FromDate: startDate.Format("2006-01-02"),
-		ToDate: endDate.Format("2006-01-02"),
-		TotalSales: salesStats.TotalSales,
-		TotalCollected: financialStats.TotalPayments,
+		FromDate:          startDate.Format("2006-01-02"),
+		ToDate:            displayToDate.Format("2006-01-02"),
+		TotalSales:        salesStats.TotalSales,
+		TotalCollected:    financialStats.TotalPayments,
 		OutstandingAmount: salesStats.OutstandingAmount,
-		TotalRefunds: financialStats.TotalRefunds,
-		NetCash: financialStats.NetCash,
-		InvoicesCount: salesStats.InvoicesCount,
+		TotalRefunds:      financialStats.TotalRefunds,
+		NetCash:           financialStats.NetCash,
+		InvoicesCount:     salesStats.InvoicesCount,
 	}
 	return &response, nil
 
 }
-
