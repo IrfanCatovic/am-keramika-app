@@ -65,7 +65,7 @@ func getFinancialStatsByPeriod(startDate time.Time, endDate time.Time)(financial
 
 
 //pomocna funkcija za dobijanje dnevnog breakdowna za period
-func getDailyBreakdownByPeriod(startDate time.Time, endDate time.Time)([]dto.DailyBreakdownResponse, error){
+func getDailyBreakdownByPeriod(startDate time.Time, endDate time.Time)([]dto.PeriodBreakdownResponse, error){
 	var paymentRows []dailyAmountRow
 	err := database.DB.Model(&models.Payment{}).
 	Select(`TO_CHAR(created_at AT TIME ZONE 'Europe/Belgrade', 'YYYY-MM-DD') AS date, COALESCE(SUM(total_amount),0) AS total`).
@@ -102,15 +102,15 @@ func getDailyBreakdownByPeriod(startDate time.Time, endDate time.Time)([]dto.Dai
 		refundTotalsByDate[row.Date] = row.Total
 	}
 
-	breakdown := []dto.DailyBreakdownResponse{}
+	breakdown := []dto.PeriodBreakdownResponse{}
 	for currentDate := startDate; currentDate.Before(endDate); currentDate = currentDate.AddDate(0, 0, 1) {
 		dateKey := currentDate.Format("2006-01-02")
 
 		totalPayments := paymentTotalsByDate[dateKey]
 		totalRefunds := refundTotalsByDate[dateKey]
 
-		day := dto.DailyBreakdownResponse{
-			Date: dateKey,
+		day := dto.PeriodBreakdownResponse{
+			Period: dateKey,
 			TotalPayments: totalPayments,
 			TotalRefunds: totalRefunds,
 			NetCash: totalPayments - totalRefunds,
@@ -147,9 +147,9 @@ func GetPeriodReport(startDate time.Time, endDate time.Time)(*dto.PeriodReportRe
 		return nil, err
 	}
 
-	dailyBreakdown := make([]dto.DailyBreakdownResponse, 0)
+	breakdown := make([]dto.PeriodBreakdownResponse, 0)
 	if !endDate.After(startDate.AddDate(0, 0, 31)) {
-		dailyBreakdown, err = getDailyBreakdownByPeriod(startDate, endDate)
+		breakdown, err = getDailyBreakdownByPeriod(startDate, endDate)
 		if err != nil {
 			return nil, err
 		}
@@ -166,7 +166,8 @@ func GetPeriodReport(startDate time.Time, endDate time.Time)(*dto.PeriodReportRe
 		NetCash: stats.NetCash,
 		PaymentsCount: stats.PaymentsCount,
 		RefundsCount: stats.RefundsCount,
-		DailyBreakdown: dailyBreakdown,
+		GroupBy: "day",
+		Breakdown: breakdown,
 	}
 
 	return &response, nil
