@@ -27,3 +27,14 @@ type PeriodBreakdownResponse struct{
 	TotalRefunds float64 `json:"totalRefunds"`
 	NetCash float64 `json:"netCash"`
 }
+
+type SalesSummaryReportResponse struct{
+	FromDate string `json:"fromDate"`
+	ToDate string `json:"toDate"`
+	TotalSales float64 `json:"totalSales"`
+	TotalCollected float64 `json:"totalCollected"`
+	OutstandingAmount float64 `json:"outstandingAmount"`
+	TotalRefunds float64 `json:"totalRefunds"`
+	NetCash float64 `json:"netCash"`
+	InvoicesCount int64 `json:"invoicesCount"`
+}
