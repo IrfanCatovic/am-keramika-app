@@ -65,7 +65,7 @@ func getFinancialStatsByPeriod(startDate time.Time, endDate time.Time)(financial
 
 
 //pomocna funkcija za dobijanje dnevnog breakdowna za period
-func getDailyBreakdownByPeriod(startDate time.Time, endDate time.Time)([]dto.DailyBreakdownResponse, error){
+func getDailyBreakdownByPeriod(startDate time.Time, endDate time.Time)([]dto.PeriodBreakdownResponse, error){
 	var paymentRows []periodAmountRow
 	err := database.DB.Model(&models.Payment{}).
 	Select(`TO_CHAR(created_at AT TIME ZONE 'Europe/Belgrade', 'YYYY-MM-DD') AS date, COALESCE(SUM(total_amount),0) AS total`).
@@ -147,12 +147,23 @@ func GetPeriodReport(startDate time.Time, endDate time.Time)(*dto.PeriodReportRe
 		return nil, err
 	}
 
+	var groupBy string
+	if endDate.After(startDate.AddDate(0, 0, 31)) {
+		groupBy = "month"
+	} else {
+		groupBy = "day"
+	}
+	
+
+
 	breakdown := make([]dto.PeriodBreakdownResponse, 0)
-	if !endDate.After(startDate.AddDate(0, 0, 31)) {
+	if groupBy == "day" {
 		breakdown, err = getDailyBreakdownByPeriod(startDate, endDate)
-		if err != nil {
-			return nil, err
-		}
+	} else {
+		breakdown, err = getMonthlyBreakdownByPeriod(startDate, endDate)
+	}
+	if err != nil {
+		return nil, err
 	}
 
 	displayToDate := endDate.AddDate(0, 0, -1) //ovo je samo da ne prikazujemo korisniku kako mi radimo sa vremenom jer kod nas prikazuje report < 31.Jul, a on je stavio 30. Jul 
@@ -166,13 +177,66 @@ func GetPeriodReport(startDate time.Time, endDate time.Time)(*dto.PeriodReportRe
 		NetCash: stats.NetCash,
 		PaymentsCount: stats.PaymentsCount,
 		RefundsCount: stats.RefundsCount,
-		GroupBy: "day",
+		GroupBy: groupBy,
 		Breakdown: breakdown,
 	}
 
 	return &response, nil
 }
 
-func getMonthlyBreakdownByPeriod(startDate time.Time, endDate time.Time)([]dto.PeriodReportResponse, error){
+func getMonthlyBreakdownByPeriod(startDate time.Time, endDate time.Time)([]dto.PeriodBreakdownResponse, error){
+	var paymentRows []periodAmountRow
 
+	err := database.DB.Model(&models.Payment{}).
+	Where("created_at >= ? AND created_at < ?", startDate, endDate).
+	Group(`TO_CHAR(created_at AT TIME ZONE 'Europe/Belgrade', 'YYYY-MM')`).
+	Select(`TO_CHAR(created_at AT TIME ZONE 'Europe/Belgrade', 'YYYY-MM') AS date, COALESCE(SUM(total_amount),0) AS total`).
+	Order("date ASC").
+	Scan(&paymentRows).Error
+	if err != nil {
+		return nil, err
+	}
+
+	var refundRows []periodAmountRow
+	err = database.DB.Model(&models.Refund{}).
+	Where("created_at >= ? AND created_at < ?", startDate, endDate).
+	Group(`TO_CHAR(created_at AT TIME ZONE 'Europe/Belgrade', 'YYYY-MM')`).
+	Select(`TO_CHAR(created_at AT TIME ZONE 'Europe/Belgrade', 'YYYY-MM') AS date, COALESCE(SUM(amount),0) AS total`).
+	Order("date ASC").
+	Scan(&refundRows).Error
+	if err != nil {
+		return nil, err
+	}
+
+	//ovako iz slice-a pravimo mapu da bude lakse da se pristupi vrednostima
+	paymentTotalsByMonth := make(map[string]float64)
+	for _, row := range paymentRows {
+		paymentTotalsByMonth[row.Date] = row.Total
+	}
+
+	refundTotalsByMonth := make(map[string]float64)
+	for _, row := range refundRows {
+		refundTotalsByMonth[row.Date] = row.Total
+	}
+
+	currentMonth := time.Date(startDate.Year(), startDate.Month(), 1, 0, 0, 0, 0, startDate.Location(),)
+	breakdown := []dto.PeriodBreakdownResponse{}
+	for currentMonth.Before(endDate) {
+		dateKey := currentMonth.Format("2006-01")
+	
+		totalPayments := paymentTotalsByMonth[dateKey]
+		totalRefunds := refundTotalsByMonth[dateKey]
+	
+		month := dto.PeriodBreakdownResponse{
+			Period:        dateKey,
+			TotalPayments: totalPayments,
+			TotalRefunds:  totalRefunds,
+			NetCash:       totalPayments - totalRefunds,
+		}
+	
+		breakdown = append(breakdown, month)
+	
+		currentMonth = currentMonth.AddDate(0, 1, 0)
+	}
+	return breakdown, nil
 }
