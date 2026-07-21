@@ -270,6 +270,28 @@ func GetPeriodReport(startDate time.Time, endDate time.Time)(*dto.PeriodReportRe
 	return &response, nil
 }
 
+func GetSalesSummaryReport(startDate time.Time, endDate time.Time)(*dto.SalesSummaryReportResponse, error){
 
+	salesStats, err := getSalesStatsByPeriod(startDate, endDate)
+	if err != nil {
+		return nil, err
+	}
+	financialStats, err := getFinancialStatsByPeriod(startDate, endDate)
+	if err != nil {
+		return nil, err
+	}
 
+	response := dto.SalesSummaryReportResponse{
+		FromDate: startDate.Format("2006-01-02"),
+		ToDate: endDate.Format("2006-01-02"),
+		TotalSales: salesStats.TotalSales,
+		TotalCollected: financialStats.TotalPayments,
+		OutstandingAmount: salesStats.OutstandingAmount,
+		TotalRefunds: financialStats.TotalRefunds,
+		NetCash: financialStats.NetCash,
+		InvoicesCount: salesStats.InvoicesCount,
+	}
+	return &response, nil
+
+}
 
