@@ -289,3 +289,32 @@ func GetSalesSummaryReport(startDate time.Time, endDate time.Time) (*dto.SalesSu
 	return &response, nil
 
 }
+
+func GetFinancialTransactionsReport(startDate time.Time, endDate time.Time) (*dto.FinancialTransactionsReportResponse, error) {
+	var payments []models.Payment
+
+	err := database.DB.Model(&models.Payment{}).
+	Preload("Customer").
+	Preload("Allocations").
+	Where("created_at >= ? AND created_at < ?", startDate, endDate).
+	Find(&payments).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	var refunds []models.Refund
+	err = database.DB.Model(&models.Refund{}).
+	Preload("Invoice.Customer").
+	Where("created_at >= ? AND created_at < ?", startDate, endDate).
+	Find(&refunds).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+ 	transactions := make([]dto.FinancialTransactionResponse, 0)
+	
+	
+
+}
