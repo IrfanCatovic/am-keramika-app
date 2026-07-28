@@ -315,6 +315,29 @@ func GetFinancialTransactionsReport(startDate time.Time, endDate time.Time) (*dt
 
  	transactions := make([]dto.FinancialTransactionResponse, 0)
 	
+
+	for _, payment := range payments {
+		invoiceIDs := make([]uint, 0)
+		for _, allocation := range payment.Allocations {
+			invoiceIDs = append(invoiceIDs, allocation.InvoiceID)
+		}
+
+		var customerName *string
+		if payment.Customer != nil {
+			customerName = &payment.Customer.Name
+		}
+		transaction := dto.FinancialTransactionResponse{
+			ID: payment.ID,
+			Type: "payment",
+			Amount: payment.Amount,
+			Date: payment.CreatedAt,
+			CustomerID: payment.CustomerID,
+			CustomerName: customerName,
+			InvoiceIDs: invoiceIDs,
+			Description: "Uplata kupca",
+		}
+		transactions = append(transactions, transaction)
+	}
 	
 
 }
