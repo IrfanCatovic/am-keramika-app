@@ -5,6 +5,7 @@ import (
 	"am-keramika-backend/dto"
 	"am-keramika-backend/models"
 	"time"
+	"sort"
 )
 
 type financialStats struct {
@@ -339,5 +340,38 @@ func GetFinancialTransactionsReport(startDate time.Time, endDate time.Time) (*dt
 		transactions = append(transactions, transaction)
 	}
 	
+	for _, refund := range refunds {
+		invoiceIDs := []uint{refund.InvoiceID}
+	
+	customerID := refund.Invoice.CustomerID
+	
+	var customerName *string //var koja cuva ime kupca 
+	if refund.Invoice.Customer != nil {
+		customerName = &refund.Invoice.Customer.Name
+	}
+	transaction := dto.FinancialTransactionResponse{
+		ID: refund.ID,
+		Type: "refund",
+		Amount: refund.Amount,
+		Date: refund.CreatedAt,
+		CustomerID: refund.Invoice.CustomerID,
+		CustomerName: customerName,
+		InvoiceIDs: invoiceIDs,
+		Description: refund.Description,
+	}
 
+	transactions = append(transactions, transaction)
+	}
+
+	sort.Slice(transactions, func(i, j int) bool {
+		return transactions[i].Date.Before(transactions[j].Date)
+	})
+
+	response := dto.FinancialTransactionsReportResponse{
+		FromDate: startDate.Format("2006-01-02"),
+		ToDate: endDate.AddDate(0, 0, -1).Format("2006-01-02"), //ovo radimo jer korisnik salje 31.07 a mi moramo da mu dodamo 1 dan da bi i 31. racuna, a kad vracamo odg oduzmemo 1 dan
+		TotalCount: int64(len(transactions)),
+		Transactions: transactions,
+	}
+	return &response, nil
 }
