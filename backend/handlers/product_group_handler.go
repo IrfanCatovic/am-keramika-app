@@ -146,9 +146,11 @@ func UpdateProductGroup(c *gin.Context) {
 	err = repositories.UpdateProductGroup(group)
 	if err != nil {
 		status := http.StatusInternalServerError
-		if strings.Contains(err.Error(), "kategorija nije pronađena") ||
-			strings.Contains(err.Error(), "već postoji") ||
-			strings.Contains(err.Error(), "ima proizvode") {
+		switch {
+		case strings.Contains(err.Error(), "premjestite ili uklonite proizvode iz grupe prije promjene kategorije"):
+			status = http.StatusConflict
+		case strings.Contains(err.Error(), "kategorija nije pronađena"),
+			strings.Contains(err.Error(), "već postoji"):
 			status = http.StatusBadRequest
 		}
 		c.JSON(status, gin.H{"message": "Greška pri ažuriranju grupe", "error": err.Error()})

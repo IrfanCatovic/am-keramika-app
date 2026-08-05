@@ -11,13 +11,13 @@ type CreateProductRequest struct {
 }
 
 type UpdateProductRequest struct {
-	Name          string  `json:"name" binding:"required"`
-	CategoryID    uint    `json:"categoryID" binding:"required"`
-	GroupID       *uint   `json:"groupID"`
-	Unit          string  `json:"unit" binding:"required"`
-	SalePrice     float64 `json:"salePrice" binding:"required,gt=0"`
-	StockQuantity float64 `json:"stockQuantity" binding:"gte=0"`
-	Description   string  `json:"description"`
+	Name          string       `json:"name" binding:"required"`
+	CategoryID    uint         `json:"categoryID" binding:"required"`
+	GroupID       OptionalUint `json:"groupID"`
+	Unit          string       `json:"unit" binding:"required"`
+	SalePrice     float64      `json:"salePrice" binding:"required,gt=0"`
+	StockQuantity float64      `json:"stockQuantity" binding:"gte=0"`
+	Description   string       `json:"description"`
 }
 
 type ProductGroupSummaryResponse struct {

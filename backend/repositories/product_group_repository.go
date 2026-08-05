@@ -57,44 +57,46 @@ func GetProductGroupByID(id uint) (*models.ProductGroup, error) {
 }
 
 func UpdateProductGroup(group *models.ProductGroup) error {
-	var category models.Category
-	if err := database.DB.First(&category, group.CategoryID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return errors.New("kategorija nije pronađena")
-		}
-		return err
-	}
-
-	var current models.ProductGroup
-	if err := database.DB.First(&current, group.ID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return errors.New("grupa proizvoda nije pronađena")
-		}
-		return err
-	}
-
-	if current.CategoryID != group.CategoryID {
-		var productCount int64
-		if err := database.DB.Model(&models.Product{}).Where("group_id = ?", group.ID).Count(&productCount).Error; err != nil {
+	return database.DB.Transaction(func(tx *gorm.DB) error {
+		var category models.Category
+		if err := tx.First(&category, group.CategoryID).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return errors.New("kategorija nije pronađena")
+			}
 			return err
 		}
-		if productCount > 0 {
-			return errors.New("grupa ima proizvode; promjena kategorije nije dozvoljena dok grupa ima proizvode")
+
+		var current models.ProductGroup
+		if err := tx.First(&current, group.ID).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return errors.New("grupa proizvoda nije pronađena")
+			}
+			return err
 		}
-	}
 
-	var existing models.ProductGroup
-	err := database.DB.
-		Where("category_id = ? AND slug = ? AND id <> ?", group.CategoryID, group.Slug, group.ID).
-		First(&existing).Error
-	if err == nil {
-		return errors.New("grupa sa ovim slugom već postoji u kategoriji")
-	}
-	if !errors.Is(err, gorm.ErrRecordNotFound) {
-		return err
-	}
+		if current.CategoryID != group.CategoryID {
+			var productCount int64
+			if err := tx.Model(&models.Product{}).Where("group_id = ?", group.ID).Count(&productCount).Error; err != nil {
+				return err
+			}
+			if productCount > 0 {
+				return errors.New("grupa ima proizvode; premjestite ili uklonite proizvode iz grupe prije promjene kategorije")
+			}
+		}
 
-	return database.DB.Save(group).Error
+		var existing models.ProductGroup
+		err := tx.
+			Where("category_id = ? AND slug = ? AND id <> ?", group.CategoryID, group.Slug, group.ID).
+			First(&existing).Error
+		if err == nil {
+			return errors.New("grupa sa ovim slugom već postoji u kategoriji")
+		}
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return err
+		}
+
+		return tx.Save(group).Error
+	})
 }
 
 func DeleteProductGroup(id uint) error {

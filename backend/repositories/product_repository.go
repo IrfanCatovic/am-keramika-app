@@ -79,7 +79,10 @@ func UpdateProduct(product *models.Product) error {
 		return err
 	}
 
-	return database.DB.Save(product).Error
+	// Explicit Select osigurava da se group_id može postaviti na NULL.
+	return database.DB.Model(product).
+		Select("Name", "Slug", "Description", "CategoryID", "GroupID", "Unit", "SalePrice", "StockQuantity").
+		Updates(product).Error
 }
 
 func DeactivateProduct(id string) error {

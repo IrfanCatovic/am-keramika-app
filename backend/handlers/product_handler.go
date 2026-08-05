@@ -163,11 +163,18 @@ func UpdateProduct(c *gin.Context) {
 	product.Name = req.Name
 	product.Slug = slug
 	product.CategoryID = req.CategoryID
-	product.GroupID = req.GroupID
 	product.Unit = req.Unit
 	product.SalePrice = req.SalePrice
 	product.StockQuantity = req.StockQuantity
 	product.Description = req.Description
+
+	// groupID omitted → zadrži postojeću grupu;
+	// groupID: null → ukloni grupu;
+	// groupID: N → postavi/promijeni grupu.
+	if req.GroupID.Present {
+		product.GroupID = req.GroupID.Value
+		product.Group = nil
+	}
 
 	err = repositories.UpdateProduct(product)
 	if err != nil {
