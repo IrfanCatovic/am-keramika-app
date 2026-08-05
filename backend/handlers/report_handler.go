@@ -113,3 +113,31 @@ func GetSalesSummaryReport(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, report)
 }
+
+func GetFinancialTransactionsReport(c *gin.Context) {
+	fromDateParam := c.Query("fromDate")
+	toDateParam := c.Query("toDate")
+	if fromDateParam == "" || toDateParam == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Datum je obavezan"})
+		return
+	}
+	location, err := time.LoadLocation("Europe/Belgrade")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Greška pri učitavanju vremenske zone"})
+		return
+	}
+	fromDate, err := time.ParseInLocation("2006-01-02", fromDateParam, location)
+	
+	if fromDate.After(toDate) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "pocetni datum ne moze biti posle zavrsnog datuma"})
+		return
+	}
+	endDate := toDate.AddDate(0, 0, 1)
+	report, err := repositories.GetFinancialTransactionsReport(fromDate, endDate)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Greška pri dobavljanju izvestaja o finansijskim transakcijama"})
+		return
+	}
+	c.JSON(http.StatusOK, report)
+
+}
