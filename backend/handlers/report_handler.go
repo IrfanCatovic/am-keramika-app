@@ -127,7 +127,16 @@ func GetFinancialTransactionsReport(c *gin.Context) {
 		return
 	}
 	fromDate, err := time.ParseInLocation("2006-01-02", fromDateParam, location)
-	
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Greška pri parsiranju datuma"})
+		return
+	}
+
+	toDate, err := time.ParseInLocation("2006-01-02", toDateParam, location)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Greška pri parsiranju datuma"})
+		return
+	}
 	if fromDate.After(toDate) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "pocetni datum ne moze biti posle zavrsnog datuma"})
 		return

@@ -79,6 +79,7 @@ func main() {
 	r.GET("/reports/daily", handlers.GetDailyReport)
 	r.GET("/reports/period", handlers.GetPeriodReport)
 	r.GET("/reports/sales-summary", handlers.GetSalesSummaryReport)
+	r.GET("/reports/transactions", handlers.GetFinancialTransactionsReport)
 
 	err = r.Run(":" + port)
 	if err != nil {

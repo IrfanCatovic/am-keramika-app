@@ -330,7 +330,7 @@ func GetFinancialTransactionsReport(startDate time.Time, endDate time.Time) (*dt
 		transaction := dto.FinancialTransactionResponse{
 			ID: payment.ID,
 			Type: "payment",
-			Amount: payment.Amount,
+			Amount: payment.TotalAmount,
 			Date: payment.CreatedAt,
 			CustomerID: payment.CustomerID,
 			CustomerName: customerName,
@@ -354,17 +354,17 @@ func GetFinancialTransactionsReport(startDate time.Time, endDate time.Time) (*dt
 		Type: "refund",
 		Amount: refund.Amount,
 		Date: refund.CreatedAt,
-		CustomerID: refund.Invoice.CustomerID,
+		CustomerID: customerID,
 		CustomerName: customerName,
 		InvoiceIDs: invoiceIDs,
-		Description: refund.Description,
+		Description: refund.Reason,
 	}
 
 	transactions = append(transactions, transaction)
 	}
 
 	sort.Slice(transactions, func(i, j int) bool {
-		return transactions[i].Date.Before(transactions[j].Date)
+		return transactions[i].Date.After(transactions[j].Date)
 	})
 
 	response := dto.FinancialTransactionsReportResponse{
