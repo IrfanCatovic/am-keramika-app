@@ -27,6 +27,7 @@ func main() {
 	err = database.DB.AutoMigrate(
 		&models.User{},
 		&models.Category{},
+		&models.ProductGroup{},
 		&models.Product{},
 		&models.InventoryMovement{},
 		&models.Invoice{},
@@ -57,6 +58,12 @@ func main() {
 	r.GET("/products/:id", handlers.GetProductById)
 	r.PUT("/products/:id", handlers.UpdateProduct)
 	r.PUT("/products/:id/deactivate", handlers.DeactivateProduct)
+
+	r.POST("/product-groups", handlers.CreateProductGroup)
+	r.GET("/product-groups", handlers.GetAllProductGroups)
+	r.GET("/product-groups/:id", handlers.GetProductGroupByID)
+	r.PUT("/product-groups/:id", handlers.UpdateProductGroup)
+	r.DELETE("/product-groups/:id", handlers.DeleteProductGroup)
 
 	r.POST("/inventory/add", handlers.AddStock)
 	r.POST("/inventory/adjust", handlers.AdjustStock)

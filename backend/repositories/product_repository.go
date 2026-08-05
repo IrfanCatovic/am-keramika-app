@@ -4,52 +4,86 @@ import (
 	"am-keramika-backend/database"
 	"am-keramika-backend/models"
 	"errors"
+
+	"gorm.io/gorm"
 )
 
-func CreateProduct(product *models.Product) error {
-	result := database.DB.Create(&product)
-	return result.Error	
+func validateProductGroupAssignment(categoryID uint, groupID *uint) error {
+	if groupID == nil {
+		return nil
+	}
+
+	var group models.ProductGroup
+	if err := database.DB.First(&group, *groupID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("grupa proizvoda nije pronađena")
+		}
+		return err
+	}
+
+	if group.CategoryID != categoryID {
+		return errors.New("grupa ne pripada izabranoj kategoriji")
+	}
+
+	return nil
 }
 
+func CreateProduct(product *models.Product) error {
+	var category models.Category
+	if err := database.DB.First(&category, product.CategoryID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("kategorija nije pronađena")
+		}
+		return err
+	}
 
+	if err := validateProductGroupAssignment(product.CategoryID, product.GroupID); err != nil {
+		return err
+	}
+
+	return database.DB.Create(product).Error
+}
 
 func GetAllProducts(search string, categoryID string) ([]models.Product, error) {
-  var products []models.Product
-  query := database.DB.Preload("Category").Where("active = ?", true)
-  if search != "" {
-	query = query.Where("name ILIKE ?", "%"+search+"%")
-  }
-  if categoryID != "" {
-	query = query.Where("category_id = ?", categoryID)
-  }
-  result := query.Find(&products)//ako je search prazan, vrati sve proizvode, ako nije, vrati proizvode koji sadrze search u imenu
-  return products, result.Error
+	var products []models.Product
+	query := database.DB.Preload("Category").Preload("Group").Where("is_active = ?", true)
+	if search != "" {
+		query = query.Where("name ILIKE ?", "%"+search+"%")
+	}
+	if categoryID != "" {
+		query = query.Where("category_id = ?", categoryID)
+	}
+	result := query.Find(&products)
+	return products, result.Error
 }
-
-
 
 func GetProductById(id string) (*models.Product, error) {
 	var product models.Product
-	result := database.DB.Preload("Category").First(&product, id)
+	result := database.DB.Preload("Category").Preload("Group").First(&product, id)
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	return &product, nil 
+	return &product, nil
 }
-
-
-
 
 func UpdateProduct(product *models.Product) error {
-	result := database.DB.Save(&product)
-	return result.Error
+	var category models.Category
+	if err := database.DB.First(&category, product.CategoryID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("kategorija nije pronađena")
+		}
+		return err
+	}
+
+	if err := validateProductGroupAssignment(product.CategoryID, product.GroupID); err != nil {
+		return err
+	}
+
+	return database.DB.Save(product).Error
 }
 
-
-
-
 func DeactivateProduct(id string) error {
-	result := database.DB.Model(&models.Product{}).Where("id = ?", id).Update("active", false)
+	result := database.DB.Model(&models.Product{}).Where("id = ?", id).Update("is_active", false)
 
 	if result.Error != nil {
 		return result.Error
@@ -59,5 +93,5 @@ func DeactivateProduct(id string) error {
 		return errors.New("proizvod nije pronađen")
 	}
 
-	return nil 
+	return nil
 }

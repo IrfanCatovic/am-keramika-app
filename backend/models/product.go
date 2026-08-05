@@ -12,22 +12,25 @@ type Product struct {
 	Description string
 
 	CategoryID uint
-	Category Category `gorm:"foreignKey:CategoryID"`
+	Category   Category `gorm:"foreignKey:CategoryID"`
+
+	GroupID *uint         `gorm:"index"`
+	Group   *ProductGroup `gorm:"foreignKey:GroupID"`
 
 	Unit string
 
 	PurchasePrice *float64
 	MarginPercent *float64
-	VatPercent *float64
+	VatPercent    *float64
 
 	SalePrice float64
 
-	StockQuantity float64
+	StockQuantity    float64
 	MinStockQuantity float64 `gorm:"default:0"`
 
 	HasVariants bool `gorm:"default:false"`
 
-	IsActive bool `gorm:"default:true"`
-	IsOnSale bool `gorm:"default:false"`
+	IsActive       bool `gorm:"default:true"`
+	IsOnSale       bool `gorm:"default:false"`
 	ShowOnHomepage bool `gorm:"default:false"`
 }
