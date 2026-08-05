@@ -81,7 +81,7 @@ func UpdateProduct(product *models.Product) error {
 
 	// Explicit Select osigurava da se group_id može postaviti na NULL.
 	return database.DB.Model(product).
-		Select("Name", "Slug", "Description", "CategoryID", "GroupID", "Unit", "SalePrice", "StockQuantity").
+		Select("Name", "Slug", "Description", "CategoryID", "GroupID", "Unit", "SalePrice", "StockQuantity", "PurchasePrice", "MarginPercent").
 		Updates(product).Error
 }
 

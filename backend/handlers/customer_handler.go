@@ -4,11 +4,11 @@ import (
 	"am-keramika-backend/dto"
 	"am-keramika-backend/models"
 	"am-keramika-backend/repositories"
-	"net/http"
 	"github.com/gin-gonic/gin"
+	"math"
+	"net/http"
 	"strconv"
 	"strings"
-	"math"
 )
 
 func CreateCustomer(c *gin.Context) {
@@ -20,7 +20,7 @@ func CreateCustomer(c *gin.Context) {
 	}
 
 	customer := models.Customer{ //pretvaramo request u model jer repository ocekujem model.Customer a ne dto.CreateCustomerRequest
-		Name: req.Name,
+		Name:  req.Name,
 		Phone: req.Phone,
 	}
 	err = repositories.CreateCustomer(&customer)
@@ -29,8 +29,8 @@ func CreateCustomer(c *gin.Context) {
 		return
 	}
 	response := dto.CustomerResponse{ //pravimo rucno response da bi vratili klijentu sta je neophodno, a ne sve iz modela
-		ID: customer.ID,
-		Name: customer.Name,
+		ID:    customer.ID,
+		Name:  customer.Name,
 		Phone: customer.Phone,
 	}
 	c.JSON(http.StatusOK, gin.H{"customer": response})
@@ -64,18 +64,18 @@ func GetAllCustomers(c *gin.Context) {
 	response := []dto.CustomerListResponse{}
 	for _, customer := range customers {
 		response = append(response, dto.CustomerListResponse{
-			ID: customer.ID,
-			Name: customer.Name,
+			ID:    customer.ID,
+			Name:  customer.Name,
 			Phone: customer.Phone,
 		})
 	}
 
 	totalPages := int(math.Ceil(float64(total) / float64(limit))) // zaokruzuje broj strana na vecu npr 63 / 20 = 3.15, pa je 4 strana
 	c.JSON(http.StatusOK, dto.PaginatedCustomerResponse{
-		Data: response,
-		Page: page,
-		Limit: limit,
-		Total: total,
+		Data:       response,
+		Page:       page,
+		Limit:      limit,
+		Total:      total,
 		TotalPages: totalPages,
 	})
 	return
@@ -93,19 +93,19 @@ func GetCustomerByID(c *gin.Context) {
 		return
 	}
 	response := dto.CustomerDetailsResponse{
-		ID: customer.ID,
-		Name: customer.Name,
-		Phone: customer.Phone,
-		Debt: 0,
+		ID:       customer.ID,
+		Name:     customer.Name,
+		Phone:    customer.Phone,
+		Debt:     0,
 		Invoices: []dto.CustomerInvoiceResponse{},
 	}
 
 	for _, invoice := range customer.Invoices {
 		response.Invoices = append(response.Invoices, dto.CustomerInvoiceResponse{
-			ID: invoice.ID,
+			ID:          invoice.ID,
 			TotalAmount: invoice.TotalAmount,
-			Status: string(invoice.Status),
-			CreatedAt: invoice.CreatedAt.Format("2006-01-02 15:04"),
+			Status:      string(invoice.Status),
+			CreatedAt:   invoice.CreatedAt.Format("2006-01-02 15:04"),
 		})
 	}
 	c.JSON(http.StatusOK, response)

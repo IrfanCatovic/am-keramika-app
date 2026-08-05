@@ -1,33 +1,31 @@
 package repositories
 
 import (
-	"errors"
-	"fmt"
+	"am-keramika-backend/database"
 	"am-keramika-backend/dto"
 	"am-keramika-backend/models"
-	"am-keramika-backend/database"
-	"math"
+	"errors"
+	"fmt"
 	"gorm.io/gorm"
+	"math"
 )
 
-func CreatePayment(req dto.CreatePaymentRequest, createdByUserID uint) (models.Payment, error){
+func CreatePayment(req dto.CreatePaymentRequest, createdByUserID uint) (models.Payment, error) {
 	tx := database.DB.Begin() //zapocinjemo transakciju
 
 	if tx.Error != nil {
 		return models.Payment{}, tx.Error
 	}
 
-	var customer models.Customer		
-	if err:= tx.First(&customer, req.CustomerID).Error; err != nil {
+	var customer models.Customer
+	if err := tx.First(&customer, req.CustomerID).Error; err != nil {
 		tx.Rollback()
-		
+
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return models.Payment{}, errors.New("kupac ne postoji")
 		}
 		return models.Payment{}, err
 	}
-
-	
 
 	if req.TotalAmount <= 0 {
 		tx.Rollback()
@@ -39,9 +37,9 @@ func CreatePayment(req dto.CreatePaymentRequest, createdByUserID uint) (models.P
 		allocationTotal += allocationReq.Amount
 	}
 
-	if math.Abs(allocationTotal-req.TotalAmount) > 0.01 { //Pošto koristimo float64, direktno poređenje može nekad biti nezgodno zbog decimala. 
-	// Kod nas su verovatno cene cele ili sa dve decimale, ali dobra praksa je da koristimo malu toleranciju.
-	//total koji nam je stigao sa frontenda kao total i zbir svih iznosa putanja racuna da je isti zaokruzuje se i da bude min razlika za 0.01 to je praksa
+	if math.Abs(allocationTotal-req.TotalAmount) > 0.01 { //Pošto koristimo float64, direktno poređenje može nekad biti nezgodno zbog decimala.
+		// Kod nas su verovatno cene cele ili sa dve decimale, ali dobra praksa je da koristimo malu toleranciju.
+		//total koji nam je stigao sa frontenda kao total i zbir svih iznosa putanja racuna da je isti zaokruzuje se i da bude min razlika za 0.01 to je praksa
 		tx.Rollback()
 		return models.Payment{}, errors.New("ukupan iznos uplate se ne poklapa sa raspodelom po racunima")
 	}
@@ -53,7 +51,7 @@ func CreatePayment(req dto.CreatePaymentRequest, createdByUserID uint) (models.P
 	}
 
 	seenInvoiceIDs := make(map[uint]bool)
-	for  _, allocationReq := range req.Allocations { 
+	for _, allocationReq := range req.Allocations {
 		if allocationReq.Amount <= 0 {
 			tx.Rollback()
 			return models.Payment{}, errors.New("iznos alokacije mora biti pozitivan")
@@ -67,7 +65,7 @@ func CreatePayment(req dto.CreatePaymentRequest, createdByUserID uint) (models.P
 	}
 
 	totalAmount := 0.0
-	invoicesToUpdate := []models.Invoice{} //racuni koje cemo posle azurirati
+	invoicesToUpdate := []models.Invoice{}              //racuni koje cemo posle azurirati
 	allocationsToCreate := []models.PaymentAllocation{} //alokacije koje cemo posle kreirati
 
 	for _, allocationReq := range req.Allocations {
@@ -103,26 +101,26 @@ func CreatePayment(req dto.CreatePaymentRequest, createdByUserID uint) (models.P
 			return models.Payment{}, errors.New("iznos uplate ne može biti veći od preostalog duga računa")
 		}
 
-		invoice.PaidAmount += allocationReq.Amount //ovo je lokalna promena, ne utice na bazu, dodajemo iznos prenosenja na iznos placenog racuna	
+		invoice.PaidAmount += allocationReq.Amount //ovo je lokalna promena, ne utice na bazu, dodajemo iznos prenosenja na iznos placenog racuna
 
-		//sa frontenda nam stize 300, a duzni smo 300 za taj racun onda se uradi, a nije placeno nista 
-		//znaci 300 je dug - 0 (koliko je vec otplaceno) = 300  
-		//invoice.paidAmount dodajemo mi ovo sad sto nam je stiglo sa frontenda i proveravamo status ako je invoice.PaindAmount jednak invoice.TotalAmount 
+		//sa frontenda nam stize 300, a duzni smo 300 za taj racun onda se uradi, a nije placeno nista
+		//znaci 300 je dug - 0 (koliko je vec otplaceno) = 300
+		//invoice.paidAmount dodajemo mi ovo sad sto nam je stiglo sa frontenda i proveravamo status ako je invoice.PaindAmount jednak invoice.TotalAmount
 		//onda znaci da je placeno i totalni racun isto tako da je placen, ako nije isto onda je delimicno placen
 		if invoice.PaidAmount == invoice.TotalAmount {
 			invoice.Status = models.InvoiceStatusPaid
-		} else{
+		} else {
 			invoice.Status = models.InvoiceStatusPartiallyPaid
 		}
 
-		totalAmount += allocationReq.Amount //iznos za payment koji pravimo
+		totalAmount += allocationReq.Amount                  //iznos za payment koji pravimo
 		invoicesToUpdate = append(invoicesToUpdate, invoice) //racuni koje cemo posle da azuriramo da ih ne bi cuvali jedan po jedan
 	}
 
 	payment := models.Payment{
-		CustomerID: &customer.ID, //pointer 
+		CustomerID:      &customer.ID, //pointer
 		CreatedByUserID: createdByUserID,
-		TotalAmount: totalAmount,
+		TotalAmount:     totalAmount,
 	}
 	if err := tx.Create(&payment).Error; err != nil {
 		tx.Rollback()
@@ -133,7 +131,7 @@ func CreatePayment(req dto.CreatePaymentRequest, createdByUserID uint) (models.P
 		allocation := models.PaymentAllocation{
 			PaymentID: payment.ID,
 			InvoiceID: allocationReq.InvoiceID,
-			Amount: allocationReq.Amount,
+			Amount:    allocationReq.Amount,
 		}
 		allocationsToCreate = append(allocationsToCreate, allocation)
 	}
@@ -145,22 +143,22 @@ func CreatePayment(req dto.CreatePaymentRequest, createdByUserID uint) (models.P
 
 	for _, invoice := range invoicesToUpdate {
 		if err := tx.Model(&models.Invoice{}).
-		 	Where("id = ?", invoice.ID).
+			Where("id = ?", invoice.ID).
 			Updates(map[string]interface{}{
 				"paid_amount": invoice.PaidAmount,
-				"status": invoice.Status,
+				"status":      invoice.Status,
 			}).Error; err != nil {
 			tx.Rollback()
 			return models.Payment{}, err
 		}
 	}
-	
+
 	newCustomerDebt := customer.TotalDebt - totalAmount
 	if newCustomerDebt < 0 {
 		tx.Rollback()
 		return models.Payment{}, errors.New("kupac ne moze imati negativan dug")
 	}
- 
+
 	if err := tx.Model(&models.Customer{}).
 		Where("id = ?", customer.ID).
 		Update("total_debt", newCustomerDebt).Error; err != nil {
@@ -174,10 +172,10 @@ func CreatePayment(req dto.CreatePaymentRequest, createdByUserID uint) (models.P
 
 	var createdPayment models.Payment
 	if err := database.DB.Preload("Customer").
-	Preload("CreatedByUser").
-	Preload("Allocations").
-	Preload("Allocations.Invoice").
-	First(&createdPayment, payment.ID).Error; err != nil {
+		Preload("CreatedByUser").
+		Preload("Allocations").
+		Preload("Allocations.Invoice").
+		First(&createdPayment, payment.ID).Error; err != nil {
 		return payment, nil
 	}
 	return createdPayment, nil
@@ -193,13 +191,13 @@ func GetPaymentsByCustomerID(customerID uint) ([]models.Payment, error) {
 	}
 
 	err = database.DB.
-	Preload("Customer").
-	Preload("CreatedByUser").
-	Preload("Allocations").
-	Preload("Allocations.Invoice").
-	Where("customer_id = ?", customerID).
-	Order("created_at DESC").
-	Find(&payments).Error
+		Preload("Customer").
+		Preload("CreatedByUser").
+		Preload("Allocations").
+		Preload("Allocations.Invoice").
+		Where("customer_id = ?", customerID).
+		Order("created_at DESC").
+		Find(&payments).Error
 	if err != nil {
 		return nil, err
 	}
@@ -209,11 +207,11 @@ func GetPaymentsByCustomerID(customerID uint) ([]models.Payment, error) {
 func GetPaymentByID(paymentID uint) (*models.Payment, error) {
 	var payment models.Payment
 	err := database.DB.
-	Preload("Customer").
-	Preload("CreatedByUser").
-	Preload("Allocations").
-	Preload("Allocations.Invoice").
-	First(&payment, paymentID).Error
+		Preload("Customer").
+		Preload("CreatedByUser").
+		Preload("Allocations").
+		Preload("Allocations.Invoice").
+		First(&payment, paymentID).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("uplata nije pronađena")

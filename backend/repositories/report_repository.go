@@ -4,8 +4,8 @@ import (
 	"am-keramika-backend/database"
 	"am-keramika-backend/dto"
 	"am-keramika-backend/models"
-	"time"
 	"sort"
+	"time"
 )
 
 type financialStats struct {
@@ -295,10 +295,10 @@ func GetFinancialTransactionsReport(startDate time.Time, endDate time.Time) (*dt
 	var payments []models.Payment
 
 	err := database.DB.Model(&models.Payment{}).
-	Preload("Customer").
-	Preload("Allocations").
-	Where("created_at >= ? AND created_at < ?", startDate, endDate).
-	Find(&payments).Error
+		Preload("Customer").
+		Preload("Allocations").
+		Where("created_at >= ? AND created_at < ?", startDate, endDate).
+		Find(&payments).Error
 
 	if err != nil {
 		return nil, err
@@ -306,16 +306,15 @@ func GetFinancialTransactionsReport(startDate time.Time, endDate time.Time) (*dt
 
 	var refunds []models.Refund
 	err = database.DB.Model(&models.Refund{}).
-	Preload("Invoice.Customer").
-	Where("created_at >= ? AND created_at < ?", startDate, endDate).
-	Find(&refunds).Error
+		Preload("Invoice.Customer").
+		Where("created_at >= ? AND created_at < ?", startDate, endDate).
+		Find(&refunds).Error
 
 	if err != nil {
 		return nil, err
 	}
 
- 	transactions := make([]dto.FinancialTransactionResponse, 0)
-	
+	transactions := make([]dto.FinancialTransactionResponse, 0)
 
 	for _, payment := range payments {
 		invoiceIDs := make([]uint, 0)
@@ -328,39 +327,39 @@ func GetFinancialTransactionsReport(startDate time.Time, endDate time.Time) (*dt
 			customerName = &payment.Customer.Name
 		}
 		transaction := dto.FinancialTransactionResponse{
-			ID: payment.ID,
-			Type: "payment",
-			Amount: payment.TotalAmount,
-			Date: payment.CreatedAt,
-			CustomerID: payment.CustomerID,
+			ID:           payment.ID,
+			Type:         "payment",
+			Amount:       payment.TotalAmount,
+			Date:         payment.CreatedAt,
+			CustomerID:   payment.CustomerID,
 			CustomerName: customerName,
-			InvoiceIDs: invoiceIDs,
-			Description: "Uplata kupca",
+			InvoiceIDs:   invoiceIDs,
+			Description:  "Uplata kupca",
 		}
 		transactions = append(transactions, transaction)
 	}
-	
+
 	for _, refund := range refunds {
 		invoiceIDs := []uint{refund.InvoiceID}
-	
-	customerID := refund.Invoice.CustomerID
-	
-	var customerName *string //var koja cuva ime kupca 
-	if refund.Invoice.Customer != nil {
-		customerName = &refund.Invoice.Customer.Name
-	}
-	transaction := dto.FinancialTransactionResponse{
-		ID: refund.ID,
-		Type: "refund",
-		Amount: refund.Amount,
-		Date: refund.CreatedAt,
-		CustomerID: customerID,
-		CustomerName: customerName,
-		InvoiceIDs: invoiceIDs,
-		Description: refund.Reason,
-	}
 
-	transactions = append(transactions, transaction)
+		customerID := refund.Invoice.CustomerID
+
+		var customerName *string //var koja cuva ime kupca
+		if refund.Invoice.Customer != nil {
+			customerName = &refund.Invoice.Customer.Name
+		}
+		transaction := dto.FinancialTransactionResponse{
+			ID:           refund.ID,
+			Type:         "refund",
+			Amount:       refund.Amount,
+			Date:         refund.CreatedAt,
+			CustomerID:   customerID,
+			CustomerName: customerName,
+			InvoiceIDs:   invoiceIDs,
+			Description:  refund.Reason,
+		}
+
+		transactions = append(transactions, transaction)
 	}
 
 	sort.Slice(transactions, func(i, j int) bool {
@@ -368,9 +367,9 @@ func GetFinancialTransactionsReport(startDate time.Time, endDate time.Time) (*dt
 	})
 
 	response := dto.FinancialTransactionsReportResponse{
-		FromDate: startDate.Format("2006-01-02"),
-		ToDate: endDate.AddDate(0, 0, -1).Format("2006-01-02"), //ovo radimo jer korisnik salje 31.07 a mi moramo da mu dodamo 1 dan da bi i 31. racuna, a kad vracamo odg oduzmemo 1 dan
-		TotalCount: int64(len(transactions)),
+		FromDate:     startDate.Format("2006-01-02"),
+		ToDate:       endDate.AddDate(0, 0, -1).Format("2006-01-02"), //ovo radimo jer korisnik salje 31.07 a mi moramo da mu dodamo 1 dan da bi i 31. racuna, a kad vracamo odg oduzmemo 1 dan
+		TotalCount:   int64(len(transactions)),
 		Transactions: transactions,
 	}
 	return &response, nil

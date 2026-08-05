@@ -1,10 +1,13 @@
 package handlers
 
 import (
-	"am-keramika-backend/repositories"
-	"am-keramika-backend/dto"
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"am-keramika-backend/auth"
+	"am-keramika-backend/dto"
+	"am-keramika-backend/repositories"
+
+	"github.com/gin-gonic/gin"
 )
 
 func AddStock(c *gin.Context) {
@@ -14,11 +17,13 @@ func AddStock(c *gin.Context) {
 		return
 	}
 
-	//Privremeno dok nema autentifikacije
-	//kasnije ce se dobiti iz JWT tokena
-	createdByUserID := uint(7) //privremeno dok nema autentifikacije
+	createdByUserID, err := auth.GetUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Korisnik nije autentifikovan"})
+		return
+	}
 
-	err := repositories.AddStock(req.ProductID, req.Quantity, req.Note, createdByUserID)
+	err = repositories.AddStock(req.ProductID, req.Quantity, req.Note, createdByUserID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspjelo dodavanje stoka", "error": err.Error()})
 		return
@@ -34,11 +39,13 @@ func AdjustStock(c *gin.Context) {
 		return
 	}
 
-	//Privremeno dok nema autentifikacije
-	//kasnije ce se dobiti iz JWT tokena
-	createdByUserID := uint(7) //privremeno dok nema autentifikacije
+	createdByUserID, err := auth.GetUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Korisnik nije autentifikovan"})
+		return
+	}
 
-	err := repositories.AdjustStock(req.ProductID, req.Quantity, req.Note, createdByUserID)
+	err = repositories.AdjustStock(req.ProductID, req.Quantity, req.Note, createdByUserID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspjelo prilagođavanje stoka", "error": err.Error()})
 		return
@@ -54,9 +61,11 @@ func SellStock(c *gin.Context) {
 		return
 	}
 
-	//Privremeno dok nema autentifikacije
-	//kasnije ce se dobiti iz JWT tokena
-	createdByUserID := uint(7) //privremeno dok nema autentifikacije
+	createdByUserID, err := auth.GetUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Korisnik nije autentifikovan"})
+		return
+	}
 
 	result, err := repositories.SellStock(req.ProductID, req.Quantity, req.Note, createdByUserID)
 	if err != nil {
@@ -66,7 +75,7 @@ func SellStock(c *gin.Context) {
 
 	response := gin.H{
 		"message": "Prodaja uspjesno evidentirana",
-	}	
+	}
 
 	if result.Warning != "" {
 		response["warning"] = result.Warning

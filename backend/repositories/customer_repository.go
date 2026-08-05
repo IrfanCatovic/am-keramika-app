@@ -1,17 +1,16 @@
 package repositories
 
 import (
+	"am-keramika-backend/database"
+	"am-keramika-backend/dto"
+	"am-keramika-backend/models"
 	"errors"
 	"gorm.io/gorm"
-	"am-keramika-backend/database"
-	"am-keramika-backend/models"
-	"am-keramika-backend/dto"
 )
-
 
 func CreateCustomer(customer *models.Customer) error {
 
-	result := database.DB.Create(customer) 
+	result := database.DB.Create(customer)
 	return result.Error
 }
 
@@ -21,9 +20,9 @@ func GetAllCustomers(page int, limit int) ([]models.Customer, int64, error) {
 	var total int64
 
 	query := database.DB.Model(&models.Customer{}) //radimo sa customer tabelom
-	offset := (page - 1) * limit //offset je broj redova koje preskacemo, racuna se strana 3, limit 20  
+	offset := (page - 1) * limit                   //offset je broj redova koje preskacemo, racuna se strana 3, limit 20
 	//(3-1) * 20 = 40, preskacemo 40 redova i pocinjemo sa 41. redom
-	err := query.Count(&total).Error//brojimo ukupan broj redova u tabeli
+	err := query.Count(&total).Error //brojimo ukupan broj redova u tabeli
 	if err != nil {
 		return nil, 0, err
 	}
@@ -38,7 +37,7 @@ func GetAllCustomers(page int, limit int) ([]models.Customer, int64, error) {
 
 func GetCustomerByID(id uint) (*models.Customer, error) {
 	var customer models.Customer
-	
+
 	err := database.DB.Preload("Invoices").First(&customer, id).Error
 
 	if err != nil {
@@ -59,8 +58,8 @@ func GetCustomerFinancialSummary(customerID uint) (*dto.CustomerFinancialSummary
 
 	var openInvoicesCount int64
 
-	err = database.DB.Model(&models.Invoice{}).Where("customer_id = ? AND status IN ?", customerID, 
-	[]models.InvoiceStatus{models.InvoiceStatusUnpaid, models.InvoiceStatusPartiallyPaid}).Count(&openInvoicesCount).Error //countamo broj otvorenih racuna, nisu placeni ili delimicno
+	err = database.DB.Model(&models.Invoice{}).Where("customer_id = ? AND status IN ?", customerID,
+		[]models.InvoiceStatus{models.InvoiceStatusUnpaid, models.InvoiceStatusPartiallyPaid}).Count(&openInvoicesCount).Error //countamo broj otvorenih racuna, nisu placeni ili delimicno
 
 	if err != nil {
 		return nil, err
@@ -74,12 +73,12 @@ func GetCustomerFinancialSummary(customerID uint) (*dto.CustomerFinancialSummary
 	}
 
 	response := dto.CustomerFinancialSummaryResponse{
-		ID: customer.ID,
-		Name: customer.Name,
-		Phone: customer.Phone,
-		TotalDebt: customer.TotalDebt,
+		ID:                customer.ID,
+		Name:              customer.Name,
+		Phone:             customer.Phone,
+		TotalDebt:         customer.TotalDebt,
 		OpenInvoicesCount: openInvoicesCount,
-		PaymentsCount: paymentsCount,
+		PaymentsCount:     paymentsCount,
 	}
 
 	return &response, nil

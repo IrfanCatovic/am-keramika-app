@@ -1,35 +1,38 @@
 package handlers
 
 import (
+	"net/http"
 	"strconv"
 	"strings"
-	"net/http"
+
+	"am-keramika-backend/auth"
 	"am-keramika-backend/dto"
 	"am-keramika-backend/models"
 	"am-keramika-backend/repositories"
+
 	"github.com/gin-gonic/gin"
 )
 
 func buildPaymentResponse(payment models.Payment) dto.PaymentResponse {
 	response := dto.PaymentResponse{
-		ID: payment.ID,
-		CustomerID: payment.CustomerID,
+		ID:              payment.ID,
+		CustomerID:      payment.CustomerID,
 		CreatedByUserID: payment.CreatedByUserID,
-		TotalAmount: payment.TotalAmount,
-		CreatedAt: payment.CreatedAt.Format("2006-01-02 15:04"),
-		Allocations: []dto.PaymentAllocationResponse{},
+		TotalAmount:     payment.TotalAmount,
+		CreatedAt:       payment.CreatedAt.Format("2006-01-02 15:04"),
+		Allocations:     []dto.PaymentAllocationResponse{},
 	}
 
 	for _, allocation := range payment.Allocations {
 		response.Allocations = append(response.Allocations, dto.PaymentAllocationResponse{
-			ID: allocation.ID,
+			ID:        allocation.ID,
 			InvoiceID: allocation.InvoiceID,
-			Amount: allocation.Amount,
+			Amount:    allocation.Amount,
 			Invoice: dto.PaymentAllocationInvoiceResponse{
-				ID: allocation.Invoice.ID,
+				ID:          allocation.Invoice.ID,
 				TotalAmount: allocation.Invoice.TotalAmount,
-				PaidAmount: allocation.Invoice.PaidAmount,
-				Status: string(allocation.Invoice.Status),
+				PaidAmount:  allocation.Invoice.PaidAmount,
+				Status:      string(allocation.Invoice.Status),
 			},
 		})
 	}
@@ -40,39 +43,29 @@ func CreatePayment(c *gin.Context) {
 	var req dto.CreatePaymentRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Neispavan zahtev za uplatu" ,"error": err.Error(),
-	})
-	return
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Neispavan zahtev za uplatu", "error": err.Error()})
+		return
 	}
 
-	// userIDValue, exists := c.Get("userID")
-	// if !exists {
-	// 	c.JSON(http.StatusUnauthorized, gin.H{"message": "Korisnik nije autorizovan"})
-	// 	return
-	// }
-
-	// userID, ok := userIDValue.(uint)
-	// if !ok {
-	// 	c.JSON(http.StatusUnauthorized, gin.H{"message": "Neispravan format korisnickog ID-ja"})
-	// 	return
-	// }
-	userID := uint(7) //createdByUserID privremeni onda ide ovo gore kada napravimo auth middleware
+	userID, err := auth.GetUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Korisnik nije autentifikovan"})
+		return
+	}
 
 	payment, err := repositories.CreatePayment(req, userID)
 	if err != nil {
 		statusCode := http.StatusInternalServerError
-			errorMessage := err.Error()
-			if strings.Contains(errorMessage, "vec placen") ||
-				strings.Contains(errorMessage, "storniran") ||
-				strings.Contains(errorMessage, "ne pripada") ||
-				strings.Contains(errorMessage, "ne postoji") ||
-				strings.Contains(errorMessage, "iznos") {
-				statusCode = http.StatusBadRequest //ovaj ceo error radi samo da bi bratili greske 400 jer to su greske korisnika, a ne 500 neocekivane greske
-	}
-	c.JSON(statusCode, gin.H{
-		"error": errorMessage,
-	})
-	return
+		errorMessage := err.Error()
+		if strings.Contains(errorMessage, "vec placen") ||
+			strings.Contains(errorMessage, "storniran") ||
+			strings.Contains(errorMessage, "ne pripada") ||
+			strings.Contains(errorMessage, "ne postoji") ||
+			strings.Contains(errorMessage, "iznos") {
+			statusCode = http.StatusBadRequest
+		}
+		c.JSON(statusCode, gin.H{"error": errorMessage})
+		return
 	}
 	response := buildPaymentResponse(payment)
 	c.JSON(http.StatusOK, gin.H{"message": "Uplata je uspesno kreirana", "data": response})
@@ -112,7 +105,7 @@ func GetPaymentByID(c *gin.Context) {
 	paymentIDParam := c.Param("id")
 	paymentIDUint64, err := strconv.ParseUint(paymentIDParam, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "neispravan ID uplate",})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "neispravan ID uplate"})
 		return
 	}
 

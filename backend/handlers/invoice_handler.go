@@ -1,13 +1,16 @@
 package handlers
 
 import (
-	"strings"
-	"am-keramika-backend/dto"
-	"am-keramika-backend/repositories"
-	"am-keramika-backend/models"
+	"math"
 	"net/http"
 	"strconv"
-	"math"
+	"strings"
+
+	"am-keramika-backend/auth"
+	"am-keramika-backend/dto"
+	"am-keramika-backend/models"
+	"am-keramika-backend/repositories"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,7 +23,11 @@ func CreateInvoice(c *gin.Context) {
 		return
 	}
 
-	createdByUserID := uint(7)
+	createdByUserID, err := auth.GetUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Korisnik nije autentifikovan"})
+		return
+	}
 
 	invoice, err := repositories.CreateInvoice(req, createdByUserID)
 	if err != nil {
@@ -53,8 +60,8 @@ func GetInvoiceByID(c *gin.Context) {
 	}
 	if invoice.Customer != nil {
 		response.Customer = &dto.CustomerResponse{
-			ID: invoice.Customer.ID,
-			Name: invoice.Customer.Name,
+			ID:    invoice.Customer.ID,
+			Name:  invoice.Customer.Name,
 			Phone: invoice.Customer.Phone,
 		}
 	}
@@ -71,8 +78,6 @@ func GetInvoiceByID(c *gin.Context) {
 
 	c.JSON(http.StatusOK, response)
 }
-
-
 
 func GetAllInvoices(c *gin.Context) {
 	pageStr := c.Query("page")
@@ -119,9 +124,7 @@ func GetAllInvoices(c *gin.Context) {
 		return
 	}
 
-	
-
-	response := []dto.InvoiceListResponse{}	
+	response := []dto.InvoiceListResponse{}
 	for _, invoice := range invoices {
 		customerName := ""
 		if invoice.Customer != nil {
@@ -131,17 +134,17 @@ func GetAllInvoices(c *gin.Context) {
 			ID:           invoice.ID,
 			CustomerName: customerName,
 			TotalAmount:  invoice.TotalAmount,
-			PaidAmount:  invoice.PaidAmount,
+			PaidAmount:   invoice.PaidAmount,
 			Status:       string(invoice.Status),
 			CreatedAt:    invoice.CreatedAt.Format("2006-01-02 15:04"),
 		})
 	}
 	totalPages := int(math.Ceil(float64(total) / float64(limit)))
 	c.JSON(http.StatusOK, dto.PaginatedInvoiceResponse{
-		Data: response,
-		Page: page,
-		Limit: limit,
-		Total: total,
+		Data:       response,
+		Page:       page,
+		Limit:      limit,
+		Total:      total,
 		TotalPages: totalPages,
 	})
 
@@ -176,12 +179,12 @@ func GetCustomerOpenInvoices(c *gin.Context) {
 	for _, invoice := range invoices {
 		remainingAmount := invoice.TotalAmount - invoice.PaidAmount
 		response = append(response, dto.InvoiceListResponse{
-			ID: invoice.ID,
-			TotalAmount: invoice.TotalAmount,
-			PaidAmount: invoice.PaidAmount,
+			ID:              invoice.ID,
+			TotalAmount:     invoice.TotalAmount,
+			PaidAmount:      invoice.PaidAmount,
 			RemainingAmount: remainingAmount,
-			Status: string(invoice.Status),
-			CreatedAt: invoice.CreatedAt.Format("2006-01-02 15:04"),
+			Status:          string(invoice.Status),
+			CreatedAt:       invoice.CreatedAt.Format("2006-01-02 15:04"),
 		})
 	}
 	c.JSON(http.StatusOK, gin.H{
@@ -205,24 +208,27 @@ func CancelInvoice(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	createdByUserID := uint(7)
+	createdByUserID, err := auth.GetUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Korisnik nije autentifikovan"})
+		return
+	}
+
 	invoiceCancellation, err := repositories.CancelInvoice(invoiceID, req, createdByUserID)
 	if err != nil {
-
 		statusCode := http.StatusInternalServerError
 		if strings.Contains(err.Error(), "vec otkazan") {
 			statusCode = http.StatusBadRequest
 		}
-
 		if strings.Contains(err.Error(), "record not found") {
 			statusCode = http.StatusNotFound
 		}
-
-		c.JSON(statusCode, gin.H{
-			"error": err.Error(),
-		})
+		c.JSON(statusCode, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data":invoiceCancellation,"message": "Racun je uspesno storniran",})
-	return
+
+	c.JSON(http.StatusOK, gin.H{
+		"data":    invoiceCancellation,
+		"message": "Racun je uspesno storniran",
+	})
 }

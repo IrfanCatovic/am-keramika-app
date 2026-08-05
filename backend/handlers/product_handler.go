@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"am-keramika-backend/auth"
 	"am-keramika-backend/dto"
 	"am-keramika-backend/models"
 	"am-keramika-backend/repositories"
@@ -13,7 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func mapProductResponse(product models.Product) dto.ProductResponse {
+func mapProductResponse(product models.Product, role string) dto.ProductResponse {
 	response := dto.ProductResponse{
 		ID:            product.ID,
 		Name:          product.Name,
@@ -43,6 +44,11 @@ func mapProductResponse(product models.Product) dto.ProductResponse {
 		}
 	}
 
+	if models.CanViewSensitiveProductFields(role) {
+		response.PurchasePrice = product.PurchasePrice
+		response.MarginPercent = product.MarginPercent
+	}
+
 	return response
 }
 
@@ -53,12 +59,33 @@ func isProductValidationError(err error) bool {
 		strings.Contains(msg, "grupa ne pripada izabranoj kategoriji")
 }
 
+func rejectWorkerSensitiveProductFields(c *gin.Context, purchasePrice, marginPercent *float64) bool {
+	role, err := auth.GetRole(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Korisnik nije autentifikovan"})
+		return true
+	}
+	if role == models.RoleWorker && (purchasePrice != nil || marginPercent != nil) {
+		c.JSON(http.StatusForbidden, gin.H{
+			"message": "Radnik ne smije unositi ili mijenjati nabavnu cijenu ni maržu",
+		})
+		return true
+	}
+	return false
+}
+
 func CreateProduct(c *gin.Context) {
 	var req dto.CreateProductRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Neispravni podaci", "error": err.Error()})
 		return
 	}
+
+	if rejectWorkerSensitiveProductFields(c, req.PurchasePrice, req.MarginPercent) {
+		return
+	}
+
+	role, _ := auth.GetRole(c)
 
 	slug := utils.GenerateSlug(req.Name)
 	if slug == "" {
@@ -78,6 +105,11 @@ func CreateProduct(c *gin.Context) {
 		IsActive:      true,
 	}
 
+	if models.CanViewSensitiveProductFields(role) {
+		product.PurchasePrice = req.PurchasePrice
+		product.MarginPercent = req.MarginPercent
+	}
+
 	err := repositories.CreateProduct(&product)
 	if err != nil {
 		status := http.StatusInternalServerError
@@ -90,11 +122,11 @@ func CreateProduct(c *gin.Context) {
 
 	created, err := repositories.GetProductById(strconv.FormatUint(uint64(product.ID), 10))
 	if err != nil {
-		c.JSON(http.StatusCreated, mapProductResponse(product))
+		c.JSON(http.StatusCreated, mapProductResponse(product, role))
 		return
 	}
 
-	c.JSON(http.StatusCreated, mapProductResponse(*created))
+	c.JSON(http.StatusCreated, mapProductResponse(*created, role))
 }
 
 func GetAllProducts(c *gin.Context) {
@@ -102,6 +134,12 @@ func GetAllProducts(c *gin.Context) {
 	categoryID := c.Query("categoryID")
 	if categoryID == "" {
 		categoryID = c.Query("categoryId")
+	}
+
+	role, err := auth.GetRole(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Korisnik nije autentifikovan"})
+		return
 	}
 
 	products, err := repositories.GetAllProducts(search, categoryID)
@@ -115,7 +153,7 @@ func GetAllProducts(c *gin.Context) {
 
 	response := make([]dto.ProductResponse, 0, len(products))
 	for _, product := range products {
-		response = append(response, mapProductResponse(product))
+		response = append(response, mapProductResponse(product, role))
 	}
 
 	c.JSON(http.StatusOK, response)
@@ -123,6 +161,11 @@ func GetAllProducts(c *gin.Context) {
 
 func GetProductById(c *gin.Context) {
 	id := c.Param("id")
+	role, err := auth.GetRole(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Korisnik nije autentifikovan"})
+		return
+	}
 
 	product, err := repositories.GetProductById(id)
 	if err != nil {
@@ -133,7 +176,7 @@ func GetProductById(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, mapProductResponse(*product))
+	c.JSON(http.StatusOK, mapProductResponse(*product, role))
 }
 
 func UpdateProduct(c *gin.Context) {
@@ -154,6 +197,12 @@ func UpdateProduct(c *gin.Context) {
 		return
 	}
 
+	if rejectWorkerSensitiveProductFields(c, req.PurchasePrice, req.MarginPercent) {
+		return
+	}
+
+	role, _ := auth.GetRole(c)
+
 	slug := utils.GenerateSlug(req.Name)
 	if slug == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Slug nije validan"})
@@ -168,12 +217,14 @@ func UpdateProduct(c *gin.Context) {
 	product.StockQuantity = req.StockQuantity
 	product.Description = req.Description
 
-	// groupID omitted → zadrži postojeću grupu;
-	// groupID: null → ukloni grupu;
-	// groupID: N → postavi/promijeni grupu.
 	if req.GroupID.Present {
 		product.GroupID = req.GroupID.Value
 		product.Group = nil
+	}
+
+	if models.CanViewSensitiveProductFields(role) {
+		product.PurchasePrice = req.PurchasePrice
+		product.MarginPercent = req.MarginPercent
 	}
 
 	err = repositories.UpdateProduct(product)
@@ -191,11 +242,11 @@ func UpdateProduct(c *gin.Context) {
 
 	updated, err := repositories.GetProductById(id)
 	if err != nil {
-		c.JSON(http.StatusOK, mapProductResponse(*product))
+		c.JSON(http.StatusOK, mapProductResponse(*product, role))
 		return
 	}
 
-	c.JSON(http.StatusOK, mapProductResponse(*updated))
+	c.JSON(http.StatusOK, mapProductResponse(*updated, role))
 }
 
 func DeactivateProduct(c *gin.Context) {

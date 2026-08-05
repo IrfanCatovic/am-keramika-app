@@ -1,13 +1,15 @@
 package dto
 
 type CreateProductRequest struct {
-	Name          string  `json:"name" binding:"required"`
-	CategoryID    uint    `json:"categoryID" binding:"required"`
-	GroupID       *uint   `json:"groupID"`
-	Unit          string  `json:"unit" binding:"required"`
-	SalePrice     float64 `json:"salePrice" binding:"required,gt=0"`
-	StockQuantity float64 `json:"stockQuantity" binding:"gte=0"`
-	Description   string  `json:"description"`
+	Name          string   `json:"name" binding:"required"`
+	CategoryID    uint     `json:"categoryID" binding:"required"`
+	GroupID       *uint    `json:"groupID"`
+	Unit          string   `json:"unit" binding:"required"`
+	SalePrice     float64  `json:"salePrice" binding:"required,gt=0"`
+	StockQuantity float64  `json:"stockQuantity" binding:"gte=0"`
+	Description   string   `json:"description"`
+	PurchasePrice *float64 `json:"purchasePrice"`
+	MarginPercent *float64 `json:"marginPercent"`
 }
 
 type UpdateProductRequest struct {
@@ -18,6 +20,8 @@ type UpdateProductRequest struct {
 	SalePrice     float64      `json:"salePrice" binding:"required,gt=0"`
 	StockQuantity float64      `json:"stockQuantity" binding:"gte=0"`
 	Description   string       `json:"description"`
+	PurchasePrice *float64     `json:"purchasePrice"`
+	MarginPercent *float64     `json:"marginPercent"`
 }
 
 type ProductGroupSummaryResponse struct {
@@ -45,4 +49,6 @@ type ProductResponse struct {
 	SalePrice     float64                         `json:"salePrice"`
 	StockQuantity float64                         `json:"stockQuantity"`
 	IsActive      bool                            `json:"isActive"`
+	PurchasePrice *float64                        `json:"purchasePrice,omitempty"`
+	MarginPercent *float64                        `json:"marginPercent,omitempty"`
 }

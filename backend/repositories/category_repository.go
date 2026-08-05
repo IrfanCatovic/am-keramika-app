@@ -1,8 +1,9 @@
 package repositories
 
-import ("am-keramika-backend/models"
-	"am-keramika-backend/database")
-
+import (
+	"am-keramika-backend/database"
+	"am-keramika-backend/models"
+)
 
 func CreateCategory(category models.Category) error {
 	result := database.DB.Create(&category)
@@ -18,8 +19,7 @@ func GetCategories() ([]models.Category, error) {
 	return categories, nil
 }
 
-
-func GetCategoryByID(id string)(*models.Category, error) {
+func GetCategoryByID(id string) (*models.Category, error) {
 	var category models.Category
 
 	result := database.DB.Preload("Products").First(&category, id)

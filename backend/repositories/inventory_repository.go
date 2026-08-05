@@ -6,21 +6,21 @@ import (
 	"errors"
 )
 
-type SellStockResult struct{
+type SellStockResult struct {
 	Warning string
 }
 
 func AddStock(productID uint, quantity float64, note string, createdByUserID uint) error {
 	tx := database.DB.Begin() //ovde kreiramo transakciju
 
-	var product models.Product 
+	var product models.Product
 	err := tx.First(&product, productID).Error
 	if err != nil {
 		tx.Rollback()
 		return err
 	}
 
-	product.StockQuantity += quantity 
+	product.StockQuantity += quantity
 
 	err = tx.Save(&product).Error
 	if err != nil {
@@ -29,11 +29,11 @@ func AddStock(productID uint, quantity float64, note string, createdByUserID uin
 	}
 
 	movement := models.InventoryMovement{
-		ProductID: productID,
+		ProductID:       productID,
 		CreatedByUserID: createdByUserID,
-		MovementType: "in",
-		Quantity: quantity,
-		Note: note,
+		MovementType:    "in",
+		Quantity:        quantity,
+		Note:            note,
 	}
 
 	err = tx.Create(&movement).Error
@@ -42,7 +42,7 @@ func AddStock(productID uint, quantity float64, note string, createdByUserID uin
 		return err
 	}
 
-	return tx.Commit().Error	
+	return tx.Commit().Error
 }
 
 func AdjustStock(productID uint, quantity float64, note string, createdByUserID uint) error {
@@ -64,11 +64,11 @@ func AdjustStock(productID uint, quantity float64, note string, createdByUserID 
 	}
 
 	movement := models.InventoryMovement{
-		ProductID: productID,
+		ProductID:       productID,
 		CreatedByUserID: createdByUserID,
-		MovementType: "adjust",
-		Quantity: quantity,
-		Note: note,
+		MovementType:    "adjust",
+		Quantity:        quantity,
+		Note:            note,
 	}
 
 	err = tx.Create(&movement).Error
@@ -104,11 +104,11 @@ func SellStock(productID uint, quantity float64, note string, createdByUserID ui
 	}
 
 	movement := models.InventoryMovement{
-		ProductID: productID,
+		ProductID:       productID,
 		CreatedByUserID: createdByUserID,
-		MovementType: "sale",
-		Quantity: quantity,
-		Note: note,
+		MovementType:    "sale",
+		Quantity:        quantity,
+		Note:            note,
 	}
 
 	err = tx.Create(&movement).Error
