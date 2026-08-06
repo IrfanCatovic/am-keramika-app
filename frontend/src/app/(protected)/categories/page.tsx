@@ -1,15 +1,24 @@
+"use client";
+
+import { Suspense } from "react";
+
+import { CategoriesWorkspace } from "@/components/categories/CategoriesWorkspace";
+import { ListSkeleton } from "@/components/ui/EmptyState";
+
 export default function CategoriesPage() {
   return (
-    <div className="space-y-3">
-      <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-        Kategorije i grupe
-      </h1>
-      <p className="text-sm text-slate-500">
-        Organizacija proizvoda po kategorijama i grupama.
-      </p>
-      <div className="rounded-xl border border-dashed border-slate-300 bg-white px-5 py-8 text-sm text-slate-500">
-        Modul će biti implementiran u narednoj fazi.
-      </div>
-    </div>
+    <Suspense
+      fallback={
+        <div className="space-y-4">
+          <div className="h-16 animate-pulse rounded-2xl bg-stone-100" />
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <ListSkeleton rows={4} />
+            <ListSkeleton rows={3} />
+          </div>
+        </div>
+      }
+    >
+      <CategoriesWorkspace />
+    </Suspense>
   );
 }
