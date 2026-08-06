@@ -5,9 +5,26 @@ import (
 	"am-keramika-backend/models"
 	"errors"
 	"fmt"
+	"strings"
 
 	"gorm.io/gorm"
 )
+
+const (
+	DefaultProductListPage  = 1
+	DefaultProductListLimit = 20
+	MaxProductListLimit     = 100
+)
+
+type ProductListQuery struct {
+	Search          string
+	CategoryID      string
+	GroupID         string
+	Ungrouped       bool
+	IncludeInactive bool
+	Page            int
+	Limit           int
+}
 
 func validateProductGroupAssignment(categoryID uint, groupID *uint) error {
 	if groupID == nil {
@@ -29,6 +46,59 @@ func validateProductGroupAssignment(categoryID uint, groupID *uint) error {
 	return nil
 }
 
+func buildProductListQuery(q ProductListQuery) *gorm.DB {
+	query := database.DB.Model(&models.Product{})
+
+	if !q.IncludeInactive {
+		query = query.
+			Where("products.is_active = ?", true).
+			Joins("JOIN categories ON categories.id = products.category_id AND categories.deleted_at IS NULL AND categories.is_active = ?", true)
+	}
+
+	if q.Search != "" {
+		search := strings.ToLower(strings.TrimSpace(q.Search))
+		pattern := "%" + search + "%"
+		query = query.Where("LOWER(products.name) LIKE ? OR LOWER(products.slug) LIKE ?", pattern, pattern)
+	}
+
+	if q.CategoryID != "" {
+		query = query.Where("products.category_id = ?", q.CategoryID)
+	}
+	if q.GroupID != "" {
+		query = query.Where("products.group_id = ?", q.GroupID)
+	}
+	if q.Ungrouped {
+		query = query.Where("products.group_id IS NULL")
+	}
+
+	return query
+}
+
+func ListProducts(q ProductListQuery) ([]models.Product, int64, error) {
+	if q.Page <= 0 {
+		q.Page = DefaultProductListPage
+	}
+	if q.Limit <= 0 {
+		q.Limit = DefaultProductListLimit
+	}
+
+	var total int64
+	if err := buildProductListQuery(q).Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	var products []models.Product
+	offset := (q.Page - 1) * q.Limit
+	err := buildProductListQuery(q).
+		Preload("Category").
+		Preload("Group").
+		Order("products.name ASC, products.id ASC").
+		Limit(q.Limit).
+		Offset(offset).
+		Find(&products).Error
+	return products, total, err
+}
+
 func CreateProduct(product *models.Product) error {
 	if err := validateCategoryActive(product.CategoryID); err != nil {
 		return err
@@ -39,26 +109,6 @@ func CreateProduct(product *models.Product) error {
 	}
 
 	return database.DB.Create(product).Error
-}
-
-func GetAllProducts(search string, categoryID string, includeInactive bool) ([]models.Product, error) {
-	var products []models.Product
-	query := database.DB.Preload("Category").Preload("Group")
-
-	if !includeInactive {
-		query = query.
-			Where("products.is_active = ?", true).
-			Joins("JOIN categories ON categories.id = products.category_id AND categories.deleted_at IS NULL AND categories.is_active = ?", true)
-	}
-
-	if search != "" {
-		query = query.Where("products.name ILIKE ?", "%"+search+"%")
-	}
-	if categoryID != "" {
-		query = query.Where("products.category_id = ?", categoryID)
-	}
-	result := query.Find(&products)
-	return products, result.Error
 }
 
 func GetProductById(id string) (*models.Product, error) {

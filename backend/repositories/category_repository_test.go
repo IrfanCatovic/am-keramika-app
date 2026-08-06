@@ -240,19 +240,19 @@ func TestGetAllProductsExcludesInactiveCategoryProducts(t *testing.T) {
 		t.Fatalf("create hidden product: %v", err)
 	}
 
-	products, err := GetAllProducts("", "", false)
+	products, total, err := ListProducts(ProductListQuery{IncludeInactive: false})
 	if err != nil {
 		t.Fatalf("list products: %v", err)
 	}
-	if len(products) != 1 || products[0].Slug != "vidljiv" {
-		t.Fatalf("expected only product from active category, got %+v", products)
+	if total != 1 || len(products) != 1 || products[0].Slug != "vidljiv" {
+		t.Fatalf("expected only product from active category, got total=%d products=%+v", total, products)
 	}
 
-	allProducts, err := GetAllProducts("", "", true)
+	allProducts, allTotal, err := ListProducts(ProductListQuery{IncludeInactive: true})
 	if err != nil {
 		t.Fatalf("list all products: %v", err)
 	}
-	if len(allProducts) != 2 {
-		t.Fatalf("expected 2 products with includeInactive, got %d", len(allProducts))
+	if allTotal != 2 || len(allProducts) != 2 {
+		t.Fatalf("expected 2 products with includeInactive, got total=%d len=%d", allTotal, len(allProducts))
 	}
 }

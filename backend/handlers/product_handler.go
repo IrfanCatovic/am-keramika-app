@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"math"
 	"net/http"
 	"strconv"
 	"strings"
@@ -153,10 +154,47 @@ func CreateProduct(c *gin.Context) {
 }
 
 func GetAllProducts(c *gin.Context) {
-	search := c.Query("search")
+	search := strings.TrimSpace(c.Query("search"))
 	categoryID := c.Query("categoryID")
 	if categoryID == "" {
 		categoryID = c.Query("categoryId")
+	}
+	groupID := c.Query("groupID")
+	if groupID == "" {
+		groupID = c.Query("groupId")
+	}
+	ungrouped := c.Query("ungrouped") == "true"
+	includeInactive := c.Query("includeInactive") == "true"
+
+	if groupID != "" && ungrouped {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "groupID i ungrouped=true ne mogu biti korišteni zajedno",
+		})
+		return
+	}
+
+	page := repositories.DefaultProductListPage
+	if pageStr := c.Query("page"); pageStr != "" {
+		parsedPage, err := strconv.Atoi(pageStr)
+		if err != nil || parsedPage <= 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "page mora biti pozitivan broj"})
+			return
+		}
+		page = parsedPage
+	}
+
+	limit := repositories.DefaultProductListLimit
+	if limitStr := c.Query("limit"); limitStr != "" {
+		parsedLimit, err := strconv.Atoi(limitStr)
+		if err != nil || parsedLimit <= 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "limit mora biti pozitivan broj"})
+			return
+		}
+		if parsedLimit > repositories.MaxProductListLimit {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "limit ne smije biti veći od 100"})
+			return
+		}
+		limit = parsedLimit
 	}
 
 	role, err := auth.GetRole(c)
@@ -165,9 +203,15 @@ func GetAllProducts(c *gin.Context) {
 		return
 	}
 
-	includeInactive := c.Query("includeInactive") == "true"
-
-	products, err := repositories.GetAllProducts(search, categoryID, includeInactive)
+	products, total, err := repositories.ListProducts(repositories.ProductListQuery{
+		Search:          search,
+		CategoryID:      categoryID,
+		GroupID:         groupID,
+		Ungrouped:       ungrouped,
+		IncludeInactive: includeInactive,
+		Page:            page,
+		Limit:           limit,
+	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": "Greska pri ucitavanju proizvoda",
@@ -200,7 +244,20 @@ func GetAllProducts(c *gin.Context) {
 		response = append(response, mapProductListResponse(product, role, primaryPtr))
 	}
 
-	c.JSON(http.StatusOK, response)
+	totalPages := 0
+	if total > 0 {
+		totalPages = int(math.Ceil(float64(total) / float64(limit)))
+	}
+
+	c.JSON(http.StatusOK, dto.PaginatedProductListResponse{
+		Products: response,
+		Pagination: dto.ProductPaginationResponse{
+			Page:       page,
+			Limit:      limit,
+			TotalItems: total,
+			TotalPages: totalPages,
+		},
+	})
 }
 
 func GetProductById(c *gin.Context) {

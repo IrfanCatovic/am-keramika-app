@@ -54,3 +54,15 @@ type ProductResponse struct {
 	Images        []ProductImageResponse          `json:"images,omitempty"`
 	PrimaryImage  *ProductImageResponse           `json:"primaryImage"`
 }
+
+type ProductPaginationResponse struct {
+	Page       int   `json:"page"`
+	Limit      int   `json:"limit"`
+	TotalItems int64 `json:"totalItems"`
+	TotalPages int   `json:"totalPages"`
+}
+
+type PaginatedProductListResponse struct {
+	Products   []ProductResponse         `json:"products"`
+	Pagination ProductPaginationResponse `json:"pagination"`
+}

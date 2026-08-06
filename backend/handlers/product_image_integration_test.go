@@ -110,16 +110,16 @@ func TestProductListReturnsOnlyPrimary(t *testing.T) {
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 
-	var resp []dto.ProductResponse
+	var resp dto.PaginatedProductListResponse
 	json.Unmarshal(w.Body.Bytes(), &resp)
-	if len(resp) != 1 {
+	if len(resp.Products) != 1 {
 		t.Fatalf("expected 1 product")
 	}
-	if resp[0].PrimaryImage == nil {
+	if resp.Products[0].PrimaryImage == nil {
 		t.Fatal("expected primaryImage on list")
 	}
-	if len(resp[0].Images) != 0 {
-		t.Fatalf("list must not include images array, got %d", len(resp[0].Images))
+	if len(resp.Products[0].Images) != 0 {
+		t.Fatalf("list must not include images array, got %d", len(resp.Products[0].Images))
 	}
 }
 
