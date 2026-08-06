@@ -11,6 +11,7 @@ import {
 } from "react";
 
 import { CustomerSelector } from "@/components/customers/CustomerSelector";
+import { InvoiceSuccessPanel } from "@/components/invoices/InvoiceSuccessPanel";
 import { InvoiceCart } from "@/components/invoices/pos/InvoiceCart";
 import { InvoiceSaleTypeSwitch } from "@/components/invoices/pos/InvoiceSaleTypeSwitch";
 import { InvoiceStickyCartPanel } from "@/components/invoices/pos/InvoiceStickySummary";
@@ -28,11 +29,12 @@ import { fetchCustomer } from "@/lib/customers-api";
 import {
   createInvoice,
   getApiBusinessMessage,
+  invoiceCustomerLabel,
 } from "@/lib/invoices-api";
 import { fetchProducts } from "@/lib/products-api";
 import { Category } from "@/types/category";
 import { CustomerListItem } from "@/types/customer";
-import { InvoiceFormLine } from "@/types/invoice";
+import { InvoiceDetails, InvoiceFormLine } from "@/types/invoice";
 import { Product } from "@/types/product";
 import { ProductGroup } from "@/types/product-group";
 
@@ -96,6 +98,9 @@ export function InvoiceForm({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [createdInvoice, setCreatedInvoice] = useState<InvoiceDetails | null>(
+    null,
+  );
 
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -464,8 +469,8 @@ export function InvoiceForm({
     ) &&
     Object.keys(lineErrors).length === 0;
 
-  async function handleSubmit(withPrint: boolean) {
-    if (submitting || !validate()) {
+  async function handleSubmit() {
+    if (submitting || createdInvoice || !validate()) {
       return;
     }
     setSubmitting(true);
@@ -478,13 +483,8 @@ export function InvoiceForm({
           quantity: line.quantity,
         })),
       });
-      setLines([]);
       setMobileDrawerOpen(false);
-      if (withPrint) {
-        router.replace(`/invoices/${invoice.id}/print?autoprint=1`);
-      } else {
-        router.replace(`/invoices/${invoice.id}`);
-      }
+      setCreatedInvoice(invoice);
     } catch (err) {
       const message = getApiBusinessMessage(
         err,
@@ -499,6 +499,25 @@ export function InvoiceForm({
     } finally {
       setSubmitting(false);
     }
+  }
+
+  function startNewSale() {
+    setCreatedInvoice(null);
+    setLines([]);
+    setLineErrors({});
+    setError(null);
+    setCustomerMode("cash");
+    setCustomer(null);
+    setCustomerPrefillError(null);
+    setMobileDrawerOpen(false);
+    setSearch("");
+    setResultsOpen(false);
+    if (searchParams.get("customerID")) {
+      router.replace("/invoices/new");
+    }
+    window.setTimeout(() => {
+      searchRef.current?.focus();
+    }, 50);
   }
 
   function handleSaleTypeChange(next: CustomerMode) {
@@ -686,9 +705,8 @@ export function InvoiceForm({
             isCashSale={customerMode === "cash"}
             submitting={submitting}
             error={error}
-            canSubmit={canSubmit}
-            onSubmitPrint={() => void handleSubmit(true)}
-            onSubmitNoPrint={() => void handleSubmit(false)}
+            canSubmit={canSubmit && !createdInvoice}
+            onSubmit={() => void handleSubmit()}
             cart={cartNode}
           />
         </div>
@@ -710,12 +728,20 @@ export function InvoiceForm({
         isCashSale={customerMode === "cash"}
         submitting={submitting}
         error={error}
-        canSubmit={canSubmit}
+        canSubmit={canSubmit && !createdInvoice}
         onQuantityChange={updateQuantity}
         onRemove={removeLine}
-        onSubmitPrint={() => void handleSubmit(true)}
-        onSubmitNoPrint={() => void handleSubmit(false)}
+        onSubmit={() => void handleSubmit()}
       />
+
+      {createdInvoice ? (
+        <InvoiceSuccessPanel
+          invoice={createdInvoice}
+          customerLabel={invoiceCustomerLabel(createdInvoice)}
+          title={`Račun #${createdInvoice.id} je uspješno kreiran`}
+          onNewSale={startNewSale}
+        />
+      ) : null}
     </div>
   );
 }

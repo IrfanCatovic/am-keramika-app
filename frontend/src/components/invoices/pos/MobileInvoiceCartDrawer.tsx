@@ -19,8 +19,7 @@ export function MobileInvoiceCartDrawer({
   canSubmit,
   onQuantityChange,
   onRemove,
-  onSubmitPrint,
-  onSubmitNoPrint,
+  onSubmit,
 }: {
   open: boolean;
   onClose: () => void;
@@ -34,8 +33,7 @@ export function MobileInvoiceCartDrawer({
   canSubmit: boolean;
   onQuantityChange: (productID: number, quantity: number) => void;
   onRemove: (productID: number) => void;
-  onSubmitPrint: () => void;
-  onSubmitNoPrint: () => void;
+  onSubmit: () => void;
 }) {
   useEffect(() => {
     if (!open) {
@@ -70,12 +68,7 @@ export function MobileInvoiceCartDrawer({
     0,
   );
 
-  const primaryLabel = isCashSale
-    ? "Naplati i štampaj"
-    : "Kreiraj račun i štampaj";
-  const secondaryLabel = isCashSale
-    ? "Naplati bez štampe"
-    : "Kreiraj bez štampe";
+  const primaryLabel = isCashSale ? "Naplati" : "Kreiraj račun";
 
   return (
     <div className="fixed inset-0 z-40 lg:hidden">
@@ -130,18 +123,10 @@ export function MobileInvoiceCartDrawer({
           <button
             type="button"
             disabled={!canSubmit || submitting}
-            onClick={onSubmitPrint}
+            onClick={onSubmit}
             className="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-stone-900 px-4 text-sm font-semibold text-white disabled:opacity-50"
           >
             {submitting ? "Obrada…" : primaryLabel}
-          </button>
-          <button
-            type="button"
-            disabled={!canSubmit || submitting}
-            onClick={onSubmitNoPrint}
-            className="mt-2 inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-stone-200 bg-white px-4 text-sm font-medium text-stone-600 disabled:opacity-50"
-          >
-            {secondaryLabel}
           </button>
         </div>
       </div>

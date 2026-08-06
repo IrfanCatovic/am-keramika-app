@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import { CancelInvoiceDialog } from "@/components/invoices/CancelInvoiceDialog";
+import { InvoiceDocumentActions } from "@/components/invoices/InvoiceDocumentActions";
 import { InvoiceStatusBadge } from "@/components/invoices/InvoiceStatusBadge";
 import { InlineError, ListSkeleton } from "@/components/ui/EmptyState";
 import { formatMoney } from "@/lib/format";
@@ -120,14 +121,6 @@ export function InvoiceDetailsView({ invoiceId }: { invoiceId: number }) {
         </div>
         <div className="flex flex-wrap gap-2">
           <Link
-            href={`/invoices/${invoice.id}/print?autoprint=1`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex min-h-11 items-center rounded-xl bg-stone-900 px-4 text-sm font-medium text-white hover:bg-stone-800"
-          >
-            Štampaj račun
-          </Link>
-          <Link
             href="/invoices"
             className="inline-flex min-h-11 items-center rounded-xl border border-stone-200 bg-white px-4 text-sm font-medium text-stone-700 hover:bg-stone-50"
           >
@@ -161,6 +154,14 @@ export function InvoiceDetailsView({ invoiceId }: { invoiceId: number }) {
           ) : null}
         </div>
       </header>
+
+      <section className="rounded-2xl border border-stone-200 bg-white p-4 sm:p-5">
+        <h2 className="mb-3 text-sm font-semibold text-stone-900">Dokument</h2>
+        <InvoiceDocumentActions
+          invoiceId={invoice.id}
+          printLabel="Štampaj račun"
+        />
+      </section>
 
       <section className="dash-enter rounded-2xl border border-stone-200 bg-white p-4 sm:p-5">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

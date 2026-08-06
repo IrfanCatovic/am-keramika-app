@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { CustomerSelector } from "@/components/customers/CustomerSelector";
 import { InvoiceStatusBadge } from "@/components/invoices/InvoiceStatusBadge";
+import { PaymentInvoiceSuccessPanel } from "@/components/payments/PaymentInvoiceSuccessPanel";
 import { InlineError, ListSkeleton } from "@/components/ui/EmptyState";
 import {
   fetchCustomer,
@@ -13,7 +14,7 @@ import {
   getApiBusinessMessage,
 } from "@/lib/customers-api";
 import { formatMoney } from "@/lib/format";
-import { fetchInvoice } from "@/lib/invoices-api";
+import { fetchInvoice, invoiceCustomerLabel } from "@/lib/invoices-api";
 import {
   autoAllocatePayments,
   createPayment,
@@ -21,6 +22,7 @@ import {
 } from "@/lib/payments-api";
 import { CustomerListItem, CustomerOpenInvoice } from "@/types/customer";
 import { InvoiceDetails } from "@/types/invoice";
+import { Payment } from "@/types/payment";
 
 type Mode = "invoice" | "customer";
 
@@ -56,6 +58,10 @@ export function PaymentForm({
   const [error, setError] = useState<string | null>(null);
   const [staleHint, setStaleHint] = useState(false);
   const [reloadToken, setReloadToken] = useState(0);
+  const [successPayment, setSuccessPayment] = useState<Payment | null>(null);
+  const [successInvoice, setSuccessInvoice] = useState<InvoiceDetails | null>(
+    null,
+  );
 
   const loadInvoiceMode = useCallback(async (invoiceID: number) => {
     const data = await fetchInvoice(invoiceID);
@@ -214,7 +220,11 @@ export function PaymentForm({
     unallocated,
   ]);
 
-  const canSubmit = !validationError && !submitting && !loadingBootstrap;
+  const canSubmit =
+    !validationError &&
+    !submitting &&
+    !loadingBootstrap &&
+    !successPayment;
 
   function setFullInvoiceAmount() {
     if (!invoice) {
@@ -239,7 +249,7 @@ export function PaymentForm({
   }
 
   async function handleSubmit() {
-    if (!canSubmit || !customer || validationError) {
+    if (!canSubmit || !customer || validationError || successPayment) {
       setError(validationError);
       return;
     }
@@ -259,8 +269,11 @@ export function PaymentForm({
         totalAmount: roundMoney(totalAmount),
         allocations: payloadAllocations,
       });
+
       if (mode === "invoice" && invoice) {
-        router.replace(`/invoices/${invoice.id}/print?autoprint=1`);
+        const updated = await fetchInvoice(invoice.id);
+        setSuccessPayment(payment);
+        setSuccessInvoice(updated);
       } else {
         router.replace(`/payments/${payment.id}`);
       }
@@ -547,11 +560,7 @@ export function PaymentForm({
             staleHint={staleHint}
             submitting={submitting}
             canSubmit={canSubmit}
-            primaryLabel={
-              mode === "invoice"
-                ? "Evidentiraj i štampaj"
-                : "Evidentiraj uplatu"
-            }
+            primaryLabel="Evidentiraj uplatu"
             onSubmit={() => void handleSubmit()}
             onRefresh={() => setReloadToken((value) => value + 1)}
           />
@@ -574,11 +583,7 @@ export function PaymentForm({
             onClick={() => void handleSubmit()}
             className="inline-flex min-h-11 shrink-0 items-center rounded-xl bg-stone-900 px-4 text-sm font-semibold text-white disabled:opacity-50"
           >
-            {submitting
-              ? "Slanje…"
-              : mode === "invoice"
-                ? "Evidentiraj i štampaj"
-                : "Evidentiraj uplatu"}
+            {submitting ? "Slanje…" : "Evidentiraj uplatu"}
           </button>
         </div>
         {(error || (validationError && totalAmount > 0)) && (
@@ -587,6 +592,14 @@ export function PaymentForm({
           </p>
         )}
       </div>
+
+      {successPayment && successInvoice ? (
+        <PaymentInvoiceSuccessPanel
+          invoice={successInvoice}
+          payment={successPayment}
+          customerLabel={invoiceCustomerLabel(successInvoice)}
+        />
+      ) : null}
     </div>
   );
 }

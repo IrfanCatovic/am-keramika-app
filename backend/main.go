@@ -131,6 +131,7 @@ func main() {
 			staff.GET("/inventory/low-stock", handlers.GetLowStock)
 
 			staff.POST("/invoices", handlers.CreateInvoice)
+			staff.GET("/invoices/:id/pdf", handlers.GetInvoicePDF)
 			staff.GET("/invoices/:id", handlers.GetInvoiceByID)
 			staff.GET("/invoices", handlers.GetAllInvoices)
 			staff.PUT("/invoices/:id/cancel", handlers.CancelInvoice)

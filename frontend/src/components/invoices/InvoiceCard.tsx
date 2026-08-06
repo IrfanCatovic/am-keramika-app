@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { InvoiceDocumentActions } from "@/components/invoices/InvoiceDocumentActions";
 import { InvoiceStatusBadge } from "@/components/invoices/InvoiceStatusBadge";
 import { formatMoney } from "@/lib/format";
 import { invoiceCustomerLabel } from "@/lib/invoices-api";
@@ -41,21 +42,14 @@ export function InvoiceCard({ invoice }: { invoice: InvoiceListItem }) {
         ) : null}
       </div>
 
-      <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-        <Link
-          href={`/invoices/${invoice.id}`}
-          className="inline-flex min-h-10 items-center justify-center rounded-xl border border-stone-200 px-3 text-sm font-medium text-stone-700 hover:bg-stone-50"
-        >
-          Detalji
-        </Link>
-        <a
-          href={`/invoices/${invoice.id}/print?autoprint=1`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex min-h-10 items-center justify-center rounded-xl border border-stone-200 px-3 text-sm font-medium text-stone-700 hover:bg-stone-50"
-        >
-          Štampaj
-        </a>
+      <div className="mt-4">
+        <InvoiceDocumentActions
+          invoiceId={invoice.id}
+          variant="stack"
+          showOpen
+          openLabel="Otvori"
+          printLabel="Štampaj"
+        />
       </div>
     </article>
   );
