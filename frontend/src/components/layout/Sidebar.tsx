@@ -27,9 +27,6 @@ function BrandMark({ compact = false }: { compact?: boolean }) {
         >
           AM Keramika
         </p>
-        {!compact ? (
-          <p className="truncate text-xs text-stone-400">Interna aplikacija</p>
-        ) : null}
       </div>
     </div>
   );
