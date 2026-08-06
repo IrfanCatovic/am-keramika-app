@@ -1,13 +1,21 @@
+"use client";
+
+import { Suspense } from "react";
+
+import { CustomersWorkspace } from "@/components/customers/CustomersWorkspace";
+import { ListSkeleton } from "@/components/ui/EmptyState";
+
 export default function CustomersPage() {
   return (
-    <div className="space-y-3">
-      <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-        Kupci
-      </h1>
-      <p className="text-sm text-slate-500">Evidencija kupaca i dugovanja.</p>
-      <div className="rounded-xl border border-dashed border-slate-300 bg-white px-5 py-8 text-sm text-slate-500">
-        Modul će biti implementiran u narednoj fazi.
-      </div>
-    </div>
+    <Suspense
+      fallback={
+        <div className="space-y-4">
+          <div className="h-16 animate-pulse rounded-2xl bg-stone-100" />
+          <ListSkeleton rows={5} />
+        </div>
+      }
+    >
+      <CustomersWorkspace />
+    </Suspense>
   );
 }
