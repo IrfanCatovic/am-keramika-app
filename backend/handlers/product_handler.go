@@ -10,6 +10,7 @@ import (
 	"am-keramika-backend/auth"
 	"am-keramika-backend/dto"
 	"am-keramika-backend/models"
+	"am-keramika-backend/pricing"
 	"am-keramika-backend/repositories"
 	"am-keramika-backend/utils"
 
@@ -33,6 +34,9 @@ func mapProductListResponse(product models.Product, role string, primary *models
 		StockQuantity:    product.StockQuantity,
 		MinStockQuantity: product.MinStockQuantity,
 		IsActive:         product.IsActive,
+		IsOnSale:         product.IsOnSale,
+		ShowOnHomepage:   product.ShowOnHomepage,
+		PricingMode:      pricing.DetectMode(product.PurchasePrice, product.MarginPercent, product.VatPercent),
 		PrimaryImage:     nil,
 	}
 
@@ -55,6 +59,7 @@ func mapProductListResponse(product models.Product, role string, primary *models
 	if models.CanViewSensitiveProductFields(role) {
 		response.PurchasePrice = product.PurchasePrice
 		response.MarginPercent = product.MarginPercent
+		response.VatPercent = product.VatPercent
 	}
 
 	if primary != nil {
@@ -81,22 +86,35 @@ func isProductValidationError(err error) bool {
 	return strings.Contains(msg, "kategorija nije pronađena") ||
 		strings.Contains(msg, "kategorija nije aktivna") ||
 		strings.Contains(msg, "grupa proizvoda nije pronađena") ||
-		strings.Contains(msg, "grupa ne pripada izabranoj kategoriji")
+		strings.Contains(msg, "grupa ne pripada izabranoj kategoriji") ||
+		errors.Is(err, pricing.ErrPurchaseRequired) ||
+		errors.Is(err, pricing.ErrManualSaleRequired) ||
+		errors.Is(err, pricing.ErrNegativePurchasePrice) ||
+		errors.Is(err, pricing.ErrNegativeSalePrice) ||
+		errors.Is(err, pricing.ErrNegativeMargin) ||
+		errors.Is(err, pricing.ErrNegativeVAT)
 }
 
-func rejectWorkerSensitiveProductFields(c *gin.Context, purchasePrice, marginPercent *float64) bool {
+func rejectWorkerSensitiveProductFields(c *gin.Context, purchasePrice, marginPercent, vatPercent *float64) bool {
 	role, err := auth.GetRole(c)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "Korisnik nije autentifikovan"})
 		return true
 	}
-	if role == models.RoleWorker && (purchasePrice != nil || marginPercent != nil) {
+	if role == models.RoleWorker && (purchasePrice != nil || marginPercent != nil || vatPercent != nil) {
 		c.JSON(http.StatusForbidden, gin.H{
-			"message": "Radnik ne smije unositi ili mijenjati nabavnu cijenu ni maržu",
+			"message": "Radnik ne smije unositi ili mijenjati nabavnu cijenu, maržu ni PDV",
 		})
 		return true
 	}
 	return false
+}
+
+func applyPricingResult(product *models.Product, result pricing.Result) {
+	product.SalePrice = result.FinalSalePrice
+	product.PurchasePrice = result.PurchasePrice
+	product.MarginPercent = result.MarginPercent
+	product.VatPercent = result.VatPercent
 }
 
 func CreateProduct(c *gin.Context) {
@@ -106,7 +124,7 @@ func CreateProduct(c *gin.Context) {
 		return
 	}
 
-	if rejectWorkerSensitiveProductFields(c, req.PurchasePrice, req.MarginPercent) {
+	if rejectWorkerSensitiveProductFields(c, req.PurchasePrice, req.MarginPercent, req.VatPercent) {
 		return
 	}
 
@@ -118,25 +136,37 @@ func CreateProduct(c *gin.Context) {
 		return
 	}
 
+	pricingInput := pricing.Input{
+		SalePrice: req.SalePrice,
+	}
+	if models.CanViewSensitiveProductFields(role) {
+		pricingInput.PurchasePrice = req.PurchasePrice
+		pricingInput.MarginPercent = req.MarginPercent
+		pricingInput.VatPercent = req.VatPercent
+	}
+
+	priced, err := pricing.Calculate(pricingInput)
+	if err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"message": err.Error(), "error": err.Error()})
+		return
+	}
+
 	product := models.Product{
 		Name:             req.Name,
 		Slug:             slug,
 		CategoryID:       req.CategoryID,
 		GroupID:          req.GroupID,
 		Unit:             req.Unit,
-		SalePrice:        req.SalePrice,
 		StockQuantity:    req.StockQuantity,
 		MinStockQuantity: req.MinStockQuantity,
 		Description:      req.Description,
 		IsActive:         true,
+		IsOnSale:         req.IsOnSale,
+		ShowOnHomepage:   req.ShowOnHomepage,
 	}
+	applyPricingResult(&product, priced)
 
-	if models.CanViewSensitiveProductFields(role) {
-		product.PurchasePrice = req.PurchasePrice
-		product.MarginPercent = req.MarginPercent
-	}
-
-	err := repositories.CreateProduct(&product)
+	err = repositories.CreateProduct(&product)
 	if err != nil {
 		status := http.StatusInternalServerError
 		if isProductValidationError(err) {
@@ -152,7 +182,7 @@ func CreateProduct(c *gin.Context) {
 		return
 	}
 
-		c.JSON(http.StatusCreated, mapProductDetailResponse(*created, role))
+	c.JSON(http.StatusCreated, mapProductDetailResponse(*created, role))
 }
 
 func GetAllProducts(c *gin.Context) {
@@ -300,7 +330,7 @@ func UpdateProduct(c *gin.Context) {
 		return
 	}
 
-	if rejectWorkerSensitiveProductFields(c, req.PurchasePrice, req.MarginPercent) {
+	if rejectWorkerSensitiveProductFields(c, req.PurchasePrice, req.MarginPercent, req.VatPercent) {
 		return
 	}
 
@@ -312,23 +342,66 @@ func UpdateProduct(c *gin.Context) {
 		return
 	}
 
+	existingMode := pricing.DetectMode(product.PurchasePrice, product.MarginPercent, product.VatPercent)
+
+	purchase := product.PurchasePrice
+	margin := product.MarginPercent
+	vat := product.VatPercent
+	sale := &product.SalePrice
+
+	if models.CanViewSensitiveProductFields(role) {
+		purchase = req.PurchasePrice
+		margin = req.MarginPercent
+		vat = req.VatPercent
+		sale = req.SalePrice
+	} else {
+		// Radnik: zadrži skrivene pricing vrijednosti.
+		if existingMode == pricing.ModeCalculated {
+			if req.SalePrice != nil && *req.SalePrice != product.SalePrice {
+				c.JSON(http.StatusForbidden, gin.H{
+					"message": "Cijena se automatski obračunava; radnik ne smije mijenjati calculated prodajnu cijenu",
+					"error":   "Cijena se automatski obračunava; radnik ne smije mijenjati calculated prodajnu cijenu",
+				})
+				return
+			}
+			sale = &product.SalePrice
+		} else if req.SalePrice != nil {
+			sale = req.SalePrice
+		}
+	}
+
+	priced, err := pricing.Calculate(pricing.Input{
+		PurchasePrice: purchase,
+		MarginPercent: margin,
+		VatPercent:    vat,
+		SalePrice:     sale,
+	})
+	if err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"message": err.Error(), "error": err.Error()})
+		return
+	}
+
 	product.Name = req.Name
 	product.Slug = slug
 	product.CategoryID = req.CategoryID
 	product.Unit = req.Unit
-	product.SalePrice = req.SalePrice
 	product.StockQuantity = req.StockQuantity
 	product.MinStockQuantity = req.MinStockQuantity
 	product.Description = req.Description
+	applyPricingResult(product, priced)
 
 	if req.GroupID.Present {
 		product.GroupID = req.GroupID.Value
 		product.Group = nil
 	}
-
-	if models.CanViewSensitiveProductFields(role) {
-		product.PurchasePrice = req.PurchasePrice
-		product.MarginPercent = req.MarginPercent
+	if req.IsActive != nil {
+		product.IsActive = *req.IsActive
+	}
+	if req.IsOnSale != nil {
+		product.IsOnSale = *req.IsOnSale
+	}
+	if req.ShowOnHomepage != nil {
+		product.ShowOnHomepage = *req.ShowOnHomepage
 	}
 
 	err = repositories.UpdateProduct(product)
@@ -350,7 +423,7 @@ func UpdateProduct(c *gin.Context) {
 		return
 	}
 
-		c.JSON(http.StatusOK, mapProductDetailResponse(*updated, role))
+	c.JSON(http.StatusOK, mapProductDetailResponse(*updated, role))
 }
 
 func DeactivateProduct(c *gin.Context) {
@@ -370,4 +443,17 @@ func DeactivateProduct(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Proizvod je deaktiviran",
 	})
+}
+
+func ActivateProduct(c *gin.Context) {
+	id := c.Param("id")
+	err := repositories.ActivateProduct(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"message": "Greska pri aktiviranju proizvoda",
+			"error":   err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Proizvod je aktiviran"})
 }

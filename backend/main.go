@@ -112,6 +112,7 @@ func main() {
 			staff.GET("/products/:id", handlers.GetProductById)
 			staff.PUT("/products/:id", handlers.UpdateProduct)
 			staff.PUT("/products/:id/deactivate", handlers.DeactivateProduct)
+			staff.PUT("/products/:id/activate", handlers.ActivateProduct)
 
 			staff.POST("/products/:id/images", handlers.UploadProductImages)
 			staff.PUT("/products/:id/images/:imageID/primary", handlers.SetPrimaryProductImage)

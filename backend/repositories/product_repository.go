@@ -137,7 +137,12 @@ func UpdateProduct(product *models.Product) error {
 
 	// Explicit Select osigurava da se group_id može postaviti na NULL.
 	return database.DB.Model(product).
-		Select("Name", "Slug", "Description", "CategoryID", "GroupID", "Unit", "SalePrice", "StockQuantity", "MinStockQuantity", "PurchasePrice", "MarginPercent").
+		Select(
+			"Name", "Slug", "Description", "CategoryID", "GroupID", "Unit",
+			"SalePrice", "StockQuantity", "MinStockQuantity",
+			"PurchasePrice", "MarginPercent", "VatPercent",
+			"IsActive", "IsOnSale", "ShowOnHomepage",
+		).
 		Updates(product).Error
 }
 
@@ -165,5 +170,16 @@ func DeactivateProduct(id string) error {
 		return errors.New("proizvod nije pronađen")
 	}
 
+	return nil
+}
+
+func ActivateProduct(id string) error {
+	result := database.DB.Model(&models.Product{}).Where("id = ?", id).Update("is_active", true)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return errors.New("proizvod nije pronađen")
+	}
 	return nil
 }

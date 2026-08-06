@@ -1,28 +1,22 @@
-function PlaceholderPage({
-  title,
-  description,
-}: {
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="space-y-3">
-      <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-        {title}
-      </h1>
-      <p className="text-sm text-slate-500">{description}</p>
-      <div className="rounded-xl border border-dashed border-slate-300 bg-white px-5 py-8 text-sm text-slate-500">
-        Modul će biti implementiran u narednoj fazi.
-      </div>
-    </div>
-  );
-}
+"use client";
+
+import { Suspense } from "react";
+
+import { ProductsWorkspace } from "@/components/products/ProductsWorkspace";
+import { ListSkeleton } from "@/components/ui/EmptyState";
 
 export default function ProductsPage() {
   return (
-    <PlaceholderPage
-      title="Proizvodi"
-      description="Upravljanje katalogom proizvoda."
-    />
+    <Suspense
+      fallback={
+        <div className="space-y-4">
+          <div className="h-16 animate-pulse rounded-2xl bg-stone-100" />
+          <div className="h-28 animate-pulse rounded-2xl bg-stone-100" />
+          <ListSkeleton rows={5} />
+        </div>
+      }
+    >
+      <ProductsWorkspace />
+    </Suspense>
   );
 }
