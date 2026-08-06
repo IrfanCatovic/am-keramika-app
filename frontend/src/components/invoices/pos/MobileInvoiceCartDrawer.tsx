@@ -13,12 +13,14 @@ export function MobileInvoiceCartDrawer({
   lineErrors,
   highlightedProductID,
   customerLabel,
+  isCashSale,
   submitting,
   error,
   canSubmit,
   onQuantityChange,
   onRemove,
-  onSubmit,
+  onSubmitPrint,
+  onSubmitNoPrint,
 }: {
   open: boolean;
   onClose: () => void;
@@ -26,12 +28,14 @@ export function MobileInvoiceCartDrawer({
   lineErrors: Record<number, string>;
   highlightedProductID?: number | null;
   customerLabel: string;
+  isCashSale: boolean;
   submitting: boolean;
   error: string | null;
   canSubmit: boolean;
   onQuantityChange: (productID: number, quantity: number) => void;
   onRemove: (productID: number) => void;
-  onSubmit: () => void;
+  onSubmitPrint: () => void;
+  onSubmitNoPrint: () => void;
 }) {
   useEffect(() => {
     if (!open) {
@@ -65,6 +69,13 @@ export function MobileInvoiceCartDrawer({
       (Number.isFinite(line.quantity) ? line.salePrice * line.quantity : 0),
     0,
   );
+
+  const primaryLabel = isCashSale
+    ? "Naplati i štampaj"
+    : "Kreiraj račun i štampaj";
+  const secondaryLabel = isCashSale
+    ? "Naplati bez štampe"
+    : "Kreiraj bez štampe";
 
   return (
     <div className="fixed inset-0 z-40 lg:hidden">
@@ -119,10 +130,18 @@ export function MobileInvoiceCartDrawer({
           <button
             type="button"
             disabled={!canSubmit || submitting}
-            onClick={onSubmit}
+            onClick={onSubmitPrint}
             className="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-stone-900 px-4 text-sm font-semibold text-white disabled:opacity-50"
           >
-            {submitting ? "Kreiranje…" : "Kreiraj račun"}
+            {submitting ? "Obrada…" : primaryLabel}
+          </button>
+          <button
+            type="button"
+            disabled={!canSubmit || submitting}
+            onClick={onSubmitNoPrint}
+            className="mt-2 inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-stone-200 bg-white px-4 text-sm font-medium text-stone-600 disabled:opacity-50"
+          >
+            {secondaryLabel}
           </button>
         </div>
       </div>

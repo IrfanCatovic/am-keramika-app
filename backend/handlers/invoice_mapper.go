@@ -31,13 +31,16 @@ func mapInvoiceResponse(invoice models.Invoice) dto.InvoiceResponse {
 
 	for _, item := range invoice.Items {
 		productName := ""
+		unit := ""
 		if item.Product.ID != 0 {
 			productName = item.Product.Name
+			unit = item.Product.Unit
 		}
 		response.Items = append(response.Items, dto.InvoiceItemResponse{
 			ProductID:   item.ProductID,
 			ProductName: productName,
 			Quantity:    item.Quantity,
+			Unit:        unit,
 			UnitPrice:   item.UnitPrice,
 			TotalPrice:  item.TotalPrice,
 		})

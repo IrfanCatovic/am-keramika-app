@@ -120,6 +120,14 @@ export function InvoiceDetailsView({ invoiceId }: { invoiceId: number }) {
         </div>
         <div className="flex flex-wrap gap-2">
           <Link
+            href={`/invoices/${invoice.id}/print?autoprint=1`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex min-h-11 items-center rounded-xl bg-stone-900 px-4 text-sm font-medium text-white hover:bg-stone-800"
+          >
+            Štampaj račun
+          </Link>
+          <Link
             href="/invoices"
             className="inline-flex min-h-11 items-center rounded-xl border border-stone-200 bg-white px-4 text-sm font-medium text-stone-700 hover:bg-stone-50"
           >
@@ -134,7 +142,7 @@ export function InvoiceDetailsView({ invoiceId }: { invoiceId: number }) {
           {canRecordPayment ? (
             <Link
               href={`/payments/new?invoiceID=${invoice.id}`}
-              className="inline-flex min-h-11 items-center rounded-xl bg-stone-900 px-4 text-sm font-medium text-white hover:bg-stone-800"
+              className="inline-flex min-h-11 items-center rounded-xl border border-stone-200 bg-white px-4 text-sm font-medium text-stone-700 hover:bg-stone-50"
             >
               Evidentiraj uplatu
             </Link>
@@ -235,7 +243,9 @@ export function InvoiceDetailsView({ invoiceId }: { invoiceId: number }) {
                   {item.productName}
                 </p>
                 <p className="mt-1 text-xs text-stone-500">
-                  {item.quantity} × {formatMoney(item.unitPrice)}
+                  {item.quantity}
+                  {item.unit ? ` ${item.unit}` : ""} ×{" "}
+                  {formatMoney(item.unitPrice)}
                 </p>
               </div>
               <p className="text-sm font-semibold tabular-nums text-stone-900">
@@ -248,8 +258,7 @@ export function InvoiceDetailsView({ invoiceId }: { invoiceId: number }) {
           <p className="mt-2 text-sm text-stone-500">Nema stavki.</p>
         ) : null}
         <p className="mt-3 text-xs text-stone-400">
-          Cijene su snapshot sa računa. Jedinica mjere nije dio invoice item
-          DTO-a.
+          Cijene su snapshot sa računa (unitPrice / totalPrice).
         </p>
       </section>
 

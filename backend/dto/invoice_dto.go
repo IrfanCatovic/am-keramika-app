@@ -14,6 +14,7 @@ type InvoiceItemResponse struct {
 	ProductID   uint    `json:"productID"`
 	ProductName string  `json:"productName"`
 	Quantity    float64 `json:"quantity"`
+	Unit        string  `json:"unit"`
 	UnitPrice   float64 `json:"unitPrice"`
 	TotalPrice  float64 `json:"totalPrice"`
 }

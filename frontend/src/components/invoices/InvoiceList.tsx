@@ -118,12 +118,22 @@ export function InvoiceList({
                   {invoice.createdAt}
                 </td>
                 <td className="px-4 py-3 align-top">
-                  <Link
-                    href={`/invoices/${invoice.id}`}
-                    className="rounded-lg border border-stone-200 px-2.5 py-1.5 text-xs font-medium text-stone-700 hover:bg-stone-50"
-                  >
-                    Detalji
-                  </Link>
+                  <div className="flex flex-wrap gap-1.5">
+                    <Link
+                      href={`/invoices/${invoice.id}`}
+                      className="rounded-lg border border-stone-200 px-2.5 py-1.5 text-xs font-medium text-stone-700 hover:bg-stone-50"
+                    >
+                      Detalji
+                    </Link>
+                    <a
+                      href={`/invoices/${invoice.id}/print?autoprint=1`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="rounded-lg border border-stone-200 px-2.5 py-1.5 text-xs font-medium text-stone-700 hover:bg-stone-50"
+                    >
+                      Štampaj
+                    </a>
+                  </div>
                 </td>
               </tr>
             ))}

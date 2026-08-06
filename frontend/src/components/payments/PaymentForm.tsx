@@ -259,7 +259,11 @@ export function PaymentForm({
         totalAmount: roundMoney(totalAmount),
         allocations: payloadAllocations,
       });
-      router.replace(`/payments/${payment.id}`);
+      if (mode === "invoice" && invoice) {
+        router.replace(`/invoices/${invoice.id}/print?autoprint=1`);
+      } else {
+        router.replace(`/payments/${payment.id}`);
+      }
     } catch (err) {
       const message = getApiBusinessMessage(
         err,
@@ -544,8 +548,8 @@ export function PaymentForm({
             submitting={submitting}
             canSubmit={canSubmit}
             primaryLabel={
-              mode === "invoice" && amountMode === "full"
-                ? "Evidentiraj punu uplatu"
+              mode === "invoice"
+                ? "Evidentiraj i štampaj"
                 : "Evidentiraj uplatu"
             }
             onSubmit={() => void handleSubmit()}
@@ -570,7 +574,11 @@ export function PaymentForm({
             onClick={() => void handleSubmit()}
             className="inline-flex min-h-11 shrink-0 items-center rounded-xl bg-stone-900 px-4 text-sm font-semibold text-white disabled:opacity-50"
           >
-            {submitting ? "Slanje…" : "Evidentiraj uplatu"}
+            {submitting
+              ? "Slanje…"
+              : mode === "invoice"
+                ? "Evidentiraj i štampaj"
+                : "Evidentiraj uplatu"}
           </button>
         </div>
         {(error || (validationError && totalAmount > 0)) && (

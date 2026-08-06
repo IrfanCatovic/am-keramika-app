@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Sidebar } from "@/components/layout/Sidebar";
@@ -13,6 +13,8 @@ export default function ProtectedLayout({
 }) {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+  const isPrintRoute = pathname?.includes("/print") ?? false;
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -38,6 +40,10 @@ export default function ProtectedLayout({
         </div>
       </div>
     );
+  }
+
+  if (isPrintRoute) {
+    return <div className="min-h-screen bg-stone-200/80">{children}</div>;
   }
 
   return (

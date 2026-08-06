@@ -9,18 +9,22 @@ import { InvoiceFormLine } from "@/types/invoice";
 export function InvoiceStickyCartPanel({
   lines,
   customerLabel,
+  isCashSale,
   submitting,
   error,
   canSubmit,
-  onSubmit,
+  onSubmitPrint,
+  onSubmitNoPrint,
   cart,
 }: {
   lines: InvoiceFormLine[];
   customerLabel: string;
+  isCashSale: boolean;
   submitting: boolean;
   error: string | null;
   canSubmit: boolean;
-  onSubmit: () => void;
+  onSubmitPrint: () => void;
+  onSubmitNoPrint: () => void;
   cart: ReactNode;
 }) {
   const itemCount = lines.length;
@@ -34,6 +38,13 @@ export function InvoiceStickyCartPanel({
       (Number.isFinite(line.quantity) ? line.salePrice * line.quantity : 0),
     0,
   );
+
+  const primaryLabel = isCashSale
+    ? "Naplati i štampaj"
+    : "Kreiraj račun i štampaj";
+  const secondaryLabel = isCashSale
+    ? "Naplati bez štampe"
+    : "Kreiraj bez štampe";
 
   return (
     <aside className="flex max-h-[calc(100vh-5.5rem)] flex-col overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-[0_1px_2px_rgba(28,25,23,0.04)] lg:sticky lg:top-4">
@@ -83,10 +94,18 @@ export function InvoiceStickyCartPanel({
         <button
           type="button"
           disabled={!canSubmit || submitting}
-          onClick={onSubmit}
+          onClick={onSubmitPrint}
           className="mt-3 inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-stone-900 px-4 text-sm font-semibold text-white transition hover:bg-stone-800 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {submitting ? "Kreiranje…" : "Kreiraj račun"}
+          {submitting ? "Obrada…" : primaryLabel}
+        </button>
+        <button
+          type="button"
+          disabled={!canSubmit || submitting}
+          onClick={onSubmitNoPrint}
+          className="mt-2 inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-stone-200 bg-white px-4 text-sm font-medium text-stone-600 transition hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {secondaryLabel}
         </button>
       </div>
     </aside>

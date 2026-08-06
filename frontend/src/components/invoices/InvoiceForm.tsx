@@ -464,7 +464,7 @@ export function InvoiceForm({
     ) &&
     Object.keys(lineErrors).length === 0;
 
-  async function handleSubmit() {
+  async function handleSubmit(withPrint: boolean) {
     if (submitting || !validate()) {
       return;
     }
@@ -480,7 +480,11 @@ export function InvoiceForm({
       });
       setLines([]);
       setMobileDrawerOpen(false);
-      router.replace(`/invoices/${invoice.id}`);
+      if (withPrint) {
+        router.replace(`/invoices/${invoice.id}/print?autoprint=1`);
+      } else {
+        router.replace(`/invoices/${invoice.id}`);
+      }
     } catch (err) {
       const message = getApiBusinessMessage(
         err,
@@ -679,10 +683,12 @@ export function InvoiceForm({
           <InvoiceStickyCartPanel
             lines={lines}
             customerLabel={customerLabel}
+            isCashSale={customerMode === "cash"}
             submitting={submitting}
             error={error}
             canSubmit={canSubmit}
-            onSubmit={() => void handleSubmit()}
+            onSubmitPrint={() => void handleSubmit(true)}
+            onSubmitNoPrint={() => void handleSubmit(false)}
             cart={cartNode}
           />
         </div>
@@ -701,12 +707,14 @@ export function InvoiceForm({
         lineErrors={lineErrors}
         highlightedProductID={highlightedProductID}
         customerLabel={customerLabel}
+        isCashSale={customerMode === "cash"}
         submitting={submitting}
         error={error}
         canSubmit={canSubmit}
         onQuantityChange={updateQuantity}
         onRemove={removeLine}
-        onSubmit={() => void handleSubmit()}
+        onSubmitPrint={() => void handleSubmit(true)}
+        onSubmitNoPrint={() => void handleSubmit(false)}
       />
     </div>
   );

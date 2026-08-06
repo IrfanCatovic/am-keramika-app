@@ -27,7 +27,7 @@ func TestMapInvoiceResponseWithCustomer(t *testing.T) {
 		Items: []models.InvoiceItem{
 			{
 				ProductID:  5,
-				Product:    models.Product{Model: gormModel(5, createdAt), Name: "Pločica"},
+				Product:    models.Product{Model: gormModel(5, createdAt), Name: "Pločica", Unit: "m2"},
 				Quantity:   2,
 				UnitPrice:  50,
 				TotalPrice: 100,
@@ -55,7 +55,7 @@ func TestMapInvoiceResponseWithCustomer(t *testing.T) {
 	if resp.CreatedByUser == nil || resp.CreatedByUser.Username != "sef" {
 		t.Fatal("expected createdByUser in response")
 	}
-	if len(resp.Items) != 1 || resp.Items[0].ProductName != "Pločica" {
+	if len(resp.Items) != 1 || resp.Items[0].ProductName != "Pločica" || resp.Items[0].Unit != "m2" {
 		t.Fatalf("unexpected items: %+v", resp.Items)
 	}
 
