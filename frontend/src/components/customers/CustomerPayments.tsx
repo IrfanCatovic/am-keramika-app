@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import {
@@ -86,33 +87,35 @@ export function CustomerPayments({
         {!loading && !error && payments.length > 0 ? (
           <ul className="space-y-3">
             {payments.map((payment) => (
-              <li
-                key={payment.id}
-                className="rounded-xl border border-stone-200 px-3 py-3"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <div>
-                    <p className="font-medium text-stone-900">
-                      Uplata #{payment.id}
-                    </p>
-                    <p className="mt-1 text-xs text-stone-500">
-                      {payment.createdAt}
+              <li key={payment.id}>
+                <Link
+                  href={`/payments/${payment.id}`}
+                  className="block rounded-xl border border-stone-200 px-3 py-3 transition hover:border-[#c4a484]/50 hover:bg-[#faf7f3]"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div>
+                      <p className="font-medium text-stone-900">
+                        Uplata #{payment.id}
+                      </p>
+                      <p className="mt-1 text-xs text-stone-500">
+                        {payment.createdAt}
+                      </p>
+                    </div>
+                    <p className="text-sm font-semibold text-stone-900">
+                      {formatMoney(payment.totalAmount)}
                     </p>
                   </div>
-                  <p className="text-sm font-semibold text-stone-900">
-                    {formatMoney(payment.totalAmount)}
-                  </p>
-                </div>
-                {payment.allocations?.length ? (
-                  <ul className="mt-2 space-y-1 border-t border-stone-100 pt-2 text-xs text-stone-500">
-                    {payment.allocations.map((allocation) => (
-                      <li key={allocation.id}>
-                        Račun #{allocation.invoiceID}:{" "}
-                        {formatMoney(allocation.amount)}
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
+                  {payment.allocations?.length ? (
+                    <ul className="mt-2 space-y-1 border-t border-stone-100 pt-2 text-xs text-stone-500">
+                      {payment.allocations.map((allocation) => (
+                        <li key={allocation.id}>
+                          Račun #{allocation.invoiceID}:{" "}
+                          {formatMoney(allocation.amount)}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </Link>
               </li>
             ))}
           </ul>

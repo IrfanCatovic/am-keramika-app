@@ -11,10 +11,24 @@ type CreatePaymentAllocationRequest struct {
 	Amount    float64 `json:"amount" binding:"required,gt=0"`
 }
 
+type PaymentCustomerResponse struct {
+	ID       uint   `json:"id"`
+	Name     string `json:"name"`
+	Phone    string `json:"phone"`
+	IsActive bool   `json:"isActive"`
+}
+
+type PaymentUserResponse struct {
+	ID       uint   `json:"id"`
+	Username string `json:"username"`
+}
+
 type PaymentResponse struct {
 	ID              uint                        `json:"id"`
 	CustomerID      *uint                       `json:"customerID,omitempty"`
+	Customer        *PaymentCustomerResponse    `json:"customer,omitempty"`
 	CreatedByUserID uint                        `json:"createdByUserID"`
+	CreatedByUser   *PaymentUserResponse        `json:"createdByUser,omitempty"`
 	TotalAmount     float64                     `json:"totalAmount"`
 	CreatedAt       string                      `json:"createdAt"`
 	Allocations     []PaymentAllocationResponse `json:"allocations"`
@@ -32,4 +46,12 @@ type PaymentAllocationInvoiceResponse struct {
 	TotalAmount float64 `json:"totalAmount"`
 	PaidAmount  float64 `json:"paidAmount"`
 	Status      string  `json:"status"`
+}
+
+type PaginatedPaymentResponse struct {
+	Data       []PaymentResponse `json:"data"`
+	Page       int               `json:"page"`
+	Limit      int               `json:"limit"`
+	Total      int64             `json:"total"`
+	TotalPages int               `json:"totalPages"`
 }

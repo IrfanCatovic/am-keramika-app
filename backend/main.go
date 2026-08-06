@@ -145,6 +145,7 @@ func main() {
 			staff.GET("/customers/:id/payments", handlers.GetCustomerPayments)
 
 			staff.POST("/payments", handlers.CreatePayment)
+			staff.GET("/payments", handlers.GetAllPayments)
 			staff.GET("/payments/:id", handlers.GetPaymentByID)
 		}
 

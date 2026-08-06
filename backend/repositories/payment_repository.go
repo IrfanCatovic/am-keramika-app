@@ -6,12 +6,15 @@ import (
 	"am-keramika-backend/models"
 	"errors"
 	"fmt"
-	"gorm.io/gorm"
 	"math"
+	"time"
+
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func CreatePayment(req dto.CreatePaymentRequest, createdByUserID uint) (models.Payment, error) {
-	tx := database.DB.Begin() //zapocinjemo transakciju
+	tx := database.DB.Begin()
 
 	if tx.Error != nil {
 		return models.Payment{}, tx.Error
@@ -26,6 +29,10 @@ func CreatePayment(req dto.CreatePaymentRequest, createdByUserID uint) (models.P
 		}
 		return models.Payment{}, err
 	}
+	if !customer.IsActive {
+		tx.Rollback()
+		return models.Payment{}, errors.New("kupac nije aktivan")
+	}
 
 	if req.TotalAmount <= 0 {
 		tx.Rollback()
@@ -37,14 +44,11 @@ func CreatePayment(req dto.CreatePaymentRequest, createdByUserID uint) (models.P
 		allocationTotal += allocationReq.Amount
 	}
 
-	if math.Abs(allocationTotal-req.TotalAmount) > 0.01 { //Pošto koristimo float64, direktno poređenje može nekad biti nezgodno zbog decimala.
-		// Kod nas su verovatno cene cele ili sa dve decimale, ali dobra praksa je da koristimo malu toleranciju.
-		//total koji nam je stigao sa frontenda kao total i zbir svih iznosa putanja racuna da je isti zaokruzuje se i da bude min razlika za 0.01 to je praksa
+	if math.Abs(allocationTotal-req.TotalAmount) > 0.01 {
 		tx.Rollback()
 		return models.Payment{}, errors.New("ukupan iznos uplate se ne poklapa sa raspodelom po racunima")
 	}
 
-	//Provera da li postoji slice sa raspodelom racuna i da li postoji duplikat raspodele racuna
 	if len(req.Allocations) == 0 {
 		tx.Rollback()
 		return models.Payment{}, errors.New("uplata mora imati bar jedan račun")
@@ -65,13 +69,14 @@ func CreatePayment(req dto.CreatePaymentRequest, createdByUserID uint) (models.P
 	}
 
 	totalAmount := 0.0
-	invoicesToUpdate := []models.Invoice{}              //racuni koje cemo posle azurirati
-	allocationsToCreate := []models.PaymentAllocation{} //alokacije koje cemo posle kreirati
+	invoicesToUpdate := []models.Invoice{}
+	allocationsToCreate := []models.PaymentAllocation{}
 
 	for _, allocationReq := range req.Allocations {
 		var invoice models.Invoice
 
-		if err := tx.First(&invoice, allocationReq.InvoiceID).Error; err != nil {
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+			First(&invoice, allocationReq.InvoiceID).Error; err != nil {
 			tx.Rollback()
 
 			if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -96,29 +101,26 @@ func CreatePayment(req dto.CreatePaymentRequest, createdByUserID uint) (models.P
 
 		remainingAmount := invoice.TotalAmount - invoice.PaidAmount
 
-		if allocationReq.Amount > remainingAmount { //provera da li je iznos prenosenja veci od ostatka racuna
+		if allocationReq.Amount > remainingAmount+0.0001 {
 			tx.Rollback()
 			return models.Payment{}, errors.New("iznos uplate ne može biti veći od preostalog duga računa")
 		}
 
-		invoice.PaidAmount += allocationReq.Amount //ovo je lokalna promena, ne utice na bazu, dodajemo iznos prenosenja na iznos placenog racuna
+		invoice.PaidAmount += allocationReq.Amount
 
-		//sa frontenda nam stize 300, a duzni smo 300 za taj racun onda se uradi, a nije placeno nista
-		//znaci 300 je dug - 0 (koliko je vec otplaceno) = 300
-		//invoice.paidAmount dodajemo mi ovo sad sto nam je stiglo sa frontenda i proveravamo status ako je invoice.PaindAmount jednak invoice.TotalAmount
-		//onda znaci da je placeno i totalni racun isto tako da je placen, ako nije isto onda je delimicno placen
-		if invoice.PaidAmount == invoice.TotalAmount {
+		if math.Abs(invoice.PaidAmount-invoice.TotalAmount) < 0.01 {
+			invoice.PaidAmount = invoice.TotalAmount
 			invoice.Status = models.InvoiceStatusPaid
 		} else {
 			invoice.Status = models.InvoiceStatusPartiallyPaid
 		}
 
-		totalAmount += allocationReq.Amount                  //iznos za payment koji pravimo
-		invoicesToUpdate = append(invoicesToUpdate, invoice) //racuni koje cemo posle da azuriramo da ih ne bi cuvali jedan po jedan
+		totalAmount += allocationReq.Amount
+		invoicesToUpdate = append(invoicesToUpdate, invoice)
 	}
 
 	payment := models.Payment{
-		CustomerID:      &customer.ID, //pointer
+		CustomerID:      &customer.ID,
 		CreatedByUserID: createdByUserID,
 		TotalAmount:     totalAmount,
 	}
@@ -154,9 +156,12 @@ func CreatePayment(req dto.CreatePaymentRequest, createdByUserID uint) (models.P
 	}
 
 	newCustomerDebt := customer.TotalDebt - totalAmount
-	if newCustomerDebt < 0 {
+	if newCustomerDebt < -0.01 {
 		tx.Rollback()
 		return models.Payment{}, errors.New("kupac ne moze imati negativan dug")
+	}
+	if newCustomerDebt < 0 {
+		newCustomerDebt = 0
 	}
 
 	if err := tx.Model(&models.Customer{}).
@@ -187,6 +192,9 @@ func GetPaymentsByCustomerID(customerID uint) ([]models.Payment, error) {
 
 	err := database.DB.First(&customer, customerID).Error
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("kupac nije pronađen")
+		}
 		return nil, err
 	}
 
@@ -197,6 +205,7 @@ func GetPaymentsByCustomerID(customerID uint) ([]models.Payment, error) {
 		Preload("Allocations.Invoice").
 		Where("customer_id = ?", customerID).
 		Order("created_at DESC").
+		Order("id DESC").
 		Find(&payments).Error
 	if err != nil {
 		return nil, err
@@ -220,4 +229,64 @@ func GetPaymentByID(paymentID uint) (*models.Payment, error) {
 		return nil, err
 	}
 	return &payment, nil
+}
+
+type PaymentListQuery struct {
+	Page       int
+	Limit      int
+	CustomerID string
+	FromDate   *time.Time
+	ToDate     *time.Time // exclusive end of selected day
+}
+
+func buildPaymentListQuery(q PaymentListQuery) *gorm.DB {
+	query := database.DB.Model(&models.Payment{})
+
+	if q.CustomerID != "" {
+		query = query.Where("customer_id = ?", q.CustomerID)
+	}
+	if q.FromDate != nil {
+		query = query.Where("created_at >= ?", *q.FromDate)
+	}
+	if q.ToDate != nil {
+		query = query.Where("created_at < ?", *q.ToDate)
+	}
+
+	return query
+}
+
+func GetAllPayments(q PaymentListQuery) ([]models.Payment, int64, error) {
+	var payments []models.Payment
+	var total int64
+
+	if q.Page <= 0 {
+		q.Page = 1
+	}
+	if q.Limit <= 0 {
+		q.Limit = 20
+	}
+	if q.Limit > 50 {
+		q.Limit = 50
+	}
+
+	countQuery := buildPaymentListQuery(q)
+	if err := countQuery.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	offset := (q.Page - 1) * q.Limit
+	err := buildPaymentListQuery(q).
+		Preload("Customer").
+		Preload("CreatedByUser").
+		Preload("Allocations").
+		Preload("Allocations.Invoice").
+		Order("created_at DESC").
+		Order("id DESC").
+		Limit(q.Limit).
+		Offset(offset).
+		Find(&payments).Error
+	if err != nil {
+		return nil, 0, err
+	}
+	return payments, total, nil
 }

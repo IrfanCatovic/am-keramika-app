@@ -204,6 +204,14 @@ export function CustomerDetailsView({ customerId }: { customerId: number }) {
               Novi račun za kupca
             </Link>
           ) : null}
+          {customer.isActive && debt > 0 ? (
+            <Link
+              href={`/payments/new?customerID=${customer.id}`}
+              className="inline-flex min-h-11 items-center rounded-xl border border-stone-200 bg-white px-4 text-sm font-medium text-stone-700 hover:bg-stone-50"
+            >
+              Evidentiraj uplatu
+            </Link>
+          ) : null}
           <Link
             href={`/customers/${customer.id}/edit`}
             className="inline-flex min-h-11 items-center rounded-xl border border-stone-200 bg-white px-4 text-sm font-medium text-stone-700 hover:bg-stone-50"
