@@ -1,8 +1,10 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f1f5f9;
-  --foreground: #0f172a;
+  --background: #f4f2ef;
+  --foreground: #1c1917;
+  --accent-bronze: #8a6a45;
+  --accent-bronze-soft: #c4a484;
 }
 
 @theme inline {
@@ -16,4 +18,26 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+@keyframes dash-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dash-enter {
+  animation: dash-enter 420ms ease-out both;
+}
+
+.marble-veil {
+  background-image:
+    radial-gradient(circle at 18% 20%, rgba(196, 164, 132, 0.22), transparent 42%),
+    radial-gradient(circle at 78% 30%, rgba(255, 255, 255, 0.08), transparent 35%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.04), transparent 45%);
 }

@@ -41,7 +41,7 @@ export default function ProtectedLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-100">
+    <div className="flex min-h-screen bg-[#f4f2ef]">
       <Sidebar />
       <main className="flex min-h-screen flex-1 flex-col lg:ml-0">
         <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6 lg:px-8">

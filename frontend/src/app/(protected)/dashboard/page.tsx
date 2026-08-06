@@ -1,51 +1,43 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-
+import { DashboardHeader, canViewFinance } from "@/components/dashboard/DashboardHeader";
+import { FinanceSummarySection } from "@/components/dashboard/FinanceSummarySection";
+import { LowStockSection } from "@/components/dashboard/LowStockSection";
+import { QuickActionsSection } from "@/components/dashboard/QuickActionsSection";
+import { RecentInvoicesSection } from "@/components/dashboard/RecentInvoicesSection";
+import { WorkerTodayStat } from "@/components/dashboard/WorkerTodayStat";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { roleLabel } from "@/types/auth";
+import { todayLocalISODate } from "@/lib/dashboard";
 
 export default function DashboardPage() {
-  const { user, logout } = useAuth();
-  const router = useRouter();
+  const { user } = useAuth();
+  const today = todayLocalISODate();
 
   if (!user) {
     return null;
   }
 
-  function handleLogout() {
-    logout();
-    router.replace("/login");
-  }
+  const showFinance = canViewFinance(user.role);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-          Dashboard
-        </h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Početni pregled interne aplikacije AM Keramika.
-        </p>
-      </div>
+    <div className="space-y-5 pb-4">
+      <DashboardHeader
+        username={user.username}
+        role={user.role}
+        date={today}
+      />
 
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <p className="text-lg font-medium text-slate-900">
-          Dobrodošli, {user.username}
-        </p>
-        <p className="mt-2 text-sm text-slate-600">
-          Uloga: <span className="font-medium">{roleLabel(user.role)}</span>
-        </p>
-        <p className="mt-1 text-sm text-slate-600">
-          Status: {user.isActive === false ? "Neaktivan" : "Prijavljeni ste"}
-        </p>
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="mt-5 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-        >
-          Odjavi se
-        </button>
+      <QuickActionsSection />
+
+      {showFinance ? (
+        <FinanceSummarySection date={today} />
+      ) : (
+        <WorkerTodayStat date={today} />
+      )}
+
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+        <LowStockSection />
+        <RecentInvoicesSection />
       </div>
     </div>
   );
