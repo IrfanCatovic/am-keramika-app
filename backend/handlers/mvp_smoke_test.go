@@ -70,19 +70,19 @@ func setupMVPSmokeRouter() *gin.Engine {
 		authorized.GET("/auth/me", handlers.GetMe)
 
 		bossOnly := authorized.Group("/")
-		bossOnly.Use(middleware.RequireRoles(models.RoleBoss))
+		bossOnly.Use(middleware.RequireRoles(models.RoleDeveloper, models.RoleBoss))
 		{
 			bossOnly.POST("/users", handlers.CreateUser)
 		}
 
 		reports := authorized.Group("/reports")
-		reports.Use(middleware.RequireRoles(models.RoleBoss, models.RoleManager))
+		reports.Use(middleware.RequireRoles(models.RoleDeveloper, models.RoleBoss, models.RoleManager))
 		{
 			reports.GET("/daily", handlers.GetDailyReport)
 		}
 
 		staff := authorized.Group("/")
-		staff.Use(middleware.RequireRoles(models.RoleBoss, models.RoleManager, models.RoleWorker))
+		staff.Use(middleware.RequireRoles(models.RoleDeveloper, models.RoleBoss, models.RoleManager, models.RoleWorker))
 		{
 			staff.POST("/categories", handlers.CreateCategory)
 			staff.POST("/product-groups", handlers.CreateProductGroup)

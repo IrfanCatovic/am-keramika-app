@@ -16,6 +16,37 @@ func GetAllUsers() ([]models.User, error) {
 	return users, err
 }
 
+// GetManagedUsers vraća korisnike za user-management listu (bez developer naloga).
+func GetManagedUsers() ([]models.User, error) {
+	var users []models.User
+	err := database.DB.Where("role <> ?", models.RoleDeveloper).Order("id ASC").Find(&users).Error
+	return users, err
+}
+
+// HardDeleteUser briše korisnika trajno. Developer nalozi se ne smiju hard-deleteovati.
+func HardDeleteUser(id uint) error {
+	user, err := GetUserByIDUnscoped(id)
+	if err != nil {
+		return err
+	}
+	if user.Role == models.RoleDeveloper {
+		return errors.New("developer nalog se ne smije hard-deleteovati")
+	}
+	return database.DB.Unscoped().Delete(&user).Error
+}
+
+func GetUserByIDUnscoped(id uint) (models.User, error) {
+	var user models.User
+	result := database.DB.Unscoped().First(&user, id)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return models.User{}, errors.New("korisnik nije pronađen")
+		}
+		return models.User{}, result.Error
+	}
+	return user, nil
+}
+
 func GetUserByID(id uint) (models.User, error) {
 	var user models.User
 	result := database.DB.First(&user, id)
@@ -67,6 +98,17 @@ func UpdateUser(user *models.User) error {
 		return errors.New("username je obavezan")
 	}
 	if !models.IsValidRole(user.Role) {
+		return errors.New("nevalidna uloga")
+	}
+
+	var current models.User
+	if err := database.DB.Select("role").First(&current, user.ID).Error; err != nil {
+		return err
+	}
+	if current.Role == models.RoleDeveloper && user.Role != models.RoleDeveloper {
+		return errors.New("developer uloga se ne smije mijenjati")
+	}
+	if user.Role == models.RoleDeveloper && current.Role != models.RoleDeveloper {
 		return errors.New("nevalidna uloga")
 	}
 

@@ -57,7 +57,7 @@ func main() {
 		log.Fatal("Neuspjela migracija modela: ", err)
 	}
 
-	if err := auth.EnsureInitialBoss(); err != nil {
+	if err := auth.EnsureInitialDeveloper(); err != nil {
 		log.Fatal(err)
 	}
 
@@ -78,18 +78,18 @@ func main() {
 	{
 		authorized.GET("/auth/me", handlers.GetMe)
 
-		bossOnly := authorized.Group("/")
-		bossOnly.Use(middleware.RequireRoles(models.RoleBoss))
+		userAdmin := authorized.Group("/")
+		userAdmin.Use(middleware.RequireRoles(models.RoleDeveloper, models.RoleBoss))
 		{
-			bossOnly.GET("/users", handlers.GetUsers)
-			bossOnly.POST("/users", handlers.CreateUser)
-			bossOnly.PUT("/users/:id", handlers.UpdateUser)
-			bossOnly.PUT("/users/:id/password", handlers.UpdateUserPassword)
-			bossOnly.PUT("/users/:id/status", handlers.UpdateUserStatus)
+			userAdmin.GET("/users", handlers.GetUsers)
+			userAdmin.POST("/users", handlers.CreateUser)
+			userAdmin.PUT("/users/:id", handlers.UpdateUser)
+			userAdmin.PUT("/users/:id/password", handlers.UpdateUserPassword)
+			userAdmin.PUT("/users/:id/status", handlers.UpdateUserStatus)
 		}
 
 		reports := authorized.Group("/reports")
-		reports.Use(middleware.RequireRoles(models.RoleBoss, models.RoleManager))
+		reports.Use(middleware.RequireRoles(models.RoleDeveloper, models.RoleBoss, models.RoleManager))
 		{
 			reports.GET("/daily", handlers.GetDailyReport)
 			reports.GET("/period", handlers.GetPeriodReport)
@@ -98,7 +98,7 @@ func main() {
 		}
 
 		staff := authorized.Group("/")
-		staff.Use(middleware.RequireRoles(models.RoleBoss, models.RoleManager, models.RoleWorker))
+		staff.Use(middleware.RequireRoles(models.RoleDeveloper, models.RoleBoss, models.RoleManager, models.RoleWorker))
 		{
 			staff.POST("/categories", handlers.CreateCategory)
 			staff.GET("/categories", handlers.GetCategories)
@@ -114,9 +114,9 @@ func main() {
 			staff.PUT("/products/:id/deactivate", handlers.DeactivateProduct)
 
 			staff.POST("/products/:id/images", handlers.UploadProductImages)
-			staff.PUT("/products/:productID/images/:imageID/primary", handlers.SetPrimaryProductImage)
-			staff.PUT("/products/:productID/images/reorder", handlers.ReorderProductImages)
-			staff.DELETE("/products/:productID/images/:imageID", handlers.DeleteProductImage)
+			staff.PUT("/products/:id/images/:imageID/primary", handlers.SetPrimaryProductImage)
+			staff.PUT("/products/:id/images/reorder", handlers.ReorderProductImages)
+			staff.DELETE("/products/:id/images/:imageID", handlers.DeleteProductImage)
 
 			staff.POST("/product-groups", handlers.CreateProductGroup)
 			staff.GET("/product-groups", handlers.GetAllProductGroups)
@@ -148,7 +148,7 @@ func main() {
 		}
 
 		financeStaff := authorized.Group("/")
-		financeStaff.Use(middleware.RequireRoles(models.RoleBoss, models.RoleManager))
+		financeStaff.Use(middleware.RequireRoles(models.RoleDeveloper, models.RoleBoss, models.RoleManager))
 		{
 			financeStaff.GET("/customers/:id/financial-summary", handlers.GetCustomerFinancialSummary)
 		}

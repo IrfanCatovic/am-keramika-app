@@ -1,4 +1,4 @@
-export type UserRole = "sef" | "menadzer" | "radnik";
+export type UserRole = "developer" | "sef" | "menadzer" | "radnik";
 
 export interface AuthUser {
   id: number;
@@ -13,11 +13,18 @@ export interface LoginResponse {
 }
 
 export function isUserRole(value: string): value is UserRole {
-  return value === "sef" || value === "menadzer" || value === "radnik";
+  return (
+    value === "developer" ||
+    value === "sef" ||
+    value === "menadzer" ||
+    value === "radnik"
+  );
 }
 
 export function roleLabel(role: UserRole): string {
   switch (role) {
+    case "developer":
+      return "Developer";
     case "sef":
       return "Šef";
     case "menadzer":

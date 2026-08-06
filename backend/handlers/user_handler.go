@@ -23,8 +23,24 @@ func mapUserResponse(user models.User) dto.UserResponse {
 	}
 }
 
+func rejectBossTargetingDeveloper(c *gin.Context, target models.User) bool {
+	if target.Role != models.RoleDeveloper {
+		return false
+	}
+	actorRole, err := auth.GetRole(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Korisnik nije autentifikovan"})
+		return true
+	}
+	if actorRole == models.RoleBoss {
+		c.JSON(http.StatusForbidden, gin.H{"message": "Šef ne smije mijenjati developer nalog"})
+		return true
+	}
+	return false
+}
+
 func GetUsers(c *gin.Context) {
-	users, err := repositories.GetAllUsers()
+	users, err := repositories.GetManagedUsers()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspjelo dobavljanje korisnika"})
 		return
@@ -44,7 +60,7 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	if !models.IsValidRole(req.Role) {
+	if !models.IsAssignableUserRole(req.Role) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Nevalidna uloga"})
 		return
 	}
@@ -99,14 +115,21 @@ func UpdateUser(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"message": "Korisnik nije pronađen"})
 		return
 	}
+	if rejectBossTargetingDeveloper(c, user) {
+		return
+	}
 
 	var req dto.UpdateUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Neispravni podaci"})
 		return
 	}
-	if !models.IsValidRole(req.Role) {
+	if !models.IsAssignableUserRole(req.Role) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Nevalidna uloga"})
+		return
+	}
+	if user.Role == models.RoleDeveloper {
+		c.JSON(http.StatusForbidden, gin.H{"message": "Developer nalog se ne smije mijenjati kroz ovaj endpoint"})
 		return
 	}
 
@@ -156,6 +179,20 @@ func UpdateUserPassword(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"message": "Korisnik nije pronađen"})
 		return
 	}
+	if rejectBossTargetingDeveloper(c, user) {
+		return
+	}
+	if user.Role == models.RoleDeveloper {
+		actorRole, roleErr := auth.GetRole(c)
+		if roleErr != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"message": "Korisnik nije autentifikovan"})
+			return
+		}
+		if actorRole != models.RoleDeveloper {
+			c.JSON(http.StatusForbidden, gin.H{"message": "Developer nalog se ne smije mijenjati kroz ovaj endpoint"})
+			return
+		}
+	}
 
 	var req dto.UpdateUserPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -198,6 +235,13 @@ func UpdateUserStatus(c *gin.Context) {
 	user, err := repositories.GetUserByID(uint(id))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"message": "Korisnik nije pronađen"})
+		return
+	}
+	if rejectBossTargetingDeveloper(c, user) {
+		return
+	}
+	if user.Role == models.RoleDeveloper {
+		c.JSON(http.StatusForbidden, gin.H{"message": "Developer nalog se ne smije mijenjati kroz ovaj endpoint"})
 		return
 	}
 

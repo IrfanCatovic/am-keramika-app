@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"os"
+	"strings"
 
 	"am-keramika-backend/database"
 	"am-keramika-backend/models"
@@ -11,24 +12,28 @@ import (
 	"gorm.io/gorm"
 )
 
-// EnsureInitialBoss kreira početnog šefa ako nijedan ne postoji.
-// Idempotentno: ne kreira novog šefa ako već postoji bar jedan sa ulogom sef.
-func EnsureInitialBoss() error {
-	var count int64
-	if err := database.DB.Model(&models.User{}).Where("role = ?", models.RoleBoss).Count(&count).Error; err != nil {
+// EnsureInitialDeveloper kreira početnog developer nalog ako nijedan ne postoji.
+// Idempotentno: ne kreira niti mijenja postojeći developer (uključujući soft-deleted).
+func EnsureInitialDeveloper() error {
+	exists, err := developerExists()
+	if err != nil {
 		return err
 	}
-	if count > 0 {
+	if exists {
 		return nil
 	}
 
-	username := NormalizeUsername(os.Getenv("INITIAL_BOSS_USERNAME"))
-	password := os.Getenv("INITIAL_BOSS_PASSWORD")
+	if !isDeveloperBootstrapEnabled() {
+		return errors.New("nema developer naloga u sistemu; uključite ENABLE_DEVELOPER_BOOTSTRAP=true i postavite INITIAL_DEVELOPER_USERNAME i INITIAL_DEVELOPER_PASSWORD")
+	}
+
+	username := NormalizeUsername(os.Getenv("INITIAL_DEVELOPER_USERNAME"))
+	password := os.Getenv("INITIAL_DEVELOPER_PASSWORD")
 	if username == "" || password == "" {
-		return errors.New("nema šefa u sistemu; postavite INITIAL_BOSS_USERNAME i INITIAL_BOSS_PASSWORD")
+		return errors.New("ENABLE_DEVELOPER_BOOTSTRAP je uključen, ali INITIAL_DEVELOPER_USERNAME i INITIAL_DEVELOPER_PASSWORD moraju biti postavljeni")
 	}
 	if err := ValidatePassword(password); err != nil {
-		return errors.New("INITIAL_BOSS_PASSWORD: " + err.Error())
+		return errors.New("INITIAL_DEVELOPER_PASSWORD: " + err.Error())
 	}
 
 	hash, err := HashPassword(password)
@@ -36,21 +41,43 @@ func EnsureInitialBoss() error {
 		return err
 	}
 
-	boss := models.User{
+	developer := models.User{
 		Username:     username,
 		PasswordHash: hash,
-		Role:         models.RoleBoss,
+		Role:         models.RoleDeveloper,
 		IsActive:     true,
-		FullName:     "Šef",
+		FullName:     "Developer",
 	}
 
-	if err := database.DB.Create(&boss).Error; err != nil {
-		if errors.Is(err, gorm.ErrDuplicatedKey) {
+	if err := database.DB.Create(&developer).Error; err != nil {
+		// Race / već postoji username: ponovo provjeri developer red (idempotentnost).
+		if existsNow, checkErr := developerExists(); checkErr != nil {
+			return checkErr
+		} else if existsNow {
 			return nil
+		}
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			return errors.New("ne može se kreirati developer: username već postoji bez role developer")
 		}
 		return err
 	}
 
-	log.Printf("Kreiran početni šef korisnik: %s", username)
+	log.Printf("Kreiran početni developer korisnik: %s", username)
 	return nil
+}
+
+func isDeveloperBootstrapEnabled() bool {
+	return strings.EqualFold(strings.TrimSpace(os.Getenv("ENABLE_DEVELOPER_BOOTSTRAP")), "true")
+}
+
+func developerExists() (bool, error) {
+	var count int64
+	// Unscoped: uključi soft-deleted developer naloge da se ne kreira duplikat.
+	err := database.DB.Unscoped().Model(&models.User{}).
+		Where("role = ?", models.RoleDeveloper).
+		Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }

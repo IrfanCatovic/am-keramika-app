@@ -133,7 +133,7 @@ func UploadProductImages(c *gin.Context) {
 }
 
 func SetPrimaryProductImage(c *gin.Context) {
-	productID, err := parseUintParam(c, "productID")
+	productID, err := parseUintParam(c, "id")
 	if err != nil {
 		return
 	}
@@ -159,7 +159,7 @@ func SetPrimaryProductImage(c *gin.Context) {
 }
 
 func ReorderProductImages(c *gin.Context) {
-	productID, err := parseUintParam(c, "productID")
+	productID, err := parseUintParam(c, "id")
 	if err != nil {
 		return
 	}
@@ -188,7 +188,7 @@ func ReorderProductImages(c *gin.Context) {
 }
 
 func DeleteProductImage(c *gin.Context) {
-	productID, err := parseUintParam(c, "productID")
+	productID, err := parseUintParam(c, "id")
 	if err != nil {
 		return
 	}

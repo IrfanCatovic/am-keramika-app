@@ -84,15 +84,17 @@ func setupRouter() *gin.Engine {
 		authorized.GET("/auth/me", handlers.GetMe)
 
 		boss := authorized.Group("/")
-		boss.Use(middleware.RequireRoles(models.RoleBoss))
+		boss.Use(middleware.RequireRoles(models.RoleDeveloper, models.RoleBoss))
 		{
 			boss.POST("/users", handlers.CreateUser)
 			boss.PUT("/users/:id/status", handlers.UpdateUserStatus)
 			boss.PUT("/users/:id", handlers.UpdateUser)
+			boss.PUT("/users/:id/password", handlers.UpdateUserPassword)
+			boss.GET("/users", handlers.GetUsers)
 		}
 
 		reports := authorized.Group("/reports")
-		reports.Use(middleware.RequireRoles(models.RoleBoss, models.RoleManager))
+		reports.Use(middleware.RequireRoles(models.RoleDeveloper, models.RoleBoss, models.RoleManager))
 		{
 			reports.GET("/daily", func(c *gin.Context) {
 				c.JSON(http.StatusOK, gin.H{"ok": true})
@@ -100,7 +102,7 @@ func setupRouter() *gin.Engine {
 		}
 
 		staff := authorized.Group("/")
-		staff.Use(middleware.RequireRoles(models.RoleBoss, models.RoleManager, models.RoleWorker))
+		staff.Use(middleware.RequireRoles(models.RoleDeveloper, models.RoleBoss, models.RoleManager, models.RoleWorker))
 		{
 			staff.POST("/products", handlers.CreateProduct)
 			staff.PUT("/products/:id", handlers.UpdateProduct)
