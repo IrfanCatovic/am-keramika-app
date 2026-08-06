@@ -4,6 +4,7 @@ import (
 	"am-keramika-backend/database"
 	"am-keramika-backend/models"
 	"errors"
+	"fmt"
 
 	"gorm.io/gorm"
 )
@@ -59,7 +60,13 @@ func GetAllProducts(search string, categoryID string) ([]models.Product, error) 
 
 func GetProductById(id string) (*models.Product, error) {
 	var product models.Product
-	result := database.DB.Preload("Category").Preload("Group").First(&product, id)
+	result := database.DB.
+		Preload("Category").
+		Preload("Group").
+		Preload("Images", func(db *gorm.DB) *gorm.DB {
+			return db.Order("is_primary DESC, sort_order ASC, id ASC")
+		}).
+		First(&product, id)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -86,6 +93,19 @@ func UpdateProduct(product *models.Product) error {
 }
 
 func DeactivateProduct(id string) error {
+	var productID uint
+	if _, err := fmt.Sscanf(id, "%d", &productID); err != nil {
+		return errors.New("proizvod nije pronađen")
+	}
+
+	hasImages, err := ProductHasImages(productID)
+	if err != nil {
+		return err
+	}
+	if hasImages {
+		return ErrProductHasImages
+	}
+
 	result := database.DB.Model(&models.Product{}).Where("id = ?", id).Update("is_active", false)
 
 	if result.Error != nil {

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 	"strings"
@@ -15,6 +16,10 @@ import (
 )
 
 func mapProductResponse(product models.Product, role string) dto.ProductResponse {
+	return mapProductListResponse(product, role, nil)
+}
+
+func mapProductListResponse(product models.Product, role string, primary *models.ProductImage) dto.ProductResponse {
 	response := dto.ProductResponse{
 		ID:            product.ID,
 		Name:          product.Name,
@@ -26,6 +31,7 @@ func mapProductResponse(product models.Product, role string) dto.ProductResponse
 		SalePrice:     product.SalePrice,
 		StockQuantity: product.StockQuantity,
 		IsActive:      product.IsActive,
+		PrimaryImage:  nil,
 	}
 
 	if product.Category.ID != 0 {
@@ -49,6 +55,22 @@ func mapProductResponse(product models.Product, role string) dto.ProductResponse
 		response.MarginPercent = product.MarginPercent
 	}
 
+	if primary != nil {
+		img := mapProductImageResponse(*primary)
+		response.PrimaryImage = &img
+	}
+
+	return response
+}
+
+func mapProductDetailResponse(product models.Product, role string) dto.ProductResponse {
+	response := mapProductListResponse(product, role, nil)
+	if len(product.Images) > 0 {
+		response.Images = make([]dto.ProductImageResponse, 0, len(product.Images))
+		for _, image := range product.Images {
+			response.Images = append(response.Images, mapProductImageResponse(image))
+		}
+	}
 	return response
 }
 
@@ -126,7 +148,7 @@ func CreateProduct(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, mapProductResponse(*created, role))
+		c.JSON(http.StatusCreated, mapProductDetailResponse(*created, role))
 }
 
 func GetAllProducts(c *gin.Context) {
@@ -151,9 +173,28 @@ func GetAllProducts(c *gin.Context) {
 		return
 	}
 
+	productIDs := make([]uint, 0, len(products))
+	for _, product := range products {
+		productIDs = append(productIDs, product.ID)
+	}
+	primaryImages, err := repositories.GetPrimaryImagesForProducts(productIDs)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Greska pri ucitavanju slika proizvoda",
+			"error":   err.Error(),
+		})
+		return
+	}
+
 	response := make([]dto.ProductResponse, 0, len(products))
 	for _, product := range products {
-		response = append(response, mapProductResponse(product, role))
+		primary := primaryImages[product.ID]
+		var primaryPtr *models.ProductImage
+		if primary.ID != 0 {
+			img := primary
+			primaryPtr = &img
+		}
+		response = append(response, mapProductListResponse(product, role, primaryPtr))
 	}
 
 	c.JSON(http.StatusOK, response)
@@ -176,7 +217,7 @@ func GetProductById(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, mapProductResponse(*product, role))
+	c.JSON(http.StatusOK, mapProductDetailResponse(*product, role))
 }
 
 func UpdateProduct(c *gin.Context) {
@@ -246,14 +287,18 @@ func UpdateProduct(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, mapProductResponse(*updated, role))
+		c.JSON(http.StatusOK, mapProductDetailResponse(*updated, role))
 }
 
 func DeactivateProduct(c *gin.Context) {
 	id := c.Param("id")
 	err := repositories.DeactivateProduct(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
+		status := http.StatusNotFound
+		if errors.Is(err, repositories.ErrProductHasImages) {
+			status = http.StatusConflict
+		}
+		c.JSON(status, gin.H{
 			"message": "Greska pri deaktiviranju proizvoda",
 			"error":   err.Error(),
 		})

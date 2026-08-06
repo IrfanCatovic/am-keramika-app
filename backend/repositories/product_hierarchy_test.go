@@ -23,7 +23,7 @@ func setupHierarchyTestDB(t *testing.T) {
 		t.Fatalf("open sqlite: %v", err)
 	}
 
-	err = db.AutoMigrate(&models.Category{}, &models.ProductGroup{}, &models.Product{})
+	err = db.AutoMigrate(&models.Category{}, &models.ProductGroup{}, &models.Product{}, &models.ProductImage{})
 	if err != nil {
 		t.Fatalf("migrate: %v", err)
 	}

@@ -51,4 +51,6 @@ type ProductResponse struct {
 	IsActive      bool                            `json:"isActive"`
 	PurchasePrice *float64                        `json:"purchasePrice,omitempty"`
 	MarginPercent *float64                        `json:"marginPercent,omitempty"`
+	Images        []ProductImageResponse          `json:"images,omitempty"`
+	PrimaryImage  *ProductImageResponse           `json:"primaryImage"`
 }

@@ -33,4 +33,6 @@ type Product struct {
 	IsActive       bool `gorm:"default:true"`
 	IsOnSale       bool `gorm:"default:false"`
 	ShowOnHomepage bool `gorm:"default:false"`
+
+	Images []ProductImage `gorm:"foreignKey:ProductID"`
 }

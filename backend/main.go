@@ -5,23 +5,26 @@ import (
 	"os"
 
 	"am-keramika-backend/auth"
+	"am-keramika-backend/config"
 	"am-keramika-backend/database"
 	"am-keramika-backend/handlers"
 	"am-keramika-backend/middleware"
 	"am-keramika-backend/models"
+	"am-keramika-backend/storage"
 
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Nije pronađen .env file")
+	config.LoadEnv()
+
+	if err := config.RequireJWTSecret(); err != nil {
+		log.Fatal(err)
 	}
 
-	if os.Getenv("JWT_SECRET") == "" {
-		log.Fatal("JWT_SECRET nije postavljen")
+	cloudName, apiKey, apiSecret, err := config.RequireCloudinary()
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	port := os.Getenv("PORT")
@@ -35,6 +38,7 @@ func main() {
 		&models.Category{},
 		&models.ProductGroup{},
 		&models.Product{},
+		&models.ProductImage{},
 		&models.InventoryMovement{},
 		&models.Invoice{},
 		&models.InvoiceItem{},
@@ -51,6 +55,12 @@ func main() {
 	if err := auth.EnsureInitialBoss(); err != nil {
 		log.Fatal(err)
 	}
+
+	imageStorage, err := storage.NewCloudinaryStorage(cloudName, apiKey, apiSecret)
+	if err != nil {
+		log.Fatal(err)
+	}
+	handlers.SetImageStorage(imageStorage)
 
 	r := gin.Default()
 
@@ -92,6 +102,11 @@ func main() {
 			staff.GET("/products/:id", handlers.GetProductById)
 			staff.PUT("/products/:id", handlers.UpdateProduct)
 			staff.PUT("/products/:id/deactivate", handlers.DeactivateProduct)
+
+			staff.POST("/products/:id/images", handlers.UploadProductImages)
+			staff.PUT("/products/:productID/images/:imageID/primary", handlers.SetPrimaryProductImage)
+			staff.PUT("/products/:productID/images/reorder", handlers.ReorderProductImages)
+			staff.DELETE("/products/:productID/images/:imageID", handlers.DeleteProductImage)
 
 			staff.POST("/product-groups", handlers.CreateProductGroup)
 			staff.GET("/product-groups", handlers.GetAllProductGroups)

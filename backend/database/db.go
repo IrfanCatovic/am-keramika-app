@@ -1,39 +1,36 @@
 package database
 
-
 import (
 	"fmt"
 	"log"
 	"os"
-	"gorm.io/gorm"
-	"gorm.io/driver/postgres"	
-	"github.com/joho/godotenv"
 
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
-var DB *gorm.DB //Global database connection
+var DB *gorm.DB
 
 func ConnectDB() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Nije pronađen .env file")
+	sslmode := os.Getenv("DB_SSLMODE")
+	if sslmode == "" {
+		sslmode = "disable"
 	}
 
-	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", 
-	os.Getenv("DB_HOST"), 
-	os.Getenv("DB_PORT"), 
-	os.Getenv("DB_USER"), 
-	os.Getenv("DB_PASSWORD"), 
-	os.Getenv("DB_NAME"),
-)
+	dsn := fmt.Sprintf(
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_NAME"),
+		sslmode,
+	)
 
-database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-if err != nil {
-	log.Fatal("Neuspjela konekcija na bazu: ", err)
-}
+	database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if err != nil {
+		log.Fatal("Neuspjela konekcija na bazu: ", err)
+	}
 	DB = database
-	fmt.Println("Uspješna konekcija na bazu")
+	log.Println("Uspješna konekcija na bazu")
 }
-
-//ovde moramo edit da uradimo kasnije
-
