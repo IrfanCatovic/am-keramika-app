@@ -30,11 +30,7 @@ func validateProductGroupAssignment(categoryID uint, groupID *uint) error {
 }
 
 func CreateProduct(product *models.Product) error {
-	var category models.Category
-	if err := database.DB.First(&category, product.CategoryID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return errors.New("kategorija nije pronađena")
-		}
+	if err := validateCategoryActive(product.CategoryID); err != nil {
 		return err
 	}
 
@@ -45,14 +41,21 @@ func CreateProduct(product *models.Product) error {
 	return database.DB.Create(product).Error
 }
 
-func GetAllProducts(search string, categoryID string) ([]models.Product, error) {
+func GetAllProducts(search string, categoryID string, includeInactive bool) ([]models.Product, error) {
 	var products []models.Product
-	query := database.DB.Preload("Category").Preload("Group").Where("is_active = ?", true)
+	query := database.DB.Preload("Category").Preload("Group")
+
+	if !includeInactive {
+		query = query.
+			Where("products.is_active = ?", true).
+			Joins("JOIN categories ON categories.id = products.category_id AND categories.deleted_at IS NULL AND categories.is_active = ?", true)
+	}
+
 	if search != "" {
-		query = query.Where("name ILIKE ?", "%"+search+"%")
+		query = query.Where("products.name ILIKE ?", "%"+search+"%")
 	}
 	if categoryID != "" {
-		query = query.Where("category_id = ?", categoryID)
+		query = query.Where("products.category_id = ?", categoryID)
 	}
 	result := query.Find(&products)
 	return products, result.Error
@@ -74,11 +77,7 @@ func GetProductById(id string) (*models.Product, error) {
 }
 
 func UpdateProduct(product *models.Product) error {
-	var category models.Category
-	if err := database.DB.First(&category, product.CategoryID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return errors.New("kategorija nije pronađena")
-		}
+	if err := validateCategoryActive(product.CategoryID); err != nil {
 		return err
 	}
 

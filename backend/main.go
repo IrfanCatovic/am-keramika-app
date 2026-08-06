@@ -103,6 +103,9 @@ func main() {
 			staff.POST("/categories", handlers.CreateCategory)
 			staff.GET("/categories", handlers.GetCategories)
 			staff.GET("/categories/:id", handlers.GetCategoryById)
+			staff.PUT("/categories/:id", handlers.UpdateCategory)
+			staff.PUT("/categories/:id/status", handlers.UpdateCategoryStatus)
+			staff.DELETE("/categories/:id", handlers.DeleteCategory)
 
 			staff.POST("/products", handlers.CreateProduct)
 			staff.GET("/products", handlers.GetAllProducts)

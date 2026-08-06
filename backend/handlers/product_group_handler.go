@@ -39,6 +39,7 @@ func CreateProductGroup(c *gin.Context) {
 	if err != nil {
 		status := http.StatusInternalServerError
 		if strings.Contains(err.Error(), "kategorija nije pronađena") ||
+			strings.Contains(err.Error(), "kategorija nije aktivna") ||
 			strings.Contains(err.Error(), "već postoji") ||
 			strings.Contains(err.Error(), "ima proizvode") {
 			status = http.StatusBadRequest
@@ -150,6 +151,7 @@ func UpdateProductGroup(c *gin.Context) {
 		case strings.Contains(err.Error(), "premjestite ili uklonite proizvode iz grupe prije promjene kategorije"):
 			status = http.StatusConflict
 		case strings.Contains(err.Error(), "kategorija nije pronađena"),
+			strings.Contains(err.Error(), "kategorija nije aktivna"),
 			strings.Contains(err.Error(), "već postoji"):
 			status = http.StatusBadRequest
 		}

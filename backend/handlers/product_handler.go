@@ -77,6 +77,7 @@ func mapProductDetailResponse(product models.Product, role string) dto.ProductRe
 func isProductValidationError(err error) bool {
 	msg := err.Error()
 	return strings.Contains(msg, "kategorija nije pronađena") ||
+		strings.Contains(msg, "kategorija nije aktivna") ||
 		strings.Contains(msg, "grupa proizvoda nije pronađena") ||
 		strings.Contains(msg, "grupa ne pripada izabranoj kategoriji")
 }
@@ -164,7 +165,9 @@ func GetAllProducts(c *gin.Context) {
 		return
 	}
 
-	products, err := repositories.GetAllProducts(search, categoryID)
+	includeInactive := c.Query("includeInactive") == "true"
+
+	products, err := repositories.GetAllProducts(search, categoryID, includeInactive)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": "Greska pri ucitavanju proizvoda",

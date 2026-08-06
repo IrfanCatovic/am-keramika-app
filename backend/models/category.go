@@ -7,7 +7,7 @@ type Category struct {
 
 	Name     string `gorm:"unique;not null"`
 	Slug     string `gorm:"unique;not null"`
-	IsActive bool   `gorm:"default:true"`
+	IsActive bool   `gorm:"not null;default:true"`
 
 	Products      []Product      `gorm:"foreignKey:CategoryID"`
 	ProductGroups []ProductGroup `gorm:"foreignKey:CategoryID"`

@@ -10,11 +10,7 @@ import (
 )
 
 func CreateProductGroup(group *models.ProductGroup) error {
-	var category models.Category
-	if err := database.DB.First(&category, group.CategoryID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return errors.New("kategorija nije pronađena")
-		}
+	if err := validateCategoryActive(group.CategoryID); err != nil {
 		return err
 	}
 
@@ -61,9 +57,12 @@ func UpdateProductGroup(group *models.ProductGroup) error {
 		var category models.Category
 		if err := tx.First(&category, group.CategoryID).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return errors.New("kategorija nije pronađena")
+				return ErrCategoryNotFound
 			}
 			return err
+		}
+		if !category.IsActive {
+			return ErrCategoryInactive
 		}
 
 		var current models.ProductGroup
