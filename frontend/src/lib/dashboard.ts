@@ -1,7 +1,10 @@
 import { ApiError, apiRequest } from "@/lib/api";
+import { invoiceCustomerLabel } from "@/lib/invoices-api";
 import { PaginatedLowStockResponse } from "@/types/inventory";
 import { PaginatedInvoiceResponse } from "@/types/invoice";
 import { SalesSummaryReport } from "@/types/report";
+
+export { invoiceCustomerLabel };
 
 export function todayLocalISODate(): string {
   const now = new Date();
@@ -19,19 +22,6 @@ export function getErrorMessage(error: unknown, fallback: string): string {
     return error.message;
   }
   return fallback;
-}
-
-export function invoiceCustomerLabel(invoice: {
-  customerName?: string;
-  customer: { name: string } | null;
-}): string {
-  if (invoice.customerName?.trim()) {
-    return invoice.customerName.trim();
-  }
-  if (invoice.customer?.name?.trim()) {
-    return invoice.customer.name.trim();
-  }
-  return "Gotovinska prodaja";
 }
 
 export async function fetchSalesSummary(
@@ -58,7 +48,7 @@ export async function fetchRecentInvoices(): Promise<PaginatedInvoiceResponse> {
   const params = new URLSearchParams({
     page: "1",
     limit: "5",
-    sort: "created_at",
+    sort: "createdAt",
     direction: "desc",
   });
   return apiRequest<PaginatedInvoiceResponse>(`/invoices?${params}`);
