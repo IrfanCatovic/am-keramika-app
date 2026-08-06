@@ -127,6 +127,7 @@ func main() {
 			staff.POST("/inventory/add", handlers.AddStock)
 			staff.POST("/inventory/adjust", handlers.AdjustStock)
 			staff.POST("/inventory/sell", handlers.SellStock)
+			staff.GET("/inventory/low-stock", handlers.GetLowStock)
 
 			staff.POST("/invoices", handlers.CreateInvoice)
 			staff.GET("/invoices/:id", handlers.GetInvoiceByID)
