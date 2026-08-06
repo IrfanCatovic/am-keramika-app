@@ -5,7 +5,7 @@ import "gorm.io/gorm"
 type Payment struct {
 	gorm.Model
 
-	CustomerID      *uint   `gorm:"not null"`
+	CustomerID      *uint
 	CreatedByUserID uint    `gorm:"not null"`
 	TotalAmount     float64 `gorm:"not null"`
 

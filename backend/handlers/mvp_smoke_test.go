@@ -216,18 +216,18 @@ func TestMVPSmokeHappyPath(t *testing.T) {
 		t.Fatal("missing group id")
 	}
 
-	// 6. Kreiraj proizvod (salePrice + stockQuantity via HTTP)
-	// minStockQuantity nije dio CreateProductRequest API contracta — postavlja se direktno u DB nakon create.
+	// 6. Kreiraj proizvod (salePrice, stockQuantity, minStockQuantity via HTTP)
 	initialStock := 10.0
 	minStock := 8.0
 	salePrice := 100.0
 	w = smokeJSON(t, r, http.MethodPost, "/products", bossToken, map[string]interface{}{
-		"name":          "Verona Beige",
-		"categoryID":    categoryID,
-		"groupID":       groupID,
-		"unit":          "m2",
-		"salePrice":     salePrice,
-		"stockQuantity": initialStock,
+		"name":             "Verona Beige",
+		"categoryID":       categoryID,
+		"groupID":          groupID,
+		"unit":             "m2",
+		"salePrice":        salePrice,
+		"stockQuantity":    initialStock,
+		"minStockQuantity": minStock,
 	})
 	if w.Code != http.StatusCreated {
 		t.Fatalf("create product: %d %s", w.Code, w.Body.String())
@@ -237,9 +237,8 @@ func TestMVPSmokeHappyPath(t *testing.T) {
 	if product.ID == 0 {
 		t.Fatal("missing product id")
 	}
-	if err := database.DB.Model(&models.Product{}).Where("id = ?", product.ID).
-		Update("min_stock_quantity", minStock).Error; err != nil {
-		t.Fatalf("set minStockQuantity via DB (API field missing on create): %v", err)
+	if product.MinStockQuantity != minStock {
+		t.Fatalf("minStockQuantity want %v got %v", minStock, product.MinStockQuantity)
 	}
 
 	// 7. Upload slike (fake storage) + primary
@@ -311,6 +310,12 @@ func TestMVPSmokeHappyPath(t *testing.T) {
 	if dbInvoice.CreatedByUserID != bossID {
 		t.Fatalf("CreatedByUserID want %d got %d", bossID, dbInvoice.CreatedByUserID)
 	}
+	if dbInvoice.TotalAmount != expectedTotal {
+		t.Fatalf("TotalAmount want %v got %v", expectedTotal, dbInvoice.TotalAmount)
+	}
+	if dbInvoice.Status != models.InvoiceStatusUnpaid {
+		t.Fatalf("invoice status want unpaid got %s", dbInvoice.Status)
+	}
 
 	var dbProduct models.Product
 	database.DB.First(&dbProduct, product.ID)
@@ -320,22 +325,14 @@ func TestMVPSmokeHappyPath(t *testing.T) {
 
 	var dbCustomer models.Customer
 	database.DB.First(&dbCustomer, customerID)
-
-	// Dokumentovana greška u CreateInvoice: totalAmount se ne uvećava za kupca
-	// (totalAmount += totalPrice je unutar if customerID == nil).
-	if dbInvoice.TotalAmount != expectedTotal {
-		t.Fatalf("FOUND BUG CreateInvoice: TotalAmount want %v got %v (customer debt=%v, status=%s). "+
-			"totalAmount += totalPrice je unutar cash-only bloka; dug i total ostaju 0 za račun sa kupcem",
-			expectedTotal, dbInvoice.TotalAmount, dbCustomer.TotalDebt, dbInvoice.Status)
-	}
-	if dbInvoice.Status != models.InvoiceStatusUnpaid {
-		t.Fatalf("invoice status want unpaid got %s", dbInvoice.Status)
-	}
 	if dbCustomer.TotalDebt != expectedTotal {
 		t.Fatalf("customer debt want %v got %v", expectedTotal, dbCustomer.TotalDebt)
 	}
 	if invoice.Status != string(models.InvoiceStatusUnpaid) {
 		t.Fatalf("response status want unpaid got %s", invoice.Status)
+	}
+	if invoice.TotalAmount != expectedTotal {
+		t.Fatalf("response totalAmount want %v got %v", expectedTotal, invoice.TotalAmount)
 	}
 
 	// 10. Djelimična uplata

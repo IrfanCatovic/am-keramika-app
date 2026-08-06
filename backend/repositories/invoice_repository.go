@@ -36,7 +36,7 @@ func CreateInvoice(req dto.CreateInvoiceRequest, createdByUserID uint) (*models.
 		PaidAmount:      0,
 	}
 
-	err := tx.Create(&invoice).Error //kreira fakturu u bazi da bi dobili ID fakture
+	err := tx.Create(&invoice).Error
 	if err != nil {
 		tx.Rollback()
 		return nil, err
@@ -83,31 +83,11 @@ func CreateInvoice(req dto.CreateInvoiceRequest, createdByUserID uint) (*models.
 			return nil, err
 		}
 
-		//ovaj blok radimo ako nema kupca odmah cim se napravi racun pravi se i placanje i raspodela placanja na racun
+		// Ukupan iznos se sabira za svaki račun (sa kupcem i bez).
+		totalAmount += totalPrice
+
+		// Gotovinski račun: inventory movement po stavci (payment se kreira jednom nakon petlje).
 		if req.CustomerID == nil {
-			payment := models.Payment{
-				CustomerID:      nil,
-				CreatedByUserID: createdByUserID,
-				TotalAmount:     totalAmount,
-			}
-
-			err = tx.Create(&payment).Error
-			if err != nil {
-				tx.Rollback()
-				return nil, err
-			}
-
-			allocation := models.PaymentAllocation{
-				PaymentID: payment.ID,
-				InvoiceID: invoice.ID,
-				Amount:    totalAmount,
-			}
-			err = tx.Create(&allocation).Error
-			if err != nil {
-				tx.Rollback()
-				return nil, err
-			}
-
 			movement := models.InventoryMovement{
 				ProductID:       product.ID,
 				CreatedByUserID: createdByUserID,
@@ -121,43 +101,65 @@ func CreateInvoice(req dto.CreateInvoiceRequest, createdByUserID uint) (*models.
 				tx.Rollback()
 				return nil, err
 			}
+		}
+	}
 
-			totalAmount += totalPrice
+	invoice.TotalAmount = totalAmount
+
+	if req.CustomerID == nil {
+		payment := models.Payment{
+			CustomerID:      nil,
+			CreatedByUserID: createdByUserID,
+			TotalAmount:     totalAmount,
 		}
 
-		invoice.TotalAmount = totalAmount
-
-		if req.CustomerID == nil {
-			invoice.PaidAmount = totalAmount
-			invoice.Status = models.InvoiceStatusPaid
-		} else {
-			invoice.PaidAmount = 0
-			invoice.Status = models.InvoiceStatusUnpaid
-
-			err = tx.Model(&models.Customer{}).Where("id = ?", *req.CustomerID).Update("total_debt", gorm.Expr("total_debt + ?", totalAmount)).Error
-
-			if err != nil {
-				tx.Rollback()
-				return nil, err
-			}
-		}
-
-		err = tx.Save(&invoice).Error
+		err = tx.Create(&payment).Error
 		if err != nil {
 			tx.Rollback()
 			return nil, err
 		}
 
-		err = tx.Commit().Error
+		allocation := models.PaymentAllocation{
+			PaymentID: payment.ID,
+			InvoiceID: invoice.ID,
+			Amount:    totalAmount,
+		}
+		err = tx.Create(&allocation).Error
 		if err != nil {
+			tx.Rollback()
 			return nil, err
 		}
 
-		err = database.DB.Preload("Items").Preload("Items.Product").First(&invoice, invoice.ID).Error
+		invoice.PaidAmount = totalAmount
+		invoice.Status = models.InvoiceStatusPaid
+	} else {
+		invoice.PaidAmount = 0
+		invoice.Status = models.InvoiceStatusUnpaid
+
+		err = tx.Model(&models.Customer{}).Where("id = ?", *req.CustomerID).
+			Update("total_debt", gorm.Expr("total_debt + ?", totalAmount)).Error
 		if err != nil {
+			tx.Rollback()
 			return nil, err
 		}
 	}
+
+	err = tx.Save(&invoice).Error
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	err = tx.Commit().Error
+	if err != nil {
+		return nil, err
+	}
+
+	err = database.DB.Preload("Items").Preload("Items.Product").First(&invoice, invoice.ID).Error
+	if err != nil {
+		return nil, err
+	}
+
 	return &invoice, nil
 }
 

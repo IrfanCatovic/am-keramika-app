@@ -22,17 +22,18 @@ func mapProductResponse(product models.Product, role string) dto.ProductResponse
 
 func mapProductListResponse(product models.Product, role string, primary *models.ProductImage) dto.ProductResponse {
 	response := dto.ProductResponse{
-		ID:            product.ID,
-		Name:          product.Name,
-		Slug:          product.Slug,
-		Description:   product.Description,
-		CategoryID:    product.CategoryID,
-		GroupID:       product.GroupID,
-		Unit:          product.Unit,
-		SalePrice:     product.SalePrice,
-		StockQuantity: product.StockQuantity,
-		IsActive:      product.IsActive,
-		PrimaryImage:  nil,
+		ID:               product.ID,
+		Name:             product.Name,
+		Slug:             product.Slug,
+		Description:      product.Description,
+		CategoryID:       product.CategoryID,
+		GroupID:          product.GroupID,
+		Unit:             product.Unit,
+		SalePrice:        product.SalePrice,
+		StockQuantity:    product.StockQuantity,
+		MinStockQuantity: product.MinStockQuantity,
+		IsActive:         product.IsActive,
+		PrimaryImage:     nil,
 	}
 
 	if product.Category.ID != 0 {
@@ -118,15 +119,16 @@ func CreateProduct(c *gin.Context) {
 	}
 
 	product := models.Product{
-		Name:          req.Name,
-		Slug:          slug,
-		CategoryID:    req.CategoryID,
-		GroupID:       req.GroupID,
-		Unit:          req.Unit,
-		SalePrice:     req.SalePrice,
-		StockQuantity: req.StockQuantity,
-		Description:   req.Description,
-		IsActive:      true,
+		Name:             req.Name,
+		Slug:             slug,
+		CategoryID:       req.CategoryID,
+		GroupID:          req.GroupID,
+		Unit:             req.Unit,
+		SalePrice:        req.SalePrice,
+		StockQuantity:    req.StockQuantity,
+		MinStockQuantity: req.MinStockQuantity,
+		Description:      req.Description,
+		IsActive:         true,
 	}
 
 	if models.CanViewSensitiveProductFields(role) {
@@ -316,6 +318,7 @@ func UpdateProduct(c *gin.Context) {
 	product.Unit = req.Unit
 	product.SalePrice = req.SalePrice
 	product.StockQuantity = req.StockQuantity
+	product.MinStockQuantity = req.MinStockQuantity
 	product.Description = req.Description
 
 	if req.GroupID.Present {
