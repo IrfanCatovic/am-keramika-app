@@ -31,7 +31,17 @@ func CreateInvoice(c *gin.Context) {
 
 	invoice, err := repositories.CreateInvoice(req, createdByUserID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		status := http.StatusInternalServerError
+		msg := err.Error()
+		switch {
+		case strings.Contains(msg, "kupac nije aktivan"):
+			status = http.StatusConflict
+		case strings.Contains(msg, "kupac nije pronađen"),
+			strings.Contains(msg, "proizvod nije pronađen"),
+			strings.Contains(msg, "nema dovoljno"):
+			status = http.StatusBadRequest
+		}
+		c.JSON(status, gin.H{"error": err.Error()})
 		return
 	}
 

@@ -13,12 +13,9 @@ func CreateInvoice(req dto.CreateInvoiceRequest, createdByUserID uint) (*models.
 	tx := database.DB.Begin()
 
 	if req.CustomerID != nil {
-		var customer models.Customer
-
-		err := tx.First(&customer, *req.CustomerID).Error
-		if err != nil {
+		if err := validateCustomerForInvoiceTx(tx, *req.CustomerID); err != nil {
 			tx.Rollback()
-			return nil, errors.New("kupac nije pronađen")
+			return nil, err
 		}
 	}
 

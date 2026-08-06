@@ -1,5 +1,14 @@
 package dto
 
+type UpdateCustomerRequest struct {
+	Name  string `json:"name" binding:"required"`
+	Phone string `json:"phone"`
+}
+
+type UpdateCustomerStatusRequest struct {
+	IsActive bool `json:"isActive"`
+}
+
 type CreateCustomerRequest struct {
 	Name  string `json:"name" binding:"required"`
 	Phone string `json:"phone"`

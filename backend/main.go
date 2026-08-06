@@ -136,6 +136,9 @@ func main() {
 			staff.POST("/customers", handlers.CreateCustomer)
 			staff.GET("/customers", handlers.GetAllCustomers)
 			staff.GET("/customers/:id", handlers.GetCustomerByID)
+			staff.PUT("/customers/:id", handlers.UpdateCustomer)
+			staff.PUT("/customers/:id/status", handlers.UpdateCustomerStatus)
+			staff.DELETE("/customers/:id", handlers.DeleteCustomer)
 			staff.GET("/customers/:id/open-invoices", handlers.GetCustomerOpenInvoices)
 			staff.GET("/customers/:id/payments", handlers.GetCustomerPayments)
 

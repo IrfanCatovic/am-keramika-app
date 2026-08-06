@@ -7,7 +7,7 @@ type Customer struct {
 	Name      string `gorm:"not null"`
 	Phone     string
 	TotalDebt float64 `gorm:"default:0"`
-	IsActive  bool    `gorm:"default:true"`
+	IsActive  bool    `gorm:"not null;default:true"`
 
 	Invoices []Invoice `gorm:"foreignKey:CustomerID"`
 }
