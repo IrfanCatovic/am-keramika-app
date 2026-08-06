@@ -30,7 +30,7 @@ export function useCustomerSearch(query: string, enabled = true) {
           if (cancelled) {
             return;
           }
-          setResults(response.data ?? []);
+          setResults((response.data ?? []).filter((item) => item.isActive));
           setError(null);
         } catch (err) {
           if (cancelled) {

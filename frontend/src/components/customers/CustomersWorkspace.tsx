@@ -22,7 +22,14 @@ function parsePositiveInt(value: string | null): number | null {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 }
 
-type StatusFilter = "active" | "all";
+type StatusFilter = "active" | "inactive" | "all";
+
+function parseStatus(value: string | null): StatusFilter {
+  if (value === "all" || value === "inactive") {
+    return value;
+  }
+  return "active";
+}
 
 export function CustomersWorkspace() {
   const router = useRouter();
@@ -31,9 +38,8 @@ export function CustomersWorkspace() {
 
   const page = parsePositiveInt(searchParams.get("page")) ?? 1;
   const limit = parsePositiveInt(searchParams.get("limit")) ?? 20;
-  const statusParam = searchParams.get("status");
-  const status: StatusFilter = statusParam === "all" ? "all" : "active";
-  const includeInactive = status === "all";
+  const status = parseStatus(searchParams.get("status"));
+  const includeInactive = status === "all" || status === "inactive";
   const searchFromUrl = searchParams.get("search") ?? "";
 
   const [searchInput, setSearchInput] = useState(searchFromUrl);
@@ -87,10 +93,10 @@ export function CustomersWorkspace() {
       } else {
         params.delete("search");
       }
-      if (nextStatus === "all") {
-        params.set("status", "all");
-      } else {
+      if (nextStatus === "active") {
         params.delete("status");
+      } else {
+        params.set("status", nextStatus);
       }
       if (nextLimit !== 20) {
         params.set("limit", String(nextLimit));
@@ -125,7 +131,10 @@ export function CustomersWorkspace() {
         search: searchFromUrl,
         includeInactive,
       });
-      setCustomers(response.data ?? []);
+      const rows = response.data ?? [];
+      setCustomers(
+        status === "inactive" ? rows.filter((item) => !item.isActive) : rows,
+      );
       setTotal(response.total ?? 0);
       setTotalPages(Math.max(1, response.total_pages || 1));
     } catch (err) {
@@ -134,7 +143,7 @@ export function CustomersWorkspace() {
     } finally {
       setLoading(false);
     }
-  }, [includeInactive, limit, page, searchFromUrl]);
+  }, [includeInactive, limit, page, searchFromUrl, status]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -209,6 +218,8 @@ export function CustomersWorkspace() {
     };
   }, [confirm]);
 
+  const inactiveOnly = status === "inactive";
+
   return (
     <div className="min-w-0 space-y-4 sm:space-y-5">
       <header className="dash-enter flex flex-wrap items-start justify-between gap-3">
@@ -220,7 +231,7 @@ export function CustomersWorkspace() {
             Kupci
           </h1>
           <p className="mt-1 text-sm text-stone-500">
-            Pregled i upravljanje kupcima. Dug i status vidljivi su na detaljima.
+            Pregled i upravljanje kupcima.
           </p>
         </div>
         <Link
@@ -258,8 +269,9 @@ export function CustomersWorkspace() {
               }
               className="w-full rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm"
             >
-              <option value="active">Samo aktivni</option>
-              <option value="all">Aktivni i neaktivni</option>
+              <option value="active">Aktivni</option>
+              <option value="inactive">Neaktivni</option>
+              <option value="all">Svi</option>
             </select>
           </div>
           <div>
@@ -279,12 +291,19 @@ export function CustomersWorkspace() {
             </select>
           </div>
         </div>
-        <p className="mt-3 text-xs text-stone-500">Ukupno: {total}</p>
+        {inactiveOnly ? (
+          <p className="mt-3 text-xs text-stone-500">
+            Prikazano {customers.length} neaktivnih sa trenutne backend
+            stranice. Filter „samo neaktivni“ nije server-side — ukupan broj
+            neaktivnih nije dostupan.
+          </p>
+        ) : (
+          <p className="mt-3 text-xs text-stone-500">Ukupno: {total}</p>
+        )}
       </section>
 
       <CustomerList
         customers={customers}
-        includeInactive={includeInactive}
         loading={loading}
         error={error}
         searchActive={Boolean(searchFromUrl.trim())}
@@ -304,10 +323,37 @@ export function CustomersWorkspace() {
         }}
       />
 
-      {totalPages > 1 ? (
+      {!inactiveOnly && totalPages > 1 ? (
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-stone-500">
             Stranica {page} / {totalPages}
+          </p>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              disabled={page <= 1}
+              onClick={() => syncQuery({ page: page - 1 })}
+              className="inline-flex min-h-10 items-center rounded-xl border border-stone-200 px-3 text-sm disabled:opacity-50"
+            >
+              Prethodna
+            </button>
+            <button
+              type="button"
+              disabled={page >= totalPages}
+              onClick={() => syncQuery({ page: page + 1 })}
+              className="inline-flex min-h-10 items-center rounded-xl border border-stone-200 px-3 text-sm disabled:opacity-50"
+            >
+              Sljedeća
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {inactiveOnly && totalPages > 1 ? (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-stone-500">
+            Backend stranica {page} / {totalPages} (miješani aktivni/neaktivni
+            rezultat)
           </p>
           <div className="flex gap-2">
             <button

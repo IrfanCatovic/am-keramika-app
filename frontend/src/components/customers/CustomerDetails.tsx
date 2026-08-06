@@ -7,7 +7,10 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { CustomerOpenInvoices } from "@/components/customers/CustomerOpenInvoices";
 import { CustomerPayments } from "@/components/customers/CustomerPayments";
-import { DebtBadge } from "@/components/customers/CustomerStatusBadge";
+import {
+  CustomerStatusBadge,
+  DebtBadge,
+} from "@/components/customers/CustomerStatusBadge";
 import { canViewFinance } from "@/components/dashboard/DashboardHeader";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { InlineError, ListSkeleton } from "@/components/ui/EmptyState";
@@ -169,6 +172,7 @@ export function CustomerDetailsView({ customerId }: { customerId: number }) {
   }
 
   const debt = summary?.totalDebt ?? customer.debt;
+  const muted = !customer.isActive;
 
   return (
     <div className="min-w-0 space-y-4 sm:space-y-5">
@@ -177,20 +181,29 @@ export function CustomerDetailsView({ customerId }: { customerId: number }) {
           <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#8a6a45]">
             Kupac
           </p>
-          <h1 className="mt-1 break-words text-2xl font-semibold tracking-tight text-stone-900 sm:text-3xl">
-            {customer.name}
-          </h1>
+          <div className="mt-1 flex flex-wrap items-center gap-2">
+            <h1
+              className={`break-words text-2xl font-semibold tracking-tight sm:text-3xl ${
+                muted ? "text-stone-600" : "text-stone-900"
+              }`}
+            >
+              {customer.name}
+            </h1>
+            <CustomerStatusBadge isActive={customer.isActive} />
+          </div>
           <p className="mt-1 break-words text-sm text-stone-500">
             {customer.phone?.trim() ? customer.phone : "Bez telefona"}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Link
-            href={`/invoices/new?customerID=${customer.id}`}
-            className="inline-flex min-h-11 items-center rounded-xl bg-stone-900 px-4 text-sm font-medium text-white hover:bg-stone-800"
-          >
-            Novi račun za kupca
-          </Link>
+          {customer.isActive ? (
+            <Link
+              href={`/invoices/new?customerID=${customer.id}`}
+              className="inline-flex min-h-11 items-center rounded-xl bg-stone-900 px-4 text-sm font-medium text-white hover:bg-stone-800"
+            >
+              Novi račun za kupca
+            </Link>
+          ) : null}
           <Link
             href={`/customers/${customer.id}/edit`}
             className="inline-flex min-h-11 items-center rounded-xl border border-stone-200 bg-white px-4 text-sm font-medium text-stone-700 hover:bg-stone-50"
@@ -200,12 +213,16 @@ export function CustomerDetailsView({ customerId }: { customerId: number }) {
         </div>
       </header>
 
-      <section className="dash-enter rounded-2xl border border-stone-200 bg-white p-4 sm:p-5">
+      <section
+        className={`dash-enter rounded-2xl border p-4 sm:p-5 ${
+          muted
+            ? "border-stone-200/80 bg-stone-50 opacity-90"
+            : "border-stone-200 bg-white"
+        }`}
+      >
         <div className="flex flex-wrap items-center gap-2">
           <DebtBadge amount={debt} />
-          <p className="text-sm text-stone-500">
-            Status se mijenja akcijama ispod (aktivacija / deaktivacija).
-          </p>
+          <CustomerStatusBadge isActive={customer.isActive} />
         </div>
         <p className="mt-4 text-xs font-medium uppercase tracking-[0.12em] text-stone-500">
           Trenutni dug
@@ -239,26 +256,29 @@ export function CustomerDetailsView({ customerId }: { customerId: number }) {
         ) : null}
 
         <div className="mt-5 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => {
-              setConfirmError(null);
-              setConfirm({ open: true, kind: "activate" });
-            }}
-            className="inline-flex min-h-10 items-center rounded-xl border border-stone-200 px-3 text-sm font-medium text-stone-700 hover:bg-stone-50"
-          >
-            Aktiviraj
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setConfirmError(null);
-              setConfirm({ open: true, kind: "deactivate" });
-            }}
-            className="inline-flex min-h-10 items-center rounded-xl border border-stone-200 px-3 text-sm font-medium text-stone-700 hover:bg-stone-50"
-          >
-            Deaktiviraj
-          </button>
+          {customer.isActive ? (
+            <button
+              type="button"
+              onClick={() => {
+                setConfirmError(null);
+                setConfirm({ open: true, kind: "deactivate" });
+              }}
+              className="inline-flex min-h-10 items-center rounded-xl border border-stone-200 px-3 text-sm font-medium text-stone-700 hover:bg-stone-50"
+            >
+              Deaktiviraj
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                setConfirmError(null);
+                setConfirm({ open: true, kind: "activate" });
+              }}
+              className="inline-flex min-h-10 items-center rounded-xl border border-stone-200 px-3 text-sm font-medium text-stone-700 hover:bg-stone-50"
+            >
+              Aktiviraj
+            </button>
+          )}
           <button
             type="button"
             onClick={() => {

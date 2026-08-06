@@ -15,21 +15,24 @@ type CreateCustomerRequest struct {
 }
 
 type CustomerResponse struct {
-	ID    uint   `json:"id"`
-	Name  string `json:"name"`
-	Phone string `json:"phone"`
+	ID       uint   `json:"id"`
+	Name     string `json:"name"`
+	Phone    string `json:"phone"`
+	IsActive bool   `json:"isActive"`
 }
 
 type CustomerListResponse struct {
-	ID    uint   `json:"id"`
-	Name  string `json:"name"`
-	Phone string `json:"phone"`
+	ID       uint   `json:"id"`
+	Name     string `json:"name"`
+	Phone    string `json:"phone"`
+	IsActive bool   `json:"isActive"`
 }
 
 type CustomerDetailsResponse struct {
 	ID       uint                      `json:"id"`
 	Name     string                    `json:"name"`
 	Phone    string                    `json:"phone"`
+	IsActive bool                      `json:"isActive"`
 	Debt     float64                   `json:"debt"`
 	Invoices []CustomerInvoiceResponse `json:"invoices"`
 }

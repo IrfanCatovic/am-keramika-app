@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import { CustomerCard } from "@/components/customers/CustomerCard";
+import { CustomerStatusBadge } from "@/components/customers/CustomerStatusBadge";
 import {
   EmptyState,
   InlineError,
@@ -12,7 +13,6 @@ import { CustomerListItem } from "@/types/customer";
 
 export function CustomerList({
   customers,
-  includeInactive,
   loading,
   error,
   searchActive,
@@ -23,7 +23,6 @@ export function CustomerList({
   onDelete,
 }: {
   customers: CustomerListItem[];
-  includeInactive: boolean;
   loading: boolean;
   error: string | null;
   searchActive: boolean;
@@ -47,7 +46,7 @@ export function CustomerList({
         title={searchActive ? "Nema rezultata pretrage" : "Nema kupaca"}
         description={
           searchActive
-            ? "Pokušajte drugačiji pojam ili uključite neaktivne kupce."
+            ? "Pokušajte drugačiji pojam ili promijenite status filter."
             : "Dodajte prvog kupca da biste evidentirali dugovanja i račune."
         }
         action={
@@ -71,7 +70,6 @@ export function CustomerList({
           <li key={customer.id}>
             <CustomerCard
               customer={customer}
-              includeInactive={includeInactive}
               busy={busyId === customer.id}
               onActivate={() => onActivate(customer)}
               onDeactivate={() => onDeactivate(customer)}
@@ -85,72 +83,84 @@ export function CustomerList({
         <table className="w-full table-fixed text-left text-sm">
           <thead className="sticky top-0 bg-stone-50/95 backdrop-blur">
             <tr className="border-b border-stone-200 text-xs uppercase tracking-[0.08em] text-stone-500">
-              <th className="w-[36%] px-4 py-3 font-medium">Naziv</th>
-              <th className="w-[24%] px-4 py-3 font-medium">Telefon</th>
+              <th className="w-[32%] px-4 py-3 font-medium">Naziv</th>
+              <th className="w-[20%] px-4 py-3 font-medium">Telefon</th>
+              <th className="w-[14%] px-4 py-3 font-medium">Status</th>
               <th className="px-4 py-3 font-medium">Akcije</th>
             </tr>
           </thead>
           <tbody>
-            {customers.map((customer) => (
-              <tr
-                key={customer.id}
-                className="border-b border-stone-100 last:border-b-0"
-              >
-                <td className="px-4 py-3 align-top">
-                  <Link
-                    href={`/customers/${customer.id}`}
-                    className="break-words font-medium text-stone-900 hover:text-[#8a6a45]"
-                  >
-                    {customer.name}
-                  </Link>
-                </td>
-                <td className="break-words px-4 py-3 align-top text-stone-600">
-                  {customer.phone?.trim() ? customer.phone : "—"}
-                </td>
-                <td className="px-4 py-3 align-top">
-                  <div className="flex flex-wrap gap-2">
+            {customers.map((customer) => {
+              const muted = !customer.isActive;
+              return (
+                <tr
+                  key={customer.id}
+                  className={`border-b border-stone-100 last:border-b-0 ${
+                    muted ? "bg-stone-50/80 text-stone-500" : ""
+                  }`}
+                >
+                  <td className="px-4 py-3 align-top">
                     <Link
                       href={`/customers/${customer.id}`}
-                      className="rounded-lg border border-stone-200 px-2.5 py-1.5 text-xs font-medium text-stone-700 hover:bg-stone-50"
+                      className={`break-words font-medium hover:text-[#8a6a45] ${
+                        muted ? "text-stone-600" : "text-stone-900"
+                      }`}
                     >
-                      Detalji
+                      {customer.name}
                     </Link>
-                    <Link
-                      href={`/customers/${customer.id}/edit`}
-                      className="rounded-lg border border-stone-200 px-2.5 py-1.5 text-xs font-medium text-stone-700 hover:bg-stone-50"
-                    >
-                      Uredi
-                    </Link>
-                    {includeInactive ? (
+                  </td>
+                  <td className="break-words px-4 py-3 align-top text-stone-600">
+                    {customer.phone?.trim() ? customer.phone : "—"}
+                  </td>
+                  <td className="px-4 py-3 align-top">
+                    <CustomerStatusBadge isActive={customer.isActive} />
+                  </td>
+                  <td className="px-4 py-3 align-top">
+                    <div className="flex flex-wrap gap-2">
+                      <Link
+                        href={`/customers/${customer.id}`}
+                        className="rounded-lg border border-stone-200 px-2.5 py-1.5 text-xs font-medium text-stone-700 hover:bg-stone-50"
+                      >
+                        Detalji
+                      </Link>
+                      <Link
+                        href={`/customers/${customer.id}/edit`}
+                        className="rounded-lg border border-stone-200 px-2.5 py-1.5 text-xs font-medium text-stone-700 hover:bg-stone-50"
+                      >
+                        Uredi
+                      </Link>
+                      {customer.isActive ? (
+                        <button
+                          type="button"
+                          disabled={busyId === customer.id}
+                          onClick={() => onDeactivate(customer)}
+                          className="rounded-lg border border-stone-200 px-2.5 py-1.5 text-xs font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-60"
+                        >
+                          Deaktiviraj
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled={busyId === customer.id}
+                          onClick={() => onActivate(customer)}
+                          className="rounded-lg border border-stone-200 px-2.5 py-1.5 text-xs font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-60"
+                        >
+                          Aktiviraj
+                        </button>
+                      )}
                       <button
                         type="button"
                         disabled={busyId === customer.id}
-                        onClick={() => onActivate(customer)}
-                        className="rounded-lg border border-stone-200 px-2.5 py-1.5 text-xs font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-60"
+                        onClick={() => onDelete(customer)}
+                        className="rounded-lg border border-red-200 px-2.5 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 disabled:opacity-60"
                       >
-                        Aktiviraj
+                        Obriši
                       </button>
-                    ) : null}
-                    <button
-                      type="button"
-                      disabled={busyId === customer.id}
-                      onClick={() => onDeactivate(customer)}
-                      className="rounded-lg border border-stone-200 px-2.5 py-1.5 text-xs font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-60"
-                    >
-                      Deaktiviraj
-                    </button>
-                    <button
-                      type="button"
-                      disabled={busyId === customer.id}
-                      onClick={() => onDelete(customer)}
-                      className="rounded-lg border border-red-200 px-2.5 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 disabled:opacity-60"
-                    >
-                      Obriši
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

@@ -7,7 +7,7 @@ import { CustomerListItem } from "@/types/customer";
 
 /**
  * Ponovo iskoristiv selector aktivnih kupaca (invoice forma kasnije).
- * Opcija „Gotovinska prodaja“ nije dio ove komponente.
+ * Neaktivni kupci se ne nude za izbor; opcija „Gotovinska prodaja“ nije dio ove komponente.
  */
 export function CustomerSelector({
   value,

@@ -14,6 +14,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func mapCustomerResponse(customer models.Customer) dto.CustomerResponse {
+	return dto.CustomerResponse{
+		ID:       customer.ID,
+		Name:     customer.Name,
+		Phone:    customer.Phone,
+		IsActive: customer.IsActive,
+	}
+}
+
 func CreateCustomer(c *gin.Context) {
 	var req dto.CreateCustomerRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -30,11 +39,7 @@ func CreateCustomer(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"customer": dto.CustomerResponse{
-		ID:    customer.ID,
-		Name:  customer.Name,
-		Phone: customer.Phone,
-	}})
+	c.JSON(http.StatusOK, gin.H{"customer": mapCustomerResponse(customer)})
 }
 
 func GetAllCustomers(c *gin.Context) {
@@ -71,9 +76,10 @@ func GetAllCustomers(c *gin.Context) {
 	response := make([]dto.CustomerListResponse, 0, len(customers))
 	for _, customer := range customers {
 		response = append(response, dto.CustomerListResponse{
-			ID:    customer.ID,
-			Name:  customer.Name,
-			Phone: customer.Phone,
+			ID:       customer.ID,
+			Name:     customer.Name,
+			Phone:    customer.Phone,
+			IsActive: customer.IsActive,
 		})
 	}
 
@@ -108,6 +114,7 @@ func GetCustomerByID(c *gin.Context) {
 		ID:       customer.ID,
 		Name:     customer.Name,
 		Phone:    customer.Phone,
+		IsActive: customer.IsActive,
 		Debt:     customer.TotalDebt,
 		Invoices: []dto.CustomerInvoiceResponse{},
 	}
@@ -156,7 +163,7 @@ func UpdateCustomer(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message":  "Customer updated",
-		"customer": dto.CustomerResponse{ID: customer.ID, Name: customer.Name, Phone: customer.Phone},
+		"customer": mapCustomerResponse(*customer),
 	})
 }
 
@@ -192,12 +199,8 @@ func UpdateCustomerStatus(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Customer status updated",
-		"customer": dto.CustomerResponse{
-			ID:    customer.ID,
-			Name:  customer.Name,
-			Phone: customer.Phone,
-		},
+		"message":  "Customer status updated",
+		"customer": mapCustomerResponse(*customer),
 	})
 }
 

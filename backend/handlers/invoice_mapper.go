@@ -18,11 +18,8 @@ func mapInvoiceResponse(invoice models.Invoice) dto.InvoiceResponse {
 	}
 
 	if invoice.Customer != nil {
-		response.Customer = &dto.CustomerResponse{
-			ID:    invoice.Customer.ID,
-			Name:  invoice.Customer.Name,
-			Phone: invoice.Customer.Phone,
-		}
+		mapped := mapCustomerResponse(*invoice.Customer)
+		response.Customer = &mapped
 	}
 
 	if invoice.CreatedByUser.ID != 0 {
@@ -61,11 +58,8 @@ func mapInvoiceListResponse(invoice models.Invoice) dto.InvoiceListResponse {
 	}
 
 	if invoice.Customer != nil {
-		response.Customer = &dto.CustomerResponse{
-			ID:    invoice.Customer.ID,
-			Name:  invoice.Customer.Name,
-			Phone: invoice.Customer.Phone,
-		}
+		mapped := mapCustomerResponse(*invoice.Customer)
+		response.Customer = &mapped
 		response.CustomerName = invoice.Customer.Name
 	}
 

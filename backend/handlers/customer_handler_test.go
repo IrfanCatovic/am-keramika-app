@@ -62,4 +62,7 @@ func TestGetCustomerByIDReturnsActualDebt(t *testing.T) {
 	if resp.Debt != 250.75 {
 		t.Fatalf("expected debt 250.75, got %v", resp.Debt)
 	}
+	if !resp.IsActive {
+		t.Fatal("expected isActive=true for newly created customer")
+	}
 }

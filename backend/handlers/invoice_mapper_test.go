@@ -20,7 +20,7 @@ func TestMapInvoiceResponseWithCustomer(t *testing.T) {
 		CreatedByUserID: 7,
 		CreatedByUser:   models.User{Model: gormModel(7, createdAt), Username: "sef"},
 		CustomerID:      &customerID,
-		Customer:        &models.Customer{Model: gormModel(3, createdAt), Name: "Kupac", Phone: "061234567"},
+		Customer:        &models.Customer{Model: gormModel(3, createdAt), Name: "Kupac", Phone: "061234567", IsActive: true},
 		TotalAmount:     100,
 		PaidAmount:      40,
 		Status:          models.InvoiceStatusPartiallyPaid,
@@ -48,6 +48,9 @@ func TestMapInvoiceResponseWithCustomer(t *testing.T) {
 	}
 	if resp.Customer == nil || resp.Customer.Name != "Kupac" {
 		t.Fatal("expected customer in response")
+	}
+	if !resp.Customer.IsActive {
+		t.Fatal("expected customer isActive=true")
 	}
 	if resp.CreatedByUser == nil || resp.CreatedByUser.Username != "sef" {
 		t.Fatal("expected createdByUser in response")

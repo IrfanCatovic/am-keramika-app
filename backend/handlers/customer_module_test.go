@@ -60,6 +60,7 @@ func setupCustomerModuleRouter() *gin.Engine {
 		{
 			staff.POST("/customers", CreateCustomer)
 			staff.GET("/customers", GetAllCustomers)
+			staff.GET("/customers/:id", GetCustomerByID)
 			staff.PUT("/customers/:id", UpdateCustomer)
 			staff.PUT("/customers/:id/status", UpdateCustomerStatus)
 			staff.DELETE("/customers/:id", DeleteCustomer)
@@ -170,5 +171,204 @@ func TestGetAllCustomersPaginationShape(t *testing.T) {
 	}
 	if len(resp.Data) != 2 {
 		t.Fatalf("expected 2 items on page, got %d", len(resp.Data))
+	}
+}
+
+func customerModuleJSON(
+	t *testing.T,
+	r *gin.Engine,
+	method, path, token string,
+	body interface{},
+) *httptest.ResponseRecorder {
+	t.Helper()
+	var reader *bytes.Reader
+	if body == nil {
+		reader = bytes.NewReader(nil)
+	} else {
+		raw, err := json.Marshal(body)
+		if err != nil {
+			t.Fatalf("marshal: %v", err)
+		}
+		reader = bytes.NewReader(raw)
+	}
+	req := httptest.NewRequest(method, path, reader)
+	req.Header.Set("Authorization", "Bearer "+token)
+	if body != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	return w
+}
+
+func TestCustomerStatusContractInListAndDetail(t *testing.T) {
+	setupCustomerModuleTestDB(t)
+	r := setupCustomerModuleRouter()
+	token := customerModuleToken(t, r)
+
+	active := models.Customer{Name: "Aktivan Kupac", Phone: "061111111", IsActive: true}
+	inactive := models.Customer{Name: "Neaktivan Kupac", Phone: "062222222", IsActive: true}
+	if err := database.DB.Create(&active).Error; err != nil {
+		t.Fatalf("create active: %v", err)
+	}
+	if err := database.DB.Create(&inactive).Error; err != nil {
+		t.Fatalf("create inactive seed: %v", err)
+	}
+	if err := database.DB.Model(&inactive).Update("is_active", false).Error; err != nil {
+		t.Fatalf("deactivate seed: %v", err)
+	}
+
+	w := customerModuleJSON(t, r, http.MethodGet, "/customers", token, nil)
+	if w.Code != http.StatusOK {
+		t.Fatalf("default list: %d %s", w.Code, w.Body.String())
+	}
+	var defaultList dto.PaginatedCustomerResponse
+	if err := json.Unmarshal(w.Body.Bytes(), &defaultList); err != nil {
+		t.Fatalf("decode default list: %v", err)
+	}
+	if defaultList.Total != 1 || len(defaultList.Data) != 1 {
+		t.Fatalf("expected only active in default list, got %+v", defaultList)
+	}
+	if defaultList.Data[0].ID != active.ID || !defaultList.Data[0].IsActive {
+		t.Fatalf("expected active customer with isActive=true, got %+v", defaultList.Data[0])
+	}
+
+	w = customerModuleJSON(t, r, http.MethodGet, "/customers?includeInactive=true", token, nil)
+	if w.Code != http.StatusOK {
+		t.Fatalf("includeInactive list: %d %s", w.Code, w.Body.String())
+	}
+	var allList dto.PaginatedCustomerResponse
+	if err := json.Unmarshal(w.Body.Bytes(), &allList); err != nil {
+		t.Fatalf("decode all list: %v", err)
+	}
+	if allList.Total != 2 || len(allList.Data) != 2 {
+		t.Fatalf("expected both customers, got %+v", allList)
+	}
+	var sawInactive bool
+	for _, item := range allList.Data {
+		if item.ID == inactive.ID {
+			sawInactive = true
+			if item.IsActive {
+				t.Fatalf("expected inactive list item isActive=false, got %+v", item)
+			}
+		}
+		if item.ID == active.ID && !item.IsActive {
+			t.Fatalf("expected active list item isActive=true, got %+v", item)
+		}
+	}
+	if !sawInactive {
+		t.Fatal("inactive customer missing from includeInactive list")
+	}
+
+	w = customerModuleJSON(
+		t, r, http.MethodGet,
+		"/customers/"+strconv.FormatUint(uint64(active.ID), 10),
+		token, nil,
+	)
+	if w.Code != http.StatusOK {
+		t.Fatalf("active detail: %d %s", w.Code, w.Body.String())
+	}
+	var activeDetail dto.CustomerDetailsResponse
+	if err := json.Unmarshal(w.Body.Bytes(), &activeDetail); err != nil {
+		t.Fatalf("decode active detail: %v", err)
+	}
+	if !activeDetail.IsActive {
+		t.Fatal("expected detail isActive=true")
+	}
+
+	w = customerModuleJSON(
+		t, r, http.MethodGet,
+		"/customers/"+strconv.FormatUint(uint64(inactive.ID), 10),
+		token, nil,
+	)
+	if w.Code != http.StatusOK {
+		t.Fatalf("inactive detail: %d %s", w.Code, w.Body.String())
+	}
+	var inactiveDetail dto.CustomerDetailsResponse
+	if err := json.Unmarshal(w.Body.Bytes(), &inactiveDetail); err != nil {
+		t.Fatalf("decode inactive detail: %v", err)
+	}
+	if inactiveDetail.IsActive {
+		t.Fatal("expected detail isActive=false")
+	}
+}
+
+func TestCustomerReactivateReturnsIsActiveTrue(t *testing.T) {
+	setupCustomerModuleTestDB(t)
+	r := setupCustomerModuleRouter()
+	token := customerModuleToken(t, r)
+
+	customer := models.Customer{Name: "Za Reactivaciju", Phone: "063333333", IsActive: true}
+	if err := database.DB.Create(&customer).Error; err != nil {
+		t.Fatalf("create: %v", err)
+	}
+	if err := database.DB.Model(&customer).Update("is_active", false).Error; err != nil {
+		t.Fatalf("deactivate: %v", err)
+	}
+
+	w := customerModuleJSON(
+		t, r, http.MethodPut,
+		"/customers/"+strconv.FormatUint(uint64(customer.ID), 10)+"/status",
+		token,
+		map[string]bool{"isActive": true},
+	)
+	if w.Code != http.StatusOK {
+		t.Fatalf("reactivate: %d %s", w.Code, w.Body.String())
+	}
+
+	var resp struct {
+		Customer dto.CustomerResponse `json:"customer"`
+	}
+	if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if !resp.Customer.IsActive {
+		t.Fatalf("expected reactivated customer isActive=true, got %+v", resp.Customer)
+	}
+}
+
+func TestCustomerStatusAndDeleteBusinessRulesUnchanged(t *testing.T) {
+	setupCustomerModuleTestDB(t)
+	r := setupCustomerModuleRouter()
+	token := customerModuleToken(t, r)
+
+	cat := models.Category{Name: "Keramika", Slug: "keramika", IsActive: true}
+	database.DB.Create(&cat)
+	product := models.Product{
+		Name: "Pločica", Slug: "plocica-status", CategoryID: cat.ID,
+		Unit: "kom", SalePrice: 10, StockQuantity: 5, IsActive: true,
+	}
+	database.DB.Create(&product)
+
+	customer := models.Customer{Name: "Sa Dugo", Phone: "064444444", IsActive: true}
+	database.DB.Create(&customer)
+
+	w := customerModuleJSON(t, r, http.MethodPost, "/invoices", token, map[string]interface{}{
+		"customerID": customer.ID,
+		"items": []map[string]interface{}{
+			{"productID": product.ID, "quantity": 1},
+		},
+	})
+	if w.Code != http.StatusOK {
+		t.Fatalf("create invoice: %d %s", w.Code, w.Body.String())
+	}
+
+	w = customerModuleJSON(
+		t, r, http.MethodPut,
+		"/customers/"+strconv.FormatUint(uint64(customer.ID), 10)+"/status",
+		token,
+		map[string]bool{"isActive": false},
+	)
+	if w.Code != http.StatusConflict {
+		t.Fatalf("expected 409 on deactivate with open invoice, got %d %s", w.Code, w.Body.String())
+	}
+
+	w = customerModuleJSON(
+		t, r, http.MethodDelete,
+		"/customers/"+strconv.FormatUint(uint64(customer.ID), 10),
+		token, nil,
+	)
+	if w.Code != http.StatusConflict {
+		t.Fatalf("expected 409 on delete with history, got %d %s", w.Code, w.Body.String())
 	}
 }

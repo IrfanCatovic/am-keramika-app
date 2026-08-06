@@ -2,12 +2,14 @@ export interface CustomerListItem {
   id: number;
   name: string;
   phone: string;
+  isActive: boolean;
 }
 
 export interface Customer {
   id: number;
   name: string;
   phone: string;
+  isActive: boolean;
 }
 
 export interface CustomerInvoiceSummary {
@@ -21,6 +23,7 @@ export interface CustomerDetails {
   id: number;
   name: string;
   phone: string;
+  isActive: boolean;
   debt: number;
   invoices: CustomerInvoiceSummary[];
 }

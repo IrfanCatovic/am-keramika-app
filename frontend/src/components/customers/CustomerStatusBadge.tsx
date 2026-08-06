@@ -1,27 +1,16 @@
 "use client";
 
-export function CustomerStatusBadge({
-  mode,
-}: {
-  mode: "active-list" | "all-list" | "unknown";
-}) {
-  if (mode === "active-list") {
+export function CustomerStatusBadge({ isActive }: { isActive: boolean }) {
+  if (isActive) {
     return (
       <span className="inline-flex items-center rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-800 ring-1 ring-inset ring-emerald-200">
-        Aktivni pregled
-      </span>
-    );
-  }
-  if (mode === "all-list") {
-    return (
-      <span className="inline-flex items-center rounded-md bg-stone-100 px-2 py-0.5 text-xs font-medium text-stone-600 ring-1 ring-inset ring-stone-200">
-        Uključeni i neaktivni
+        Aktivan
       </span>
     );
   }
   return (
     <span className="inline-flex items-center rounded-md bg-stone-100 px-2 py-0.5 text-xs font-medium text-stone-600 ring-1 ring-inset ring-stone-200">
-      Status nije u API odgovoru
+      Neaktivan
     </span>
   );
 }
