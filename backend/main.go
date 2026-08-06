@@ -22,6 +22,11 @@ func main() {
 		log.Fatal(err)
 	}
 
+	corsOrigins, err := config.CORSAllowedOrigins()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	cloudName, apiKey, apiSecret, err := config.RequireCloudinary()
 	if err != nil {
 		log.Fatal(err)
@@ -63,7 +68,9 @@ func main() {
 	handlers.SetImageStorage(imageStorage)
 
 	r := gin.Default()
+	r.Use(middleware.CORS(corsOrigins))
 
+	r.GET("/health", handlers.Health)
 	r.POST("/auth/login", handlers.Login)
 
 	authorized := r.Group("/")

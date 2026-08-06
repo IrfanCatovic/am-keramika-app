@@ -96,7 +96,7 @@ func GetCustomerByID(c *gin.Context) {
 		ID:       customer.ID,
 		Name:     customer.Name,
 		Phone:    customer.Phone,
-		Debt:     0,
+		Debt:     customer.TotalDebt,
 		Invoices: []dto.CustomerInvoiceResponse{},
 	}
 

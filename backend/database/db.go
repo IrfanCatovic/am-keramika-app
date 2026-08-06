@@ -34,3 +34,16 @@ func ConnectDB() {
 	DB = database
 	log.Println("Uspješna konekcija na bazu")
 }
+
+func Ping() error {
+	if DB == nil {
+		return fmt.Errorf("database nije inicijalizovan")
+	}
+
+	sqlDB, err := DB.DB()
+	if err != nil {
+		return err
+	}
+
+	return sqlDB.Ping()
+}

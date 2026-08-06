@@ -35,7 +35,13 @@ func CreateInvoice(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"invoice": invoice})
+	fullInvoice, err := repositories.GetInvoiceByID(invoice.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Račun nije pronađen"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"invoice": mapInvoiceResponse(*fullInvoice)})
 }
 
 func GetInvoiceByID(c *gin.Context) {
@@ -52,31 +58,7 @@ func GetInvoiceByID(c *gin.Context) {
 		return
 	}
 
-	response := dto.InvoiceResponse{
-		ID:          invoice.ID,
-		TotalAmount: invoice.TotalAmount,
-		Status:      string(invoice.Status),
-		Items:       []dto.InvoiceItemResponse{},
-	}
-	if invoice.Customer != nil {
-		response.Customer = &dto.CustomerResponse{
-			ID:    invoice.Customer.ID,
-			Name:  invoice.Customer.Name,
-			Phone: invoice.Customer.Phone,
-		}
-	}
-
-	for _, item := range invoice.Items {
-		response.Items = append(response.Items, dto.InvoiceItemResponse{
-			ProductID:   item.ProductID,
-			ProductName: item.Product.Name,
-			Quantity:    item.Quantity,
-			UnitPrice:   item.UnitPrice,
-			TotalPrice:  item.TotalPrice,
-		})
-	}
-
-	c.JSON(http.StatusOK, response)
+	c.JSON(http.StatusOK, mapInvoiceResponse(*invoice))
 }
 
 func GetAllInvoices(c *gin.Context) {

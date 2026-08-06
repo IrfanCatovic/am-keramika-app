@@ -19,14 +19,16 @@ type InvoiceItemResponse struct {
 }
 
 type InvoiceResponse struct {
-	ID       uint              `json:"id"`
-	Customer *CustomerResponse `json:"customer,omitempty"` // Ovde se koristi CustomerResponse
-	// ID uint `json:"id"`
-	// Name string `json:"name"`
-	// Phone string `json:"phone"`
-	TotalAmount float64               `json:"totalAmount"`
-	Status      string                `json:"status"`
-	Items       []InvoiceItemResponse `json:"items"`
+	ID              uint                  `json:"id"`
+	CustomerID      *uint                 `json:"customerID"`
+	Customer        *CustomerResponse     `json:"customer"`
+	TotalAmount     float64               `json:"totalAmount"`
+	PaidAmount      float64               `json:"paidAmount"`
+	RemainingAmount float64               `json:"remainingAmount"`
+	Status          string                `json:"status"`
+	CreatedAt       string                `json:"createdAt"`
+	CreatedByUser   *UserSummaryResponse  `json:"createdByUser,omitempty"`
+	Items           []InvoiceItemResponse `json:"items"`
 }
 
 type InvoiceListResponse struct {
