@@ -20,7 +20,7 @@ export default function DashboardPage() {
   const showFinance = canViewFinance(user.role);
 
   return (
-    <div className="space-y-5 pb-4">
+    <div className="min-w-0 space-y-4 pb-4 sm:space-y-5">
       <DashboardHeader
         username={user.username}
         role={user.role}

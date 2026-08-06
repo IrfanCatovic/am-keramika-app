@@ -11,21 +11,6 @@ export function todayLocalISODate(): string {
   return `${year}-${month}-${day}`;
 }
 
-export function formatMoney(amount: number): string {
-  return new Intl.NumberFormat("bs-BA", {
-    style: "currency",
-    currency: "BAM",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount);
-}
-
-export function formatQuantity(value: number): string {
-  return new Intl.NumberFormat("bs-BA", {
-    maximumFractionDigits: 3,
-  }).format(value);
-}
-
 export function getErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof ApiError) {
     return error.message;

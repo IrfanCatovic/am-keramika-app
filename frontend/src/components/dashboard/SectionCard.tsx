@@ -14,19 +14,21 @@ export function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <section className="dash-enter rounded-2xl border border-stone-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-stone-100 px-5 py-4">
-        <div>
+    <section className="dash-enter min-w-0 overflow-hidden rounded-2xl border border-stone-200/90 bg-white shadow-[0_1px_2px_rgba(28,25,23,0.04)]">
+      <div className="flex flex-wrap items-start justify-between gap-2 border-b border-stone-100 px-4 py-3.5 sm:gap-3 sm:px-5 sm:py-4">
+        <div className="min-w-0">
           <h2 className="text-base font-semibold tracking-tight text-stone-900">
             {title}
           </h2>
           {description ? (
-            <p className="mt-0.5 text-sm text-stone-500">{description}</p>
+            <p className="mt-0.5 break-words text-sm text-stone-500">
+              {description}
+            </p>
           ) : null}
         </div>
         {action}
       </div>
-      <div className="px-5 py-4">{children}</div>
+      <div className="px-4 py-4 sm:px-5">{children}</div>
     </section>
   );
 }
@@ -40,7 +42,7 @@ export function SectionRetry({
 }) {
   return (
     <div className="flex flex-col items-start gap-3 rounded-xl border border-red-100 bg-red-50/70 px-4 py-4">
-      <p className="text-sm text-red-700">{message}</p>
+      <p className="break-words text-sm text-red-700">{message}</p>
       <button
         type="button"
         onClick={onRetry}
@@ -86,7 +88,9 @@ export function SectionBody({
     return loadingFallback;
   }
   if (status === "error") {
-    return <SectionRetry message={error ?? "Došlo je do greške."} onRetry={onRetry} />;
+    return (
+      <SectionRetry message={error ?? "Došlo je do greške."} onRetry={onRetry} />
+    );
   }
   return children;
 }

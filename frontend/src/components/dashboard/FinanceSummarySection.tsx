@@ -8,7 +8,8 @@ import {
   SkeletonBlock,
 } from "@/components/dashboard/SectionCard";
 import { useAsyncSection } from "@/hooks/useAsyncSection";
-import { fetchSalesSummary, formatMoney } from "@/lib/dashboard";
+import { fetchSalesSummary } from "@/lib/dashboard";
+import { formatCount, formatMoney } from "@/lib/format";
 import { SalesSummaryReport } from "@/types/report";
 
 function MetricCard({
@@ -24,16 +25,16 @@ function MetricCard({
 }) {
   return (
     <div
-      className={`dash-enter rounded-2xl border p-4 transition hover:-translate-y-0.5 hover:shadow-md ${
+      className={`dash-enter min-w-0 rounded-2xl border p-4 transition hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(28,25,23,0.06)] ${
         accent
-          ? "border-[#c4a484]/40 bg-gradient-to-br from-[#f7f1ea] to-white"
-          : "border-stone-200/80 bg-white"
+          ? "border-[#c4a484]/45 bg-[#faf6f1]"
+          : "border-stone-200/90 bg-white"
       }`}
     >
-      <p className="text-xs font-medium uppercase tracking-[0.12em] text-stone-500">
+      <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-stone-500">
         {label}
       </p>
-      <p className="mt-2 text-xl font-semibold tracking-tight text-stone-950 sm:text-2xl">
+      <p className="mt-2 break-words text-xl font-semibold tracking-tight text-stone-950 sm:text-2xl">
         {value}
       </p>
       {hint ? <p className="mt-1 text-xs text-stone-500">{hint}</p> : null}
@@ -43,7 +44,7 @@ function MetricCard({
 
 function MetricsSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+    <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
       {Array.from({ length: 6 }).map((_, index) => (
         <SkeletonBlock key={index} className="h-28" />
       ))}
@@ -53,7 +54,7 @@ function MetricsSkeleton() {
 
 function MetricsGrid({ summary }: { summary: SalesSummaryReport }) {
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+    <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
       <MetricCard label="Ukupna prodaja" value={formatMoney(summary.totalSales)} />
       <MetricCard
         label="Naplaćeno"
@@ -70,7 +71,7 @@ function MetricsGrid({ summary }: { summary: SalesSummaryReport }) {
       />
       <MetricCard
         label="Broj računa"
-        value={new Intl.NumberFormat("bs-BA").format(summary.invoicesCount)}
+        value={formatCount(summary.invoicesCount)}
       />
       <MetricCard
         label="Preostali dug"
@@ -95,7 +96,7 @@ export function FinanceSummarySection({ date }: { date: string }) {
       action={
         <Link
           href="/reports"
-          className="text-sm font-medium text-[#8a6a45] transition hover:text-stone-900"
+          className="shrink-0 text-sm font-medium text-[#8a6a45] transition hover:text-stone-900"
         >
           Izvještaji
         </Link>

@@ -10,19 +10,20 @@ import {
   SkeletonBlock,
 } from "@/components/dashboard/SectionCard";
 import { useAsyncSection } from "@/hooks/useAsyncSection";
-import { fetchLowStockPreview, formatQuantity } from "@/lib/dashboard";
+import { fetchLowStockPreview } from "@/lib/dashboard";
+import { formatQuantity } from "@/lib/format";
 import { LowStockProduct } from "@/types/inventory";
 
 function ProductThumb({ product }: { product: LowStockProduct }) {
   if (product.primaryImage?.url) {
     return (
-      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-stone-100 ring-1 ring-stone-200">
+      <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-xl bg-stone-100 ring-1 ring-stone-200 sm:h-12 sm:w-12">
         <Image
           src={product.primaryImage.url}
           alt={product.name}
           fill
           className="object-cover"
-          sizes="56px"
+          sizes="48px"
           unoptimized
         />
       </div>
@@ -30,7 +31,7 @@ function ProductThumb({ product }: { product: LowStockProduct }) {
   }
 
   return (
-    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-stone-100 to-stone-200 text-xs font-semibold uppercase tracking-wide text-stone-500 ring-1 ring-stone-200">
+    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-stone-100 text-[10px] font-semibold uppercase tracking-wide text-stone-500 ring-1 ring-stone-200 sm:h-12 sm:w-12 sm:text-xs">
       AM
     </div>
   );
@@ -38,24 +39,37 @@ function ProductThumb({ product }: { product: LowStockProduct }) {
 
 function LowStockRow({ product }: { product: LowStockProduct }) {
   return (
-    <li className="flex gap-3 rounded-xl border border-transparent px-2 py-3 transition hover:border-stone-200 hover:bg-stone-50/80">
-      <ProductThumb product={product} />
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <p className="truncate font-medium text-stone-900">{product.name}</p>
-          <p className="shrink-0 text-xs font-medium text-[#8a6a45]">
-            Nedostaje {formatQuantity(product.missingQuantity)} {product.unit}
+    <li className="min-w-0 rounded-2xl border border-transparent px-1 py-3 transition hover:border-stone-200 hover:bg-stone-50/80 sm:px-2">
+      <div className="flex gap-3">
+        <ProductThumb product={product} />
+        <div className="min-w-0 flex-1">
+          <p className="break-words font-medium leading-snug text-stone-900">
+            {product.name}
+          </p>
+
+          <div className="mt-2 grid grid-cols-1 gap-1.5 text-sm text-stone-600 sm:grid-cols-3 sm:gap-2">
+            <p>
+              <span className="text-stone-400">Stanje:</span>{" "}
+              <span className="font-medium text-stone-800">
+                {formatQuantity(product.stockQuantity)} {product.unit}
+              </span>
+            </p>
+            <p>
+              <span className="text-stone-400">Min:</span>{" "}
+              <span className="font-medium text-stone-800">
+                {formatQuantity(product.minStockQuantity)} {product.unit}
+              </span>
+            </p>
+            <p className="font-medium text-[#8a6a45]">
+              Nedostaje {formatQuantity(product.missingQuantity)} {product.unit}
+            </p>
+          </div>
+
+          <p className="mt-2 break-words text-xs leading-relaxed text-stone-500">
+            {product.category?.name ?? "Bez kategorije"}
+            {product.group?.name ? ` · ${product.group.name}` : ""}
           </p>
         </div>
-        <p className="mt-1 text-sm text-stone-600">
-          Stanje: {formatQuantity(product.stockQuantity)} {product.unit}
-          <span className="mx-1.5 text-stone-300">·</span>
-          Min: {formatQuantity(product.minStockQuantity)} {product.unit}
-        </p>
-        <p className="mt-1 truncate text-xs text-stone-500">
-          {product.category?.name ?? "Bez kategorije"}
-          {product.group?.name ? ` · ${product.group.name}` : ""}
-        </p>
       </div>
     </li>
   );
@@ -66,11 +80,11 @@ function LowStockSkeleton() {
     <div className="space-y-3">
       {Array.from({ length: 3 }).map((_, index) => (
         <div key={index} className="flex gap-3">
-          <SkeletonBlock className="h-14 w-14 shrink-0" />
-          <div className="flex-1 space-y-2">
-            <SkeletonBlock className="h-4 w-2/3" />
-            <SkeletonBlock className="h-3 w-1/2" />
-            <SkeletonBlock className="h-3 w-1/3" />
+          <SkeletonBlock className="h-11 w-11 shrink-0 sm:h-12 sm:w-12" />
+          <div className="min-w-0 flex-1 space-y-2">
+            <SkeletonBlock className="h-4 w-3/4 max-w-full" />
+            <SkeletonBlock className="h-3 w-full" />
+            <SkeletonBlock className="h-3 w-1/2 max-w-full" />
           </div>
         </div>
       ))}
@@ -93,7 +107,7 @@ export function LowStockSection() {
       action={
         <Link
           href="/inventory"
-          className="text-sm font-medium text-[#8a6a45] transition hover:text-stone-900"
+          className="shrink-0 text-sm font-medium text-[#8a6a45] transition hover:text-stone-900"
         >
           Prikaži sve
         </Link>
