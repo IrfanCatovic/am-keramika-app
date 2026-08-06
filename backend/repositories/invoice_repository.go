@@ -2,10 +2,14 @@ package repositories
 
 import (
 	"errors"
+	"strconv"
+	"strings"
+	"time"
 
 	"am-keramika-backend/database"
 	"am-keramika-backend/dto"
 	"am-keramika-backend/models"
+
 	"gorm.io/gorm"
 )
 
@@ -175,39 +179,81 @@ func GetInvoiceByID(id uint) (*models.Invoice, error) {
 	return &invoice, nil
 }
 
-func GetAllInvoices(page int, limit int, search string, status string, sort string, direction string) ([]models.Invoice, int64, error) {
+type InvoiceListQuery struct {
+	Page       int
+	Limit      int
+	Search     string
+	Status     string
+	CustomerID string
+	FromDate   *time.Time
+	ToDate     *time.Time // exclusive end of selected day
+	Sort       string
+	Direction  string
+}
+
+func buildInvoiceListQuery(q InvoiceListQuery) *gorm.DB {
+	query := database.DB.Model(&models.Invoice{})
+
+	if q.Search != "" {
+		search := strings.TrimSpace(q.Search)
+		pattern := "%" + strings.ToLower(search) + "%"
+		query = query.Joins("LEFT JOIN customers ON customers.id = invoices.customer_id AND customers.deleted_at IS NULL")
+		if invoiceID, err := strconv.ParseUint(search, 10, 64); err == nil {
+			query = query.Where("invoices.id = ? OR LOWER(customers.name) LIKE ?", invoiceID, pattern)
+		} else {
+			query = query.Where("LOWER(customers.name) LIKE ?", pattern)
+		}
+	}
+
+	if q.Status != "" {
+		query = query.Where("invoices.status = ?", q.Status)
+	}
+	if q.CustomerID != "" {
+		query = query.Where("invoices.customer_id = ?", q.CustomerID)
+	}
+	if q.FromDate != nil {
+		query = query.Where("invoices.created_at >= ?", *q.FromDate)
+	}
+	if q.ToDate != nil {
+		query = query.Where("invoices.created_at < ?", *q.ToDate)
+	}
+
+	return query
+}
+
+func GetAllInvoices(q InvoiceListQuery) ([]models.Invoice, int64, error) {
 	var invoices []models.Invoice
 	var total int64
 
-	query := database.DB.Model(&models.Invoice{}) //Radicemo sa invoice tabelom
-
-	if search != "" {
-		query = query.Joins("JOIN customers ON customers.id = invoices.customer_id"). //radimo JOIN tj INNER JOIN sa customers tabelom, jer se fakture spajaju sa kupcima preko customer_id
-												Where("customers.name ILIKE ?", "%"+search+"%") //Inner join ne vraca nule ako nema kupca, dok left join vraca nule ako nema kupca
+	if q.Page <= 0 {
+		q.Page = 1
+	}
+	if q.Limit <= 0 {
+		q.Limit = 20
 	}
 
-	if status != "" {
-		query = query.Where("invoices.status = ?", status)
-	}
-
-	sortColumn := "created_at"
-	sortDirection := "DESC"
-
-	if sort == "totalAmount" {
-		sortColumn = "total_amount"
-	}
-	if direction == "asc" {
-		sortDirection = "ASC"
-	}
-
-	offset := (page - 1) * limit
-
-	err := query.Count(&total).Error
-	if err != nil {
+	countQuery := buildInvoiceListQuery(q)
+	if err := countQuery.Distinct("invoices.id").Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
-	err = query.Preload("Customer").Order(sortColumn + " " + sortDirection).Limit(limit).Offset(offset).Find(&invoices).Error
+	sortColumn := "invoices.created_at"
+	sortDirection := "DESC"
+	if q.Sort == "totalAmount" {
+		sortColumn = "invoices.total_amount"
+	}
+	if q.Direction == "asc" {
+		sortDirection = "ASC"
+	}
+
+	offset := (q.Page - 1) * q.Limit
+	err := buildInvoiceListQuery(q).
+		Preload("Customer").
+		Preload("CreatedByUser").
+		Order(sortColumn + " " + sortDirection).
+		Limit(q.Limit).
+		Offset(offset).
+		Find(&invoices).Error
 	if err != nil {
 		return nil, 0, err
 	}

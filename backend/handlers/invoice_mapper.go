@@ -48,3 +48,33 @@ func mapInvoiceResponse(invoice models.Invoice) dto.InvoiceResponse {
 
 	return response
 }
+
+func mapInvoiceListResponse(invoice models.Invoice) dto.InvoiceListResponse {
+	response := dto.InvoiceListResponse{
+		ID:              invoice.ID,
+		CustomerID:      invoice.CustomerID,
+		TotalAmount:     invoice.TotalAmount,
+		PaidAmount:      invoice.PaidAmount,
+		RemainingAmount: invoice.TotalAmount - invoice.PaidAmount,
+		Status:          string(invoice.Status),
+		CreatedAt:       invoice.CreatedAt.Format("2006-01-02 15:04"),
+	}
+
+	if invoice.Customer != nil {
+		response.Customer = &dto.CustomerResponse{
+			ID:    invoice.Customer.ID,
+			Name:  invoice.Customer.Name,
+			Phone: invoice.Customer.Phone,
+		}
+		response.CustomerName = invoice.Customer.Name
+	}
+
+	if invoice.CreatedByUser.ID != 0 {
+		response.CreatedByUser = &dto.UserSummaryResponse{
+			ID:       invoice.CreatedByUser.ID,
+			Username: invoice.CreatedByUser.Username,
+		}
+	}
+
+	return response
+}

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"am-keramika-backend/auth"
 	"am-keramika-backend/dto"
@@ -74,16 +75,21 @@ func GetInvoiceByID(c *gin.Context) {
 func GetAllInvoices(c *gin.Context) {
 	pageStr := c.Query("page")
 	limitStr := c.Query("limit")
-	search := c.Query("search")
+	search := strings.TrimSpace(c.Query("search"))
 	status := c.Query("status")
-
+	customerID := c.Query("customerID")
+	if customerID == "" {
+		customerID = c.Query("customerId")
+	}
+	fromDateParam := c.Query("fromDate")
+	toDateParam := c.Query("toDate")
 	sort := c.Query("sort")
 	direction := c.Query("direction")
 
 	page := 1
 	limit := 20
 
-	if status != "" && !models.IsValidInvoiceStatus(status) { //imamo u model invoce status koji je ovog tipa sa mogucnostima paid i unpaid
+	if status != "" && !models.IsValidInvoiceStatus(status) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Neispravan status fakture"})
 		return
 	}
@@ -110,26 +116,59 @@ func GetAllInvoices(c *gin.Context) {
 		return
 	}
 
-	invoices, total, err := repositories.GetAllInvoices(page, limit, search, status, sort, direction)
+	location, err := time.LoadLocation("Europe/Belgrade")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspjelo učitavanje vremenske zone"})
+		return
+	}
+
+	var fromDate *time.Time
+	var toDateExclusive *time.Time
+	var fromDay, toDay time.Time
+
+	if fromDateParam != "" {
+		parsed, err := time.ParseInLocation("2006-01-02", fromDateParam, location)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "Neispravan format fromDate (YYYY-MM-DD)"})
+			return
+		}
+		fromDay = parsed
+		fromDate = &parsed
+	}
+	if toDateParam != "" {
+		parsed, err := time.ParseInLocation("2006-01-02", toDateParam, location)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "Neispravan format toDate (YYYY-MM-DD)"})
+			return
+		}
+		toDay = parsed
+		end := parsed.AddDate(0, 0, 1)
+		toDateExclusive = &end
+	}
+	if fromDateParam != "" && toDateParam != "" && toDay.Before(fromDay) {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "toDate ne može biti prije fromDate"})
+		return
+	}
+
+	invoices, total, err := repositories.GetAllInvoices(repositories.InvoiceListQuery{
+		Page:       page,
+		Limit:      limit,
+		Search:     search,
+		Status:     status,
+		CustomerID: customerID,
+		FromDate:   fromDate,
+		ToDate:     toDateExclusive,
+		Sort:       sort,
+		Direction:  direction,
+	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspjelo dobavljanje faktura"})
 		return
 	}
 
-	response := []dto.InvoiceListResponse{}
+	response := make([]dto.InvoiceListResponse, 0, len(invoices))
 	for _, invoice := range invoices {
-		customerName := ""
-		if invoice.Customer != nil {
-			customerName = invoice.Customer.Name
-		}
-		response = append(response, dto.InvoiceListResponse{
-			ID:           invoice.ID,
-			CustomerName: customerName,
-			TotalAmount:  invoice.TotalAmount,
-			PaidAmount:   invoice.PaidAmount,
-			Status:       string(invoice.Status),
-			CreatedAt:    invoice.CreatedAt.Format("2006-01-02 15:04"),
-		})
+		response = append(response, mapInvoiceListResponse(invoice))
 	}
 	totalPages := int(math.Ceil(float64(total) / float64(limit)))
 	c.JSON(http.StatusOK, dto.PaginatedInvoiceResponse{
@@ -139,7 +178,6 @@ func GetAllInvoices(c *gin.Context) {
 		Total:      total,
 		TotalPages: totalPages,
 	})
-
 }
 
 func GetCustomerOpenInvoices(c *gin.Context) {

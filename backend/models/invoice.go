@@ -22,7 +22,7 @@ type InvoiceStatus string
 const (
 	InvoiceStatusPaid          InvoiceStatus = "paid"
 	InvoiceStatusUnpaid        InvoiceStatus = "unpaid"
-	InvoiceStatusPartiallyPaid InvoiceStatus = "partiallyPaid"
+	InvoiceStatusPartiallyPaid InvoiceStatus = "partially_paid"
 	InvoiceStatusCancelled     InvoiceStatus = "cancelled"
 )
 

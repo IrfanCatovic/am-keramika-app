@@ -32,13 +32,16 @@ type InvoiceResponse struct {
 }
 
 type InvoiceListResponse struct {
-	ID              uint    `json:"id"`
-	CustomerName    string  `json:"customerName"`
-	TotalAmount     float64 `json:"totalAmount"`
-	PaidAmount      float64 `json:"paidAmount"`
-	RemainingAmount float64 `json:"remainingAmount"`
-	Status          string  `json:"status"`
-	CreatedAt       string  `json:"createdAt"`
+	ID              uint                 `json:"id"`
+	CustomerID      *uint                `json:"customerID"`
+	Customer        *CustomerResponse    `json:"customer"`
+	CustomerName    string               `json:"customerName,omitempty"`
+	TotalAmount     float64              `json:"totalAmount"`
+	PaidAmount      float64              `json:"paidAmount"`
+	RemainingAmount float64              `json:"remainingAmount"`
+	Status          string               `json:"status"`
+	CreatedAt       string               `json:"createdAt"`
+	CreatedByUser   *UserSummaryResponse `json:"createdByUser,omitempty"`
 }
 
 type PaginatedInvoiceResponse struct {
