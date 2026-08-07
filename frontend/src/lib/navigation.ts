@@ -51,6 +51,12 @@ export const NAV_ITEMS: NavItem[] = [
     enabled: true,
   },
   {
+    label: "Narudžbine",
+    href: "/orders",
+    roles: ["developer", "sef", "menadzer", "radnik"],
+    enabled: true,
+  },
+  {
     label: "Izveštaji",
     href: "/reports",
     roles: ["developer", "sef", "menadzer"],

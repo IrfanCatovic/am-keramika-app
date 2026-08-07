@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useId, useState } from "react";
 
 import { useAuth } from "@/components/auth/AuthProvider";
+import { usePendingOrdersCount } from "@/hooks/usePendingOrdersCount";
 import { getNavItemsForRole } from "@/lib/navigation";
 import { userDisplayName } from "@/lib/user-display";
 import { roleLabel } from "@/types/auth";
@@ -65,6 +66,7 @@ export function Sidebar() {
   const { user, logout } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
+  const { count: pendingOrdersCount } = usePendingOrdersCount();
   const [open, setOpen] = useState(false);
   const panelId = useId();
 
@@ -110,16 +112,19 @@ export function Sidebar() {
       {items.map((item) => {
         const active =
           pathname === item.href || pathname.startsWith(`${item.href}/`);
-        const className = `block rounded-xl px-3 py-2.5 text-sm transition ${
+        const className = `flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm transition ${
           active
             ? "bg-stone-800 text-white shadow-sm ring-1 ring-[#c4a484]/25"
             : "text-stone-300 hover:bg-stone-900 hover:text-white"
         } ${!item.enabled ? "cursor-not-allowed opacity-50" : ""}`;
 
+        const showPendingBadge =
+          item.href === "/orders" && pendingOrdersCount > 0;
+
         if (!item.enabled) {
           return (
             <span key={item.href} className={className}>
-              {item.label}
+              <span className="min-w-0 truncate">{item.label}</span>
             </span>
           );
         }
@@ -131,7 +136,12 @@ export function Sidebar() {
             onClick={closeMenu}
             className={className}
           >
-            {item.label}
+            <span className="min-w-0 truncate">{item.label}</span>
+            {showPendingBadge ? (
+              <span className="ml-auto inline-flex min-w-[1.25rem] items-center justify-center rounded-md bg-[#2a2420] px-1.5 text-[10px] font-medium text-[#e8d4b8]">
+                {pendingOrdersCount > 99 ? "99+" : pendingOrdersCount}
+              </span>
+            ) : null}
           </Link>
         );
       })}

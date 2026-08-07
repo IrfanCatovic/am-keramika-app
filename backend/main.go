@@ -8,6 +8,7 @@ import (
 	"am-keramika-backend/config"
 	"am-keramika-backend/database"
 	"am-keramika-backend/handlers"
+	"am-keramika-backend/mailer"
 	"am-keramika-backend/middleware"
 	"am-keramika-backend/models"
 	"am-keramika-backend/storage"
@@ -68,6 +69,7 @@ func main() {
 		log.Fatal(err)
 	}
 	handlers.SetImageStorage(imageStorage)
+	handlers.SetOrderMailer(mailer.NewFromEnv())
 
 	r := gin.Default()
 	r.Use(middleware.CORS(corsOrigins))
@@ -170,6 +172,12 @@ func main() {
 			staff.POST("/payments", handlers.CreatePayment)
 			staff.GET("/payments", handlers.GetAllPayments)
 			staff.GET("/payments/:id", handlers.GetPaymentByID)
+
+			staff.GET("/online-orders/pending-count", handlers.GetOnlineOrdersPendingCount)
+			staff.GET("/online-orders", handlers.GetOnlineOrders)
+			staff.GET("/online-orders/:id", handlers.GetOnlineOrderByID)
+			staff.POST("/online-orders/:id/confirm", handlers.ConfirmOnlineOrder)
+			staff.DELETE("/online-orders/:id", handlers.DeleteOnlineOrder)
 		}
 
 		financeStaff := authorized.Group("/")

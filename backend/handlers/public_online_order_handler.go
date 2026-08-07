@@ -71,4 +71,7 @@ func CreatePublicOnlineOrder(c *gin.Context) {
 		TotalAmount: order.TotalAmount,
 		CreatedAt:   order.CreatedAt.UTC().Format(time.RFC3339),
 	})
+
+	// Best-effort notification — never fails the customer response.
+	go notifyNewOnlineOrder(order)
 }

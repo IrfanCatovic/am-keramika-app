@@ -1,16 +1,20 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 type OnlineOrderStatus string
 
 const (
 	OnlineOrderStatusPending   OnlineOrderStatus = "pending"
-	OnlineOrderStatusConfirmed OnlineOrderStatus = "confirmed" // KORAK 5
+	OnlineOrderStatusConfirmed OnlineOrderStatus = "confirmed"
 )
 
 // OnlineOrder is a public checkout request. It is NOT an Invoice.
-// Stock is not reserved or decremented until staff confirms (KORAK 5).
+// Stock is not reserved or decremented until staff confirms.
 type OnlineOrder struct {
 	gorm.Model
 
@@ -25,6 +29,13 @@ type OnlineOrder struct {
 	Note      string `gorm:"size:1000"`
 
 	TotalAmount float64 `gorm:"not null"`
+
+	InvoiceID *uint    `gorm:"index"`
+	Invoice   *Invoice `gorm:"foreignKey:InvoiceID"`
+
+	ConfirmedAt       *time.Time
+	ConfirmedByUserID *uint
+	ConfirmedByUser   *User `gorm:"foreignKey:ConfirmedByUserID"`
 
 	Items []OnlineOrderItem `gorm:"foreignKey:OnlineOrderID"`
 }
@@ -45,4 +56,13 @@ type OnlineOrderItem struct {
 	Quantity    float64 `gorm:"not null"`
 	UnitPrice   float64 `gorm:"not null"`
 	TotalPrice  float64 `gorm:"not null"`
+}
+
+func IsValidOnlineOrderStatus(status string) bool {
+	switch OnlineOrderStatus(status) {
+	case OnlineOrderStatusPending, OnlineOrderStatusConfirmed:
+		return true
+	default:
+		return false
+	}
 }
