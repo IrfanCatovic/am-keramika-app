@@ -1,8 +1,17 @@
 package dto
 
+// Customer invoice paymentMode (optional; empty/"unpaid" = legacy unpaid).
+const (
+	InvoicePaymentModeUnpaid  = "unpaid"
+	InvoicePaymentModeFull    = "full"
+	InvoicePaymentModePartial = "partial"
+)
+
 type CreateInvoiceRequest struct {
-	CustomerID *uint                      `json:"customerID"`
-	Items      []CreateInvoiceItemRequest `json:"items" binding:"required"`
+	CustomerID           *uint                      `json:"customerID"`
+	Items                []CreateInvoiceItemRequest `json:"items" binding:"required"`
+	PaymentMode          string                     `json:"paymentMode"`
+	InitialPaymentAmount *float64                   `json:"initialPaymentAmount"`
 }
 
 type CreateInvoiceItemRequest struct {

@@ -20,65 +20,83 @@ func CreatePayment(req dto.CreatePaymentRequest, createdByUserID uint) (models.P
 		return models.Payment{}, tx.Error
 	}
 
-	var customer models.Customer
-	if err := tx.First(&customer, req.CustomerID).Error; err != nil {
+	payment, err := createPaymentInTx(tx, req.CustomerID, req.TotalAmount, req.Allocations, createdByUserID)
+	if err != nil {
 		tx.Rollback()
+		return models.Payment{}, err
+	}
 
+	if err := tx.Commit().Error; err != nil {
+		return models.Payment{}, err
+	}
+
+	var createdPayment models.Payment
+	if err := database.DB.Preload("Customer").
+		Preload("CreatedByUser").
+		Preload("Allocations").
+		Preload("Allocations.Invoice").
+		First(&createdPayment, payment.ID).Error; err != nil {
+		return payment, nil
+	}
+	return createdPayment, nil
+}
+
+// createPaymentInTx applies a customer payment inside an existing transaction.
+// Caller owns Begin/Commit/Rollback. Does not nest transactions.
+func createPaymentInTx(
+	tx *gorm.DB,
+	customerID uint,
+	requestedTotal float64,
+	allocations []dto.CreatePaymentAllocationRequest,
+	createdByUserID uint,
+) (models.Payment, error) {
+	var customer models.Customer
+	if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&customer, customerID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return models.Payment{}, errors.New("kupac ne postoji")
 		}
 		return models.Payment{}, err
 	}
 	if !customer.IsActive {
-		tx.Rollback()
 		return models.Payment{}, errors.New("kupac nije aktivan")
 	}
 
-	if req.TotalAmount <= 0 {
-		tx.Rollback()
+	if requestedTotal <= 0 {
 		return models.Payment{}, errors.New("ukupan iznos uplate mora biti pozitivan")
 	}
-	var allocationTotal float64 = 0.0
 
-	for _, allocationReq := range req.Allocations {
+	var allocationTotal float64
+	for _, allocationReq := range allocations {
 		allocationTotal += allocationReq.Amount
 	}
 
-	if math.Abs(allocationTotal-req.TotalAmount) > 0.01 {
-		tx.Rollback()
+	if math.Abs(allocationTotal-requestedTotal) > 0.01 {
 		return models.Payment{}, errors.New("ukupan iznos uplate se ne poklapa sa raspodelom po racunima")
 	}
 
-	if len(req.Allocations) == 0 {
-		tx.Rollback()
+	if len(allocations) == 0 {
 		return models.Payment{}, errors.New("uplata mora imati bar jedan račun")
 	}
 
 	seenInvoiceIDs := make(map[uint]bool)
-	for _, allocationReq := range req.Allocations {
+	for _, allocationReq := range allocations {
 		if allocationReq.Amount <= 0 {
-			tx.Rollback()
 			return models.Payment{}, errors.New("iznos alokacije mora biti pozitivan")
 		}
 		if seenInvoiceIDs[allocationReq.InvoiceID] {
-			tx.Rollback()
 			return models.Payment{}, errors.New("isti račun ne može biti dodat dva puta u jednoj uplati")
 		}
-
 		seenInvoiceIDs[allocationReq.InvoiceID] = true
 	}
 
 	totalAmount := 0.0
 	invoicesToUpdate := []models.Invoice{}
-	allocationsToCreate := []models.PaymentAllocation{}
 
-	for _, allocationReq := range req.Allocations {
+	for _, allocationReq := range allocations {
 		var invoice models.Invoice
 
 		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
 			First(&invoice, allocationReq.InvoiceID).Error; err != nil {
-			tx.Rollback()
-
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return models.Payment{}, errors.New("racun ne postoji")
 			}
@@ -86,23 +104,19 @@ func CreatePayment(req dto.CreatePaymentRequest, createdByUserID uint) (models.P
 		}
 
 		if invoice.CustomerID == nil || *invoice.CustomerID != customer.ID {
-			tx.Rollback()
 			return models.Payment{}, errors.New("racun ne pripada kupcu")
 		}
 
 		if invoice.Status == models.InvoiceStatusPaid {
-			tx.Rollback()
 			return models.Payment{}, fmt.Errorf("racun %d je vec placen", invoice.ID)
 		}
 		if invoice.Status == models.InvoiceStatusCancelled {
-			tx.Rollback()
 			return models.Payment{}, fmt.Errorf("ne moze se izvrsiti uplata na storniran racun %d", invoice.ID)
 		}
 
 		remainingAmount := invoice.TotalAmount - invoice.PaidAmount
 
 		if allocationReq.Amount > remainingAmount+0.0001 {
-			tx.Rollback()
 			return models.Payment{}, errors.New("iznos uplate ne može biti veći od preostalog duga računa")
 		}
 
@@ -125,21 +139,19 @@ func CreatePayment(req dto.CreatePaymentRequest, createdByUserID uint) (models.P
 		TotalAmount:     totalAmount,
 	}
 	if err := tx.Create(&payment).Error; err != nil {
-		tx.Rollback()
 		return models.Payment{}, err
 	}
 
-	for _, allocationReq := range req.Allocations {
-		allocation := models.PaymentAllocation{
+	allocationsToCreate := make([]models.PaymentAllocation, 0, len(allocations))
+	for _, allocationReq := range allocations {
+		allocationsToCreate = append(allocationsToCreate, models.PaymentAllocation{
 			PaymentID: payment.ID,
 			InvoiceID: allocationReq.InvoiceID,
 			Amount:    allocationReq.Amount,
-		}
-		allocationsToCreate = append(allocationsToCreate, allocation)
+		})
 	}
 
 	if err := tx.Create(&allocationsToCreate).Error; err != nil {
-		tx.Rollback()
 		return models.Payment{}, err
 	}
 
@@ -150,14 +162,12 @@ func CreatePayment(req dto.CreatePaymentRequest, createdByUserID uint) (models.P
 				"paid_amount": invoice.PaidAmount,
 				"status":      invoice.Status,
 			}).Error; err != nil {
-			tx.Rollback()
 			return models.Payment{}, err
 		}
 	}
 
 	newCustomerDebt := customer.TotalDebt - totalAmount
 	if newCustomerDebt < -0.01 {
-		tx.Rollback()
 		return models.Payment{}, errors.New("kupac ne moze imati negativan dug")
 	}
 	if newCustomerDebt < 0 {
@@ -167,23 +177,10 @@ func CreatePayment(req dto.CreatePaymentRequest, createdByUserID uint) (models.P
 	if err := tx.Model(&models.Customer{}).
 		Where("id = ?", customer.ID).
 		Update("total_debt", newCustomerDebt).Error; err != nil {
-		tx.Rollback()
 		return models.Payment{}, err
 	}
 
-	if err := tx.Commit().Error; err != nil {
-		return models.Payment{}, err
-	}
-
-	var createdPayment models.Payment
-	if err := database.DB.Preload("Customer").
-		Preload("CreatedByUser").
-		Preload("Allocations").
-		Preload("Allocations.Invoice").
-		First(&createdPayment, payment.ID).Error; err != nil {
-		return payment, nil
-	}
-	return createdPayment, nil
+	return payment, nil
 }
 
 func GetPaymentsByCustomerID(customerID uint) ([]models.Payment, error) {

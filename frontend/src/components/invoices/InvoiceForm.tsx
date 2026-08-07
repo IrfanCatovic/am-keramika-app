@@ -13,6 +13,10 @@ import {
 import { CustomerSelector } from "@/components/customers/CustomerSelector";
 import { InvoiceSuccessPanel } from "@/components/invoices/InvoiceSuccessPanel";
 import { InvoiceCart } from "@/components/invoices/pos/InvoiceCart";
+import {
+  InvoicePaymentModePicker,
+  type InvoicePaymentMode,
+} from "@/components/invoices/pos/InvoicePaymentModePicker";
 import { InvoiceSaleTypeSwitch } from "@/components/invoices/pos/InvoiceSaleTypeSwitch";
 import { InvoiceStickyCartPanel } from "@/components/invoices/pos/InvoiceStickySummary";
 import { MobileInvoiceBottomBar } from "@/components/invoices/pos/MobileInvoiceBottomBar";
@@ -26,6 +30,7 @@ import { PosProductResults } from "@/components/invoices/pos/PosProductResults";
 import { PosQuickProducts } from "@/components/invoices/pos/PosQuickProducts";
 import { fetchCategories, fetchProductGroups } from "@/lib/categories-api";
 import { fetchCustomer } from "@/lib/customers-api";
+import { formatMoney } from "@/lib/format";
 import {
   createInvoice,
   getApiBusinessMessage,
@@ -99,6 +104,11 @@ export function InvoiceForm({
   const [error, setError] = useState<string | null>(null);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [createdInvoice, setCreatedInvoice] = useState<InvoiceDetails | null>(
+    null,
+  );
+  const [paymentMode, setPaymentMode] = useState<InvoicePaymentMode>("unpaid");
+  const [partialAmount, setPartialAmount] = useState("");
+  const [partialAmountError, setPartialAmountError] = useState<string | null>(
     null,
   );
 
@@ -458,6 +468,29 @@ export function InvoiceForm({
     return true;
   }
 
+  function validatePaymentPreview(previewTotal: number): boolean {
+    setPartialAmountError(null);
+    if (customerMode !== "customer") {
+      return true;
+    }
+    if (paymentMode !== "partial") {
+      return true;
+    }
+    const normalized = partialAmount.trim().replace(",", ".");
+    const amount = Number(normalized);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      setPartialAmountError("Unesite iznos uplate veći od 0.");
+      return false;
+    }
+    if (amount >= previewTotal - 0.0001) {
+      setPartialAmountError(
+        "Za puni iznos izaberite „Plati sve“. Djelimična uplata mora biti manja od ukupnog.",
+      );
+      return false;
+    }
+    return true;
+  }
+
   const canSubmit =
     lines.length > 0 &&
     !(customerMode === "customer" && !customer) &&
@@ -467,22 +500,46 @@ export function InvoiceForm({
         line.quantity > 0 &&
         line.quantity <= line.stockQuantity,
     ) &&
-    Object.keys(lineErrors).length === 0;
+    Object.keys(lineErrors).length === 0 &&
+    !(
+      customerMode === "customer" &&
+      paymentMode === "partial" &&
+      !!partialAmountError
+    );
 
   async function handleSubmit() {
     if (submitting || createdInvoice || !validate()) {
       return;
     }
+    const previewTotal = lines.reduce(
+      (sum, line) =>
+        sum +
+        (Number.isFinite(line.quantity) ? line.salePrice * line.quantity : 0),
+      0,
+    );
+    if (!validatePaymentPreview(previewTotal)) {
+      setError("Ispravite iznos uplate.");
+      return;
+    }
     setSubmitting(true);
     setError(null);
     try {
-      const invoice = await createInvoice({
+      const payload: Parameters<typeof createInvoice>[0] = {
         customerID: customerMode === "customer" ? customer?.id : null,
         items: lines.map((line) => ({
           productID: line.productID,
           quantity: line.quantity,
         })),
-      });
+      };
+      if (customerMode === "customer") {
+        payload.paymentMode = paymentMode;
+        if (paymentMode === "partial") {
+          payload.initialPaymentAmount = Number(
+            partialAmount.trim().replace(",", "."),
+          );
+        }
+      }
+      const invoice = await createInvoice(payload);
       setMobileDrawerOpen(false);
       setCreatedInvoice(invoice);
     } catch (err) {
@@ -506,6 +563,9 @@ export function InvoiceForm({
     setLines([]);
     setLineErrors({});
     setError(null);
+    setPaymentMode("unpaid");
+    setPartialAmount("");
+    setPartialAmountError(null);
     setCustomerMode("cash");
     setCustomer(null);
     setCustomerPrefillError(null);
@@ -523,6 +583,9 @@ export function InvoiceForm({
   function handleSaleTypeChange(next: CustomerMode) {
     setCustomerMode(next);
     setError(null);
+    setPaymentMode("unpaid");
+    setPartialAmount("");
+    setPartialAmountError(null);
     if (next === "cash") {
       setCustomer(null);
       setCustomerPrefillError(null);
@@ -598,6 +661,60 @@ export function InvoiceForm({
     0,
   );
 
+  const previewPaidNow =
+    customerMode !== "customer"
+      ? 0
+      : paymentMode === "full"
+        ? previewTotal
+        : paymentMode === "partial"
+          ? (() => {
+              const amount = Number(partialAmount.trim().replace(",", "."));
+              return Number.isFinite(amount) && amount > 0 ? amount : 0;
+            })()
+          : 0;
+  const previewRemaining = Math.max(0, previewTotal - previewPaidNow);
+
+  const submitLabel =
+    customerMode === "cash"
+      ? "Naplati"
+      : paymentMode === "full"
+        ? "Naplati i kreiraj račun"
+        : paymentMode === "partial"
+          ? "Naplati deo i kreiraj račun"
+          : "Kreiraj račun";
+
+  function successTitle(invoice: InvoiceDetails): string {
+    if (invoice.status === "paid") {
+      return `Račun #${invoice.id} je uspješno kreiran i plaćen.`;
+    }
+    if (invoice.status === "partially_paid") {
+      return `Račun #${invoice.id} je kreiran. Evidentirana uplata: ${formatMoney(invoice.paidAmount)}.`;
+    }
+    return `Račun #${invoice.id} je uspješno kreiran.`;
+  }
+
+  const paymentPicker =
+    customerMode === "customer" ? (
+      <InvoicePaymentModePicker
+        mode={paymentMode}
+        amount={partialAmount}
+        amountError={partialAmountError}
+        disabled={submitting || !!createdInvoice}
+        onModeChange={(next) => {
+          setPaymentMode(next);
+          setPartialAmountError(null);
+          setError(null);
+          if (next !== "partial") {
+            setPartialAmount("");
+          }
+        }}
+        onAmountChange={(value) => {
+          setPartialAmount(value);
+          setPartialAmountError(null);
+        }}
+      />
+    ) : null;
+
   const cartNode = (
     <InvoiceCart
       lines={lines}
@@ -619,19 +736,22 @@ export function InvoiceForm({
       </header>
 
       {customerMode === "customer" ? (
-        <div className="mb-4 rounded-2xl border border-stone-200 bg-white p-3 sm:p-4">
-          <CustomerSelector
-            value={customer}
-            onChange={(next) => {
-              setCustomer(next);
-              setCustomerPrefillError(null);
-            }}
-          />
-          {customerPrefillError ? (
-            <p className="mt-2 break-words text-sm text-amber-800">
-              {customerPrefillError}
-            </p>
-          ) : null}
+        <div className="mb-4 space-y-3">
+          <div className="rounded-2xl border border-stone-200 bg-white p-3 sm:p-4">
+            <CustomerSelector
+              value={customer}
+              onChange={(next) => {
+                setCustomer(next);
+                setCustomerPrefillError(null);
+              }}
+            />
+            {customerPrefillError ? (
+              <p className="mt-2 break-words text-sm text-amber-800">
+                {customerPrefillError}
+              </p>
+            ) : null}
+          </div>
+          <div className="hidden lg:block">{paymentPicker}</div>
         </div>
       ) : null}
 
@@ -708,6 +828,13 @@ export function InvoiceForm({
             canSubmit={canSubmit && !createdInvoice}
             onSubmit={() => void handleSubmit()}
             cart={cartNode}
+            submitLabel={submitLabel}
+            paidNow={
+              customerMode === "customer" ? previewPaidNow : undefined
+            }
+            remaining={
+              customerMode === "customer" ? previewRemaining : undefined
+            }
           />
         </div>
       </div>
@@ -732,13 +859,19 @@ export function InvoiceForm({
         onQuantityChange={updateQuantity}
         onRemove={removeLine}
         onSubmit={() => void handleSubmit()}
+        submitLabel={submitLabel}
+        paidNow={customerMode === "customer" ? previewPaidNow : undefined}
+        remaining={
+          customerMode === "customer" ? previewRemaining : undefined
+        }
+        paymentSection={paymentPicker}
       />
 
       {createdInvoice ? (
         <InvoiceSuccessPanel
           invoice={createdInvoice}
           customerLabel={invoiceCustomerLabel(createdInvoice)}
-          title={`Račun #${createdInvoice.id} je uspješno kreiran`}
+          title={successTitle(createdInvoice)}
           onNewSale={startNewSale}
         />
       ) : null}

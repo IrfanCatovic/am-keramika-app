@@ -103,6 +103,8 @@ export interface CreateInvoiceItemPayload {
 export interface CreateInvoicePayload {
   customerID?: number | null;
   items: CreateInvoiceItemPayload[];
+  paymentMode?: "unpaid" | "full" | "partial";
+  initialPaymentAmount?: number | null;
 }
 
 export interface CreateInvoiceResponse {

@@ -7,19 +7,19 @@ const STATUS_STYLES: Record<
   { label: string; className: string }
 > = {
   paid: {
-    label: "Plaćeno",
+    label: "Plaćen",
     className: "bg-emerald-50 text-emerald-800 ring-emerald-200",
   },
   unpaid: {
-    label: "Neplaćeno",
+    label: "Neplaćen",
     className: "bg-amber-50 text-amber-900 ring-amber-200",
   },
   partially_paid: {
-    label: "Djelimično",
+    label: "Delimično plaćen",
     className: "bg-sky-50 text-sky-900 ring-sky-200",
   },
   cancelled: {
-    label: "Stornirano",
+    label: "Storniran",
     className: "bg-stone-100 text-stone-600 ring-stone-200",
   },
 };

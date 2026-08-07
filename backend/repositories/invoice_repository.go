@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"errors"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -112,6 +113,7 @@ func CreateInvoice(req dto.CreateInvoiceRequest, createdByUserID uint) (*models.
 	invoice.TotalAmount = totalAmount
 
 	if req.CustomerID == nil {
+		// Gotovinska prodaja: postojeći cash contract (nova customer payment polja se ignorišu).
 		payment := models.Payment{
 			CustomerID:      nil,
 			CreatedByUserID: createdByUserID,
@@ -141,18 +143,56 @@ func CreateInvoice(req dto.CreateInvoiceRequest, createdByUserID uint) (*models.
 		invoice.PaidAmount = 0
 		invoice.Status = models.InvoiceStatusUnpaid
 
+		paymentAmount, err := resolveCustomerInitialPayment(req, totalAmount)
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+
+		// Prvo dug += total, zatim createPaymentInTx smanjuje dug za uplatu (isti TX).
 		err = tx.Model(&models.Customer{}).Where("id = ?", *req.CustomerID).
 			Update("total_debt", gorm.Expr("total_debt + ?", totalAmount)).Error
 		if err != nil {
 			tx.Rollback()
 			return nil, err
 		}
+
+		err = tx.Save(&invoice).Error
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+
+		if paymentAmount > 0 {
+			_, err = createPaymentInTx(
+				tx,
+				*req.CustomerID,
+				paymentAmount,
+				[]dto.CreatePaymentAllocationRequest{{
+					InvoiceID: invoice.ID,
+					Amount:    paymentAmount,
+				}},
+				createdByUserID,
+			)
+			if err != nil {
+				tx.Rollback()
+				return nil, err
+			}
+
+			// createPaymentInTx ažurira paid_amount/status u DB; osvježi lokalni model.
+			if err := tx.First(&invoice, invoice.ID).Error; err != nil {
+				tx.Rollback()
+				return nil, err
+			}
+		}
 	}
 
-	err = tx.Save(&invoice).Error
-	if err != nil {
-		tx.Rollback()
-		return nil, err
+	if req.CustomerID == nil {
+		err = tx.Save(&invoice).Error
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
 	}
 
 	err = tx.Commit().Error
@@ -166,6 +206,49 @@ func CreateInvoice(req dto.CreateInvoiceRequest, createdByUserID uint) (*models.
 	}
 
 	return &invoice, nil
+}
+
+func resolveCustomerInitialPayment(req dto.CreateInvoiceRequest, invoiceTotal float64) (float64, error) {
+	mode := strings.TrimSpace(strings.ToLower(req.PaymentMode))
+	if mode == "" {
+		mode = dto.InvoicePaymentModeUnpaid
+	}
+
+	hasAmount := req.InitialPaymentAmount != nil
+	amount := 0.0
+	if hasAmount {
+		amount = *req.InitialPaymentAmount
+	}
+
+	switch mode {
+	case dto.InvoicePaymentModeUnpaid:
+		if hasAmount && math.Abs(amount) > 0.0001 {
+			return 0, errors.New("za način plaćanja bez uplate iznos uplate mora biti prazan")
+		}
+		return 0, nil
+
+	case dto.InvoicePaymentModeFull:
+		if invoiceTotal <= 0 {
+			return 0, errors.New("račun mora imati pozitivan ukupan iznos za uplatu")
+		}
+		// Frontend iznos se ignoriše — backend total je autoritet.
+		return invoiceTotal, nil
+
+	case dto.InvoicePaymentModePartial:
+		if !hasAmount {
+			return 0, errors.New("za djelimičnu uplatu iznos je obavezan")
+		}
+		if amount <= 0 {
+			return 0, errors.New("iznos djelimične uplate mora biti veći od 0")
+		}
+		if amount >= invoiceTotal-0.0001 {
+			return 0, errors.New("za puni iznos izaberite Plati sve umjesto djelimične uplate")
+		}
+		return amount, nil
+
+	default:
+		return 0, errors.New("nepoznat način plaćanja")
+	}
 }
 
 func GetInvoiceByID(id uint) (*models.Invoice, error) {

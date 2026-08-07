@@ -212,7 +212,7 @@ export function CustomersWorkspace() {
     }
     return {
       title: "Deaktiviraj kupca",
-      message: `Deaktivirati kupca „${confirm.customer.name}”? Nije dozvoljeno ako ima unpaid ili partially_paid račune.`,
+      message: `Deaktivirati kupca „${confirm.customer.name}”? Nije dozvoljeno ako ima neplaćene ili delimično plaćene račune.`,
       label: "Deaktiviraj",
       tone: "neutral" as const,
     };

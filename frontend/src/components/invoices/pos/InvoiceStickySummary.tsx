@@ -15,6 +15,9 @@ export function InvoiceStickyCartPanel({
   canSubmit,
   onSubmit,
   cart,
+  submitLabel,
+  paidNow,
+  remaining,
 }: {
   lines: InvoiceFormLine[];
   customerLabel: string;
@@ -24,6 +27,9 @@ export function InvoiceStickyCartPanel({
   canSubmit: boolean;
   onSubmit: () => void;
   cart: ReactNode;
+  submitLabel?: string;
+  paidNow?: number;
+  remaining?: number;
 }) {
   const itemCount = lines.length;
   const quantityTotal = lines.reduce(
@@ -37,7 +43,9 @@ export function InvoiceStickyCartPanel({
     0,
   );
 
-  const primaryLabel = isCashSale ? "Naplati" : "Kreiraj račun";
+  const primaryLabel =
+    submitLabel ?? (isCashSale ? "Naplati" : "Kreiraj račun");
+  const showPaymentPreview = !isCashSale && paidNow != null && remaining != null;
 
   return (
     <aside className="flex max-h-[calc(100vh-5.5rem)] flex-col overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-[0_1px_2px_rgba(28,25,23,0.04)] lg:sticky lg:top-4">
@@ -72,6 +80,22 @@ export function InvoiceStickyCartPanel({
               {formatMoney(previewTotal)}
             </dd>
           </div>
+          {showPaymentPreview ? (
+            <>
+              <div className="flex justify-between gap-3">
+                <dt className="text-stone-500">Plaćeno sada</dt>
+                <dd className="font-medium tabular-nums text-stone-900">
+                  {formatMoney(paidNow)}
+                </dd>
+              </div>
+              <div className="flex justify-between gap-3">
+                <dt className="text-stone-500">Ostaje za uplatu</dt>
+                <dd className="font-medium tabular-nums text-stone-900">
+                  {formatMoney(remaining)}
+                </dd>
+              </div>
+            </>
+          ) : null}
         </dl>
 
         <p className="mt-2 text-[11px] leading-relaxed text-stone-500">

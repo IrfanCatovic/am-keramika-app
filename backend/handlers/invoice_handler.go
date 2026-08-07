@@ -40,7 +40,14 @@ func CreateInvoice(c *gin.Context) {
 		case strings.Contains(msg, "kupac nije pronađen"),
 			strings.Contains(msg, "proizvod nije pronađen"),
 			strings.Contains(msg, "proizvod nije aktivan"),
-			strings.Contains(msg, "nema dovoljno"):
+			strings.Contains(msg, "nema dovoljno"),
+			strings.Contains(msg, "način plaćanja"),
+			strings.Contains(msg, "nacin placanja"),
+			strings.Contains(msg, "djelimičn"),
+			strings.Contains(msg, "Plati sve"),
+			strings.Contains(msg, "bez uplate"),
+			strings.Contains(msg, "nepoznat način"),
+			strings.Contains(msg, "pozitivan ukupan"):
 			status = http.StatusBadRequest
 		}
 		c.JSON(status, gin.H{"error": err.Error()})

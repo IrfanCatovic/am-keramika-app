@@ -63,10 +63,10 @@ export function InvoiceFilters({
             className="w-full rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm"
           >
             <option value="">Svi statusi</option>
-            <option value="unpaid">Neplaćeno</option>
-            <option value="partially_paid">Djelimično</option>
-            <option value="paid">Plaćeno</option>
-            <option value="cancelled">Stornirano</option>
+            <option value="unpaid">Neplaćen</option>
+            <option value="partially_paid">Delimično plaćen</option>
+            <option value="paid">Plaćen</option>
+            <option value="cancelled">Storniran</option>
           </select>
         </div>
         <div>

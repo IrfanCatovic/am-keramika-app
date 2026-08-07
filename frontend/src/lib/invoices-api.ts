@@ -64,11 +64,22 @@ export async function createInvoice(
   const body: {
     customerID?: number;
     items: CreateInvoicePayload["items"];
+    paymentMode?: CreateInvoicePayload["paymentMode"];
+    initialPaymentAmount?: number;
   } = {
     items: payload.items,
   };
   if (payload.customerID != null && payload.customerID > 0) {
     body.customerID = payload.customerID;
+    if (payload.paymentMode) {
+      body.paymentMode = payload.paymentMode;
+    }
+    if (
+      payload.paymentMode === "partial" &&
+      payload.initialPaymentAmount != null
+    ) {
+      body.initialPaymentAmount = payload.initialPaymentAmount;
+    }
   }
 
   const response = await apiRequest<CreateInvoiceResponse>("/invoices", {

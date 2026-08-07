@@ -346,3 +346,315 @@ func safeQty(movements []models.InventoryMovement) float64 {
 	}
 	return movements[0].Quantity
 }
+
+func floatPtr(v float64) *float64 { return &v }
+
+func TestCreateInvoiceCustomerUnpaidNoInitialPayment(t *testing.T) {
+	setupCreateInvoiceTestDB(t)
+	user, customer, _, p2 := seedInvoiceCreateFixtures(t) // p2 SalePrice=50
+
+	invoice, err := CreateInvoice(dto.CreateInvoiceRequest{
+		CustomerID:  &customer.ID,
+		PaymentMode: dto.InvoicePaymentModeUnpaid,
+		Items:       []dto.CreateInvoiceItemRequest{{ProductID: p2.ID, Quantity: 1}},
+	}, user.ID)
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+	if invoice.TotalAmount != 50 || invoice.PaidAmount != 0 {
+		t.Fatalf("totals want 50/0 got %v/%v", invoice.TotalAmount, invoice.PaidAmount)
+	}
+	if invoice.Status != models.InvoiceStatusUnpaid {
+		t.Fatalf("status want unpaid got %s", invoice.Status)
+	}
+
+	var paymentCount int64
+	database.DB.Model(&models.Payment{}).Where("customer_id = ?", customer.ID).Count(&paymentCount)
+	if paymentCount != 0 {
+		t.Fatalf("unpaid must not create payment, got %d", paymentCount)
+	}
+
+	var reloaded models.Customer
+	database.DB.First(&reloaded, customer.ID)
+	if reloaded.TotalDebt != 50 {
+		t.Fatalf("debt want 50 got %v", reloaded.TotalDebt)
+	}
+}
+
+func TestCreateInvoiceCustomerFullPayment(t *testing.T) {
+	setupCreateInvoiceTestDB(t)
+	user, customer, _, p2 := seedInvoiceCreateFixtures(t)
+
+	// Frontend may send a wrong amount — backend must use invoice total.
+	wrong := 1.0
+	invoice, err := CreateInvoice(dto.CreateInvoiceRequest{
+		CustomerID:           &customer.ID,
+		PaymentMode:          dto.InvoicePaymentModeFull,
+		InitialPaymentAmount: &wrong,
+		Items:                []dto.CreateInvoiceItemRequest{{ProductID: p2.ID, Quantity: 1}},
+	}, user.ID)
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+	if invoice.TotalAmount != 50 || invoice.PaidAmount != 50 {
+		t.Fatalf("totals want 50/50 got %v/%v", invoice.TotalAmount, invoice.PaidAmount)
+	}
+	if invoice.Status != models.InvoiceStatusPaid {
+		t.Fatalf("status want paid got %s", invoice.Status)
+	}
+
+	var payments []models.Payment
+	database.DB.Where("customer_id = ?", customer.ID).Find(&payments)
+	if len(payments) != 1 || payments[0].TotalAmount != 50 {
+		t.Fatalf("payment want 1x50 got %+v", payments)
+	}
+	var alloc models.PaymentAllocation
+	database.DB.Where("payment_id = ? AND invoice_id = ?", payments[0].ID, invoice.ID).First(&alloc)
+	if alloc.Amount != 50 {
+		t.Fatalf("allocation want 50 got %v", alloc.Amount)
+	}
+
+	var reloaded models.Customer
+	database.DB.First(&reloaded, customer.ID)
+	if reloaded.TotalDebt != 0 {
+		t.Fatalf("debt want 0 got %v", reloaded.TotalDebt)
+	}
+
+	var saleCount int64
+	database.DB.Model(&models.InventoryMovement{}).
+		Where("product_id = ? AND movement_type = ?", p2.ID, "sale").Count(&saleCount)
+	if saleCount != 1 {
+		t.Fatalf("sale movements want 1 got %d", saleCount)
+	}
+}
+
+func TestCreateInvoiceCustomerPartialPayment(t *testing.T) {
+	setupCreateInvoiceTestDB(t)
+	user, customer, _, p2 := seedInvoiceCreateFixtures(t)
+
+	invoice, err := CreateInvoice(dto.CreateInvoiceRequest{
+		CustomerID:           &customer.ID,
+		PaymentMode:          dto.InvoicePaymentModePartial,
+		InitialPaymentAmount: floatPtr(20),
+		Items:                []dto.CreateInvoiceItemRequest{{ProductID: p2.ID, Quantity: 1}},
+	}, user.ID)
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+	if invoice.TotalAmount != 50 || invoice.PaidAmount != 20 {
+		t.Fatalf("totals want 50/20 got %v/%v", invoice.TotalAmount, invoice.PaidAmount)
+	}
+	if invoice.Status != models.InvoiceStatusPartiallyPaid {
+		t.Fatalf("status want partially_paid got %s", invoice.Status)
+	}
+
+	var payments []models.Payment
+	database.DB.Where("customer_id = ?", customer.ID).Find(&payments)
+	if len(payments) != 1 || payments[0].TotalAmount != 20 {
+		t.Fatalf("payment want 1x20 got %+v", payments)
+	}
+	var alloc models.PaymentAllocation
+	database.DB.Where("payment_id = ?", payments[0].ID).First(&alloc)
+	if alloc.Amount != 20 || alloc.InvoiceID != invoice.ID {
+		t.Fatalf("allocation want 20 on invoice %d got %+v", invoice.ID, alloc)
+	}
+
+	var reloaded models.Customer
+	database.DB.First(&reloaded, customer.ID)
+	if reloaded.TotalDebt != 30 {
+		t.Fatalf("debt want 30 got %v", reloaded.TotalDebt)
+	}
+
+	var saleCount int64
+	database.DB.Model(&models.InventoryMovement{}).
+		Where("product_id = ? AND movement_type = ?", p2.ID, "sale").Count(&saleCount)
+	if saleCount != 1 {
+		t.Fatalf("sale movements want 1 got %d", saleCount)
+	}
+}
+
+func TestCreateInvoiceCustomerPartialRejectsZeroAndFullAndInvalidMode(t *testing.T) {
+	setupCreateInvoiceTestDB(t)
+	user, customer, _, p2 := seedInvoiceCreateFixtures(t)
+
+	_, err := CreateInvoice(dto.CreateInvoiceRequest{
+		CustomerID:           &customer.ID,
+		PaymentMode:          dto.InvoicePaymentModePartial,
+		InitialPaymentAmount: floatPtr(0),
+		Items:                []dto.CreateInvoiceItemRequest{{ProductID: p2.ID, Quantity: 1}},
+	}, user.ID)
+	if err == nil {
+		t.Fatal("partial 0 must fail")
+	}
+
+	_, err = CreateInvoice(dto.CreateInvoiceRequest{
+		CustomerID:           &customer.ID,
+		PaymentMode:          dto.InvoicePaymentModePartial,
+		InitialPaymentAmount: floatPtr(50),
+		Items:                []dto.CreateInvoiceItemRequest{{ProductID: p2.ID, Quantity: 1}},
+	}, user.ID)
+	if err == nil {
+		t.Fatal("partial == total must fail")
+	}
+
+	_, err = CreateInvoice(dto.CreateInvoiceRequest{
+		CustomerID:           &customer.ID,
+		PaymentMode:          dto.InvoicePaymentModePartial,
+		InitialPaymentAmount: floatPtr(60),
+		Items:                []dto.CreateInvoiceItemRequest{{ProductID: p2.ID, Quantity: 1}},
+	}, user.ID)
+	if err == nil {
+		t.Fatal("partial > total must fail")
+	}
+
+	_, err = CreateInvoice(dto.CreateInvoiceRequest{
+		CustomerID:  &customer.ID,
+		PaymentMode: "wire",
+		Items:       []dto.CreateInvoiceItemRequest{{ProductID: p2.ID, Quantity: 1}},
+	}, user.ID)
+	if err == nil {
+		t.Fatal("invalid mode must fail")
+	}
+
+	var invoiceCount int64
+	database.DB.Model(&models.Invoice{}).Count(&invoiceCount)
+	if invoiceCount != 0 {
+		t.Fatalf("rejected creates must leave no invoices, got %d", invoiceCount)
+	}
+	_ = user
+}
+
+func TestCreateInvoicePaymentInsertFailureRollsBack(t *testing.T) {
+	setupCreateInvoiceTestDB(t)
+	user, customer, _, p2 := seedInvoiceCreateFixtures(t)
+
+	if err := database.DB.Migrator().DropTable(&models.Payment{}); err != nil {
+		t.Fatalf("drop payments: %v", err)
+	}
+
+	_, err := CreateInvoice(dto.CreateInvoiceRequest{
+		CustomerID:  &customer.ID,
+		PaymentMode: dto.InvoicePaymentModeFull,
+		Items:       []dto.CreateInvoiceItemRequest{{ProductID: p2.ID, Quantity: 1}},
+	}, user.ID)
+	if err == nil {
+		t.Fatal("expected payment insert failure")
+	}
+
+	var product models.Product
+	database.DB.First(&product, p2.ID)
+	if product.StockQuantity != 20 {
+		t.Fatalf("stock want 20 after rollback got %v", product.StockQuantity)
+	}
+	var invoiceCount, itemCount, saleCount int64
+	database.DB.Model(&models.Invoice{}).Count(&invoiceCount)
+	database.DB.Model(&models.InvoiceItem{}).Count(&itemCount)
+	database.DB.Model(&models.InventoryMovement{}).Where("movement_type = ?", "sale").Count(&saleCount)
+	if invoiceCount != 0 || itemCount != 0 || saleCount != 0 {
+		t.Fatalf("rollback incomplete invoices=%d items=%d sales=%d", invoiceCount, itemCount, saleCount)
+	}
+	var reloaded models.Customer
+	database.DB.First(&reloaded, customer.ID)
+	if reloaded.TotalDebt != 0 {
+		t.Fatalf("debt want 0 after rollback got %v", reloaded.TotalDebt)
+	}
+}
+
+func TestCreateInvoiceAllocationFailureRollsBack(t *testing.T) {
+	setupCreateInvoiceTestDB(t)
+	user, customer, _, p2 := seedInvoiceCreateFixtures(t)
+
+	if err := database.DB.Migrator().DropTable(&models.PaymentAllocation{}); err != nil {
+		t.Fatalf("drop allocations: %v", err)
+	}
+
+	_, err := CreateInvoice(dto.CreateInvoiceRequest{
+		CustomerID:           &customer.ID,
+		PaymentMode:          dto.InvoicePaymentModePartial,
+		InitialPaymentAmount: floatPtr(20),
+		Items:                []dto.CreateInvoiceItemRequest{{ProductID: p2.ID, Quantity: 1}},
+	}, user.ID)
+	if err == nil {
+		t.Fatal("expected allocation insert failure")
+	}
+
+	var product models.Product
+	database.DB.First(&product, p2.ID)
+	if product.StockQuantity != 20 {
+		t.Fatalf("stock want 20 after rollback got %v", product.StockQuantity)
+	}
+	var invoiceCount, paymentCount int64
+	database.DB.Model(&models.Invoice{}).Count(&invoiceCount)
+	database.DB.Model(&models.Payment{}).Count(&paymentCount)
+	if invoiceCount != 0 || paymentCount != 0 {
+		t.Fatalf("rollback incomplete invoices=%d payments=%d", invoiceCount, paymentCount)
+	}
+	var reloaded models.Customer
+	database.DB.First(&reloaded, customer.ID)
+	if reloaded.TotalDebt != 0 {
+		t.Fatalf("debt want 0 after rollback got %v", reloaded.TotalDebt)
+	}
+}
+
+func TestCreateInvoiceCustomerPartialThenCancelRefundsPaidAmount(t *testing.T) {
+	setupCreateInvoiceTestDB(t)
+	if err := database.DB.AutoMigrate(&models.InvoiceCancellation{}, &models.Refund{}); err != nil {
+		t.Fatalf("migrate cancel: %v", err)
+	}
+	user, customer, _, p2 := seedInvoiceCreateFixtures(t)
+
+	invoice, err := CreateInvoice(dto.CreateInvoiceRequest{
+		CustomerID:           &customer.ID,
+		PaymentMode:          dto.InvoicePaymentModePartial,
+		InitialPaymentAmount: floatPtr(20),
+		Items:                []dto.CreateInvoiceItemRequest{{ProductID: p2.ID, Quantity: 1}},
+	}, user.ID)
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+
+	cancel, err := CancelInvoice(invoice.ID, dto.CancelInvoiceRequest{Reason: "Greska u kolicini"}, user.ID)
+	if err != nil {
+		t.Fatalf("cancel: %v", err)
+	}
+	if cancel.RefundedAmount != 20 {
+		t.Fatalf("refunded want 20 got %v", cancel.RefundedAmount)
+	}
+	if cancel.DebtReducedAmount != 30 {
+		t.Fatalf("debtReduced want 30 got %v", cancel.DebtReducedAmount)
+	}
+
+	var product models.Product
+	database.DB.First(&product, p2.ID)
+	if product.StockQuantity != 20 {
+		t.Fatalf("stock restored want 20 got %v", product.StockQuantity)
+	}
+	var reloaded models.Customer
+	database.DB.First(&reloaded, customer.ID)
+	if reloaded.TotalDebt != 0 {
+		t.Fatalf("debt after cancel want 0 got %v", reloaded.TotalDebt)
+	}
+}
+
+func TestCreateInvoiceCashIgnoresCustomerPaymentMode(t *testing.T) {
+	setupCreateInvoiceTestDB(t)
+	user, _, _, p2 := seedInvoiceCreateFixtures(t)
+
+	invoice, err := CreateInvoice(dto.CreateInvoiceRequest{
+		CustomerID:           nil,
+		PaymentMode:          dto.InvoicePaymentModePartial,
+		InitialPaymentAmount: floatPtr(10),
+		Items:                []dto.CreateInvoiceItemRequest{{ProductID: p2.ID, Quantity: 1}},
+	}, user.ID)
+	if err != nil {
+		t.Fatalf("cash create: %v", err)
+	}
+	if invoice.Status != models.InvoiceStatusPaid || invoice.PaidAmount != 50 {
+		t.Fatalf("cash must stay fully paid, status=%s paid=%v", invoice.Status, invoice.PaidAmount)
+	}
+	var paymentCount int64
+	database.DB.Model(&models.Payment{}).Count(&paymentCount)
+	if paymentCount != 1 {
+		t.Fatalf("cash payment count want 1 got %d", paymentCount)
+	}
+}

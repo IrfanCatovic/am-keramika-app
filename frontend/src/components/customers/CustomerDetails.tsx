@@ -12,6 +12,7 @@ import {
   DebtBadge,
 } from "@/components/customers/CustomerStatusBadge";
 import { canViewFinance } from "@/components/dashboard/DashboardHeader";
+import { InvoiceStatusBadge } from "@/components/invoices/InvoiceStatusBadge";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { InlineError, ListSkeleton } from "@/components/ui/EmptyState";
 import {
@@ -318,7 +319,7 @@ export function CustomerDetailsView({ customerId }: { customerId: number }) {
                   #{invoice.id}
                 </Link>
                 <span>{formatMoney(invoice.totalAmount)}</span>
-                <span className="text-xs text-stone-500">{invoice.status}</span>
+                <InvoiceStatusBadge status={invoice.status} />
               </li>
             ))}
           </ul>
@@ -342,7 +343,7 @@ export function CustomerDetailsView({ customerId }: { customerId: number }) {
             ? `Obrisati kupca „${customer.name}”? Brisanje nije moguće ako postoji istorija računa ili uplata.`
             : confirm.open && confirm.kind === "activate"
               ? `Aktivirati kupca „${customer.name}”?`
-              : `Deaktivirati kupca „${customer.name}”? Nije dozvoljeno ako ima unpaid/partially_paid račune.`
+              : `Deaktivirati kupca „${customer.name}”? Nije dozvoljeno ako ima neplaćene ili delimično plaćene račune.`
         }
         confirmLabel={
           confirm.open && confirm.kind === "delete"

@@ -16,13 +16,13 @@ import { InvoiceDetails } from "@/types/invoice";
 function printStatusLabel(status: string): string {
   switch (status) {
     case "paid":
-      return "Plaćeno";
+      return "Plaćen";
     case "unpaid":
-      return "Neplaćeno";
+      return "Neplaćen";
     case "partially_paid":
-      return "Djelimično plaćeno";
+      return "Delimično plaćen";
     case "cancelled":
-      return "Otkazano";
+      return "Storniran";
     default:
       return status;
   }

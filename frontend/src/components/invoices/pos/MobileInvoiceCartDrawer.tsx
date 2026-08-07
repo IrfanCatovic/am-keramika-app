@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, type ReactNode } from "react";
 
 import { InvoiceCart } from "@/components/invoices/pos/InvoiceCart";
 import { formatMoney, formatQuantity } from "@/lib/format";
@@ -20,6 +20,10 @@ export function MobileInvoiceCartDrawer({
   onQuantityChange,
   onRemove,
   onSubmit,
+  submitLabel,
+  paidNow,
+  remaining,
+  paymentSection,
 }: {
   open: boolean;
   onClose: () => void;
@@ -34,6 +38,10 @@ export function MobileInvoiceCartDrawer({
   onQuantityChange: (productID: number, quantity: number) => void;
   onRemove: (productID: number) => void;
   onSubmit: () => void;
+  submitLabel?: string;
+  paidNow?: number;
+  remaining?: number;
+  paymentSection?: ReactNode;
 }) {
   useEffect(() => {
     if (!open) {
@@ -68,7 +76,9 @@ export function MobileInvoiceCartDrawer({
     0,
   );
 
-  const primaryLabel = isCashSale ? "Naplati" : "Kreiraj račun";
+  const primaryLabel =
+    submitLabel ?? (isCashSale ? "Naplati" : "Kreiraj račun");
+  const showPaymentPreview = !isCashSale && paidNow != null && remaining != null;
 
   return (
     <div className="fixed inset-0 z-40 lg:hidden">
@@ -96,7 +106,7 @@ export function MobileInvoiceCartDrawer({
           </button>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
+        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-3 py-3">
           <InvoiceCart
             lines={lines}
             lineErrors={lineErrors}
@@ -104,16 +114,35 @@ export function MobileInvoiceCartDrawer({
             onQuantityChange={onQuantityChange}
             onRemove={onRemove}
           />
+          {paymentSection}
         </div>
 
         <div className="shrink-0 border-t border-stone-100 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-          <div className="mb-2 flex justify-between text-sm">
-            <span className="text-stone-500">
-              {lines.length} proiz. · {formatQuantity(quantityTotal)}
-            </span>
-            <span className="font-semibold tabular-nums text-stone-900">
-              {formatMoney(previewTotal)}
-            </span>
+          <div className="mb-2 space-y-1 text-sm">
+            <div className="flex justify-between gap-3">
+              <span className="text-stone-500">
+                {lines.length} proiz. · {formatQuantity(quantityTotal)}
+              </span>
+              <span className="font-semibold tabular-nums text-stone-900">
+                {formatMoney(previewTotal)}
+              </span>
+            </div>
+            {showPaymentPreview ? (
+              <>
+                <div className="flex justify-between gap-3">
+                  <span className="text-stone-500">Plaćeno sada</span>
+                  <span className="tabular-nums text-stone-800">
+                    {formatMoney(paidNow)}
+                  </span>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <span className="text-stone-500">Ostaje</span>
+                  <span className="tabular-nums text-stone-800">
+                    {formatMoney(remaining)}
+                  </span>
+                </div>
+              </>
+            ) : null}
           </div>
           {error ? (
             <p className="mb-2 break-words rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-700">
