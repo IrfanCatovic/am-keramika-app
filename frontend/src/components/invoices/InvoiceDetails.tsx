@@ -210,14 +210,75 @@ export function InvoiceDetailsView({ invoiceId }: { invoiceId: number }) {
         </div>
       </section>
 
-      {lastCancel ? (
-        <section className="rounded-2xl border border-amber-200 bg-amber-50/60 p-4 sm:p-5">
+      {isCancelled ? (
+        <section className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4 sm:p-5">
           <h2 className="text-sm font-semibold text-amber-950">
             Račun je storniran
           </h2>
-          <p className="mt-1 text-sm text-amber-900">
-            Razlog: {lastCancel.reason}
-          </p>
+          <div className="mt-3 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+            <div>
+              <p className="text-xs text-amber-800/80">Datum računa</p>
+              <p className="mt-0.5 font-medium text-amber-950">
+                {invoice.createdAt}
+              </p>
+            </div>
+            {invoice.cancellation?.createdAt ? (
+              <div>
+                <p className="text-xs text-amber-800/80">Datum storna</p>
+                <p className="mt-0.5 font-medium text-amber-950">
+                  {invoice.cancellation.createdAt}
+                </p>
+              </div>
+            ) : null}
+            <div>
+              <p className="text-xs text-amber-800/80">Originalni iznos</p>
+              <p className="mt-0.5 font-semibold tabular-nums text-amber-950">
+                {formatMoney(invoice.totalAmount)}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-amber-800/80">Plaćeno prije storna</p>
+              <p className="mt-0.5 font-semibold tabular-nums text-amber-950">
+                {formatMoney(invoice.paidAmount)}
+              </p>
+            </div>
+            {(invoice.cancellation?.createdByUser?.username ||
+              invoice.refund?.createdByUser?.username) && (
+              <div>
+                <p className="text-xs text-amber-800/80">Stornirao</p>
+                <p className="mt-0.5 font-medium text-amber-950">
+                  {invoice.cancellation?.createdByUser?.username ??
+                    invoice.refund?.createdByUser?.username}
+                </p>
+              </div>
+            )}
+            {invoice.cancellation?.reason ? (
+              <div className="sm:col-span-2">
+                <p className="text-xs text-amber-800/80">Razlog</p>
+                <p className="mt-0.5 text-amber-950">
+                  {invoice.cancellation.reason}
+                </p>
+              </div>
+            ) : lastCancel?.reason ? (
+              <div className="sm:col-span-2">
+                <p className="text-xs text-amber-800/80">Razlog</p>
+                <p className="mt-0.5 text-amber-950">{lastCancel.reason}</p>
+              </div>
+            ) : null}
+          </div>
+          {invoice.refund ? (
+            <p className="mt-4 rounded-xl border border-amber-200 bg-white/70 px-3 py-2 text-sm font-medium text-amber-950">
+              Evidentiran povrat: {formatMoney(invoice.refund.amount)}
+            </p>
+          ) : lastCancel?.refund ? (
+            <p className="mt-4 rounded-xl border border-amber-200 bg-white/70 px-3 py-2 text-sm font-medium text-amber-950">
+              Evidentiran povrat: {formatMoney(lastCancel.refund.amount)}
+            </p>
+          ) : lastCancel && lastCancel.refundedAmount > 0 ? (
+            <p className="mt-4 rounded-xl border border-amber-200 bg-white/70 px-3 py-2 text-sm font-medium text-amber-950">
+              Evidentiran povrat: {formatMoney(lastCancel.refundedAmount)}
+            </p>
+          ) : null}
         </section>
       ) : null}
 

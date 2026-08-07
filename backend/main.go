@@ -156,6 +156,7 @@ func main() {
 		financeStaff.Use(middleware.RequireRoles(models.RoleDeveloper, models.RoleBoss, models.RoleManager))
 		{
 			financeStaff.GET("/customers/:id/financial-summary", handlers.GetCustomerFinancialSummary)
+			financeStaff.GET("/refunds", handlers.GetRefunds)
 		}
 	}
 

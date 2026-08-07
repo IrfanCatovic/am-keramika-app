@@ -69,7 +69,9 @@ func GetInvoiceByID(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, mapInvoiceResponse(*invoice))
+	response := mapInvoiceResponse(*invoice)
+	enrichInvoiceCancellationData(&response, invoice.ID, string(invoice.Status))
+	c.JSON(http.StatusOK, response)
 }
 
 func GetAllInvoices(c *gin.Context) {

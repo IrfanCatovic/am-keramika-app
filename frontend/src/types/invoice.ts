@@ -41,6 +41,25 @@ export interface InvoiceItem {
   totalPrice: number;
 }
 
+export interface InvoiceCancellationSummary {
+  id: number;
+  invoiceID: number;
+  reason: string;
+  debtReducedAmount: number;
+  refundedAmount: number;
+  createdAt: string;
+  createdByUser?: InvoiceUserSummary | null;
+}
+
+export interface RefundResponse {
+  id: number;
+  invoiceID: number;
+  amount: number;
+  reason: string;
+  createdAt?: string;
+  createdByUser?: InvoiceUserSummary | null;
+}
+
 export interface InvoiceDetails {
   id: number;
   customerID: number | null;
@@ -52,6 +71,8 @@ export interface InvoiceDetails {
   createdAt: string;
   createdByUser?: InvoiceUserSummary | null;
   items: InvoiceItem[];
+  cancellation?: InvoiceCancellationSummary | null;
+  refund?: RefundResponse | null;
 }
 
 export interface PaginatedInvoiceResponse {
@@ -90,14 +111,6 @@ export interface CreateInvoiceResponse {
 
 export interface CancelInvoicePayload {
   reason: string;
-}
-
-export interface RefundResponse {
-  id: number;
-  invoiceID: number;
-  amount: number;
-  reason: string;
-  createdByUser?: InvoiceUserSummary | null;
 }
 
 export interface CancelInvoiceResponse {

@@ -20,16 +20,18 @@ type InvoiceItemResponse struct {
 }
 
 type InvoiceResponse struct {
-	ID              uint                  `json:"id"`
-	CustomerID      *uint                 `json:"customerID"`
-	Customer        *CustomerResponse     `json:"customer"`
-	TotalAmount     float64               `json:"totalAmount"`
-	PaidAmount      float64               `json:"paidAmount"`
-	RemainingAmount float64               `json:"remainingAmount"`
-	Status          string                `json:"status"`
-	CreatedAt       string                `json:"createdAt"`
-	CreatedByUser   *UserSummaryResponse  `json:"createdByUser,omitempty"`
-	Items           []InvoiceItemResponse `json:"items"`
+	ID              uint                         `json:"id"`
+	CustomerID      *uint                        `json:"customerID"`
+	Customer        *CustomerResponse            `json:"customer"`
+	TotalAmount     float64                      `json:"totalAmount"`
+	PaidAmount      float64                      `json:"paidAmount"`
+	RemainingAmount float64                      `json:"remainingAmount"`
+	Status          string                       `json:"status"`
+	CreatedAt       string                       `json:"createdAt"`
+	CreatedByUser   *UserSummaryResponse         `json:"createdByUser,omitempty"`
+	Items           []InvoiceItemResponse        `json:"items"`
+	Cancellation    *InvoiceCancellationResponse `json:"cancellation,omitempty"`
+	Refund          *RefundResponse              `json:"refund,omitempty"`
 }
 
 type InvoiceListResponse struct {

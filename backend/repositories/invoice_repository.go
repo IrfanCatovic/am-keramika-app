@@ -413,6 +413,7 @@ func CancelInvoice(id uint, req dto.CancelInvoiceRequest, createdByUserID uint) 
 			InvoiceID: refund.InvoiceID,
 			Amount:    refund.Amount,
 			Reason:    refund.Reason,
+			CreatedAt: refund.CreatedAt.Format("2006-01-02 15:04"),
 			CreatedByUser: &dto.UserSummaryResponse{
 				ID:       refund.CreatedByUser.ID,
 				Username: refund.CreatedByUser.Username,
