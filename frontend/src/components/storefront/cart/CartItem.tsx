@@ -113,7 +113,7 @@ export function CartItemRow({
           <button
             type="button"
             onClick={() => removeItem(item.productId)}
-            className="text-sm text-stone-500 underline-offset-4 transition hover:text-stone-800 hover:underline"
+            className="inline-flex min-h-9 items-center rounded-full border border-stone-300 bg-white px-3.5 text-sm text-stone-700 transition hover:border-stone-400 hover:bg-stone-50"
           >
             Ukloni
           </button>

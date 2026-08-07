@@ -7,7 +7,7 @@ import { useCart } from "@/components/storefront/cart/CartProvider";
 import { formatMoney, formatQuantity } from "@/lib/format";
 
 export function CartDrawer() {
-  const { items, drawerOpen, closeDrawer, feedback, clearFeedback, hydrated } =
+  const { items, drawerOpen, closeDrawer, feedback, clearFeedback, hydrated, removeItem } =
     useCart();
 
   useEffect(() => {
@@ -109,13 +109,23 @@ export function CartDrawer() {
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <Link
-                      href={`/proizvodi/${item.slug}`}
-                      onClick={closeDrawer}
-                      className="line-clamp-2 text-sm font-medium text-stone-900 hover:text-[#5c4630]"
-                    >
-                      {item.name}
-                    </Link>
+                    <div className="flex items-start justify-between gap-2">
+                      <Link
+                        href={`/proizvodi/${item.slug}`}
+                        onClick={closeDrawer}
+                        className="line-clamp-2 text-sm font-medium text-stone-900 hover:text-[#5c4630]"
+                      >
+                        {item.name}
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => removeItem(item.productId)}
+                        className="shrink-0 text-xs text-stone-500 underline-offset-2 transition hover:text-stone-900 hover:underline"
+                        aria-label={`Ukloni ${item.name}`}
+                      >
+                        Ukloni
+                      </button>
+                    </div>
                     <p className="mt-1 text-xs text-stone-500">
                       {formatQuantity(item.quantity)}
                       {item.unit ? ` ${item.unit}` : ""}

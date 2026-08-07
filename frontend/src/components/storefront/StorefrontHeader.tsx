@@ -134,17 +134,13 @@ export function StorefrontHeader({
         </form>
 
         <div className="ml-auto flex items-center gap-2">
-          <CartButton className="hidden lg:inline-flex" />
+          <CartButton onBeforeOpen={() => setOpen(false)} />
           <Link
             href="/login"
             className="hidden items-center rounded-full border border-stone-800/80 px-4 py-2 text-[13px] font-medium tracking-[0.06em] text-stone-900 transition hover:bg-stone-900 hover:text-white lg:inline-flex"
           >
             Login
           </Link>
-          <CartButton
-            className="lg:hidden"
-            onBeforeOpen={() => setOpen(false)}
-          />
           <button
             type="button"
             className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-stone-300 bg-white text-stone-800 lg:hidden"
