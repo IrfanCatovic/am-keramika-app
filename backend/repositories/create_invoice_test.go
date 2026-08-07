@@ -169,10 +169,180 @@ func TestCreateInvoiceStockDecreasesOncePerQuantity(t *testing.T) {
 		t.Fatalf("stock want 17 got %v", product.StockQuantity)
 	}
 
-	var movementCount int64
-	database.DB.Model(&models.InventoryMovement{}).Where("product_id = ?", p1.ID).Count(&movementCount)
-	// Customer invoice ne kreira inventory movement po stavci (samo cash).
-	if movementCount != 0 {
-		t.Fatalf("customer invoice should not create sale movements, got %d", movementCount)
+	var movements []models.InventoryMovement
+	database.DB.Where("product_id = ? AND movement_type = ?", p1.ID, "sale").Find(&movements)
+	if len(movements) != 1 {
+		t.Fatalf("customer invoice should create exactly 1 sale movement, got %d", len(movements))
 	}
+	if movements[0].Quantity != 3 {
+		t.Fatalf("sale quantity want 3 got %v", movements[0].Quantity)
+	}
+	if movements[0].CreatedByUserID != user.ID {
+		t.Fatalf("sale CreatedByUserID want %d got %d", user.ID, movements[0].CreatedByUserID)
+	}
+}
+
+func TestCreateInvoiceCashCreatesExactlyOneSaleMovement(t *testing.T) {
+	setupCreateInvoiceTestDB(t)
+	user, _, p1, _ := seedInvoiceCreateFixtures(t)
+
+	_, err := CreateInvoice(dto.CreateInvoiceRequest{
+		CustomerID: nil,
+		Items:      []dto.CreateInvoiceItemRequest{{ProductID: p1.ID, Quantity: 2}},
+	}, user.ID)
+	if err != nil {
+		t.Fatalf("cash create: %v", err)
+	}
+
+	var product models.Product
+	database.DB.First(&product, p1.ID)
+	if product.StockQuantity != 18 {
+		t.Fatalf("stock want 18 got %v", product.StockQuantity)
+	}
+
+	var movements []models.InventoryMovement
+	database.DB.Where("product_id = ? AND movement_type = ?", p1.ID, "sale").Find(&movements)
+	if len(movements) != 1 {
+		t.Fatalf("cash invoice should create exactly 1 sale movement, got %d", len(movements))
+	}
+	if movements[0].Quantity != 2 {
+		t.Fatalf("sale quantity want 2 got %v", movements[0].Quantity)
+	}
+}
+
+func TestCreateInvoiceTwoProductsCreateOneSaleEach(t *testing.T) {
+	setupCreateInvoiceTestDB(t)
+	user, customer, p1, p2 := seedInvoiceCreateFixtures(t)
+
+	_, err := CreateInvoice(dto.CreateInvoiceRequest{
+		CustomerID: &customer.ID,
+		Items: []dto.CreateInvoiceItemRequest{
+			{ProductID: p1.ID, Quantity: 2},
+			{ProductID: p2.ID, Quantity: 4},
+		},
+	}, user.ID)
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+
+	var m1, m2 []models.InventoryMovement
+	database.DB.Where("product_id = ? AND movement_type = ?", p1.ID, "sale").Find(&m1)
+	database.DB.Where("product_id = ? AND movement_type = ?", p2.ID, "sale").Find(&m2)
+	if len(m1) != 1 || m1[0].Quantity != 2 {
+		t.Fatalf("p1 sale movements=%d qty=%v", len(m1), safeQty(m1))
+	}
+	if len(m2) != 1 || m2[0].Quantity != 4 {
+		t.Fatalf("p2 sale movements=%d qty=%v", len(m2), safeQty(m2))
+	}
+
+	var totalSales int64
+	database.DB.Model(&models.InventoryMovement{}).Where("movement_type = ?", "sale").Count(&totalSales)
+	if totalSales != 2 {
+		t.Fatalf("total sale movements want 2 got %d", totalSales)
+	}
+}
+
+func TestCreateInvoiceMovementFailureRollsBackStockAndInvoice(t *testing.T) {
+	setupCreateInvoiceTestDB(t)
+	user, customer, p1, _ := seedInvoiceCreateFixtures(t)
+
+	// Drop inventory_movements so insert fails inside the invoice transaction.
+	if err := database.DB.Migrator().DropTable(&models.InventoryMovement{}); err != nil {
+		t.Fatalf("drop movements: %v", err)
+	}
+
+	_, err := CreateInvoice(dto.CreateInvoiceRequest{
+		CustomerID: &customer.ID,
+		Items:      []dto.CreateInvoiceItemRequest{{ProductID: p1.ID, Quantity: 2}},
+	}, user.ID)
+	if err == nil {
+		t.Fatal("expected create to fail when movement insert fails")
+	}
+
+	var product models.Product
+	database.DB.First(&product, p1.ID)
+	if product.StockQuantity != 20 {
+		t.Fatalf("stock should remain 20 after rollback, got %v", product.StockQuantity)
+	}
+
+	var invoiceCount int64
+	database.DB.Model(&models.Invoice{}).Count(&invoiceCount)
+	if invoiceCount != 0 {
+		t.Fatalf("invoice should be rolled back, count=%d", invoiceCount)
+	}
+
+	var itemCount int64
+	database.DB.Model(&models.InvoiceItem{}).Count(&itemCount)
+	if itemCount != 0 {
+		t.Fatalf("invoice items should be rolled back, count=%d", itemCount)
+	}
+
+	var customerReloaded models.Customer
+	database.DB.First(&customerReloaded, customer.ID)
+	if customerReloaded.TotalDebt != 0 {
+		t.Fatalf("customer debt should remain 0 after rollback, got %v", customerReloaded.TotalDebt)
+	}
+
+	_ = user
+}
+
+func TestCreateInvoiceCustomerThenCancelSaleAndReturnBalance(t *testing.T) {
+	setupCreateInvoiceTestDB(t)
+	if err := database.DB.AutoMigrate(&models.InvoiceCancellation{}, &models.Refund{}); err != nil {
+		t.Fatalf("migrate cancel models: %v", err)
+	}
+
+	user, customer, p1, _ := seedInvoiceCreateFixtures(t)
+
+	invoice, err := CreateInvoice(dto.CreateInvoiceRequest{
+		CustomerID: &customer.ID,
+		Items:      []dto.CreateInvoiceItemRequest{{ProductID: p1.ID, Quantity: 5}},
+	}, user.ID)
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+
+	var afterSale models.Product
+	database.DB.First(&afterSale, p1.ID)
+	if afterSale.StockQuantity != 15 {
+		t.Fatalf("after sale stock want 15 got %v", afterSale.StockQuantity)
+	}
+
+	_, err = CancelInvoice(invoice.ID, dto.CancelInvoiceRequest{Reason: "Greska u kolicini"}, user.ID)
+	if err != nil {
+		t.Fatalf("cancel: %v", err)
+	}
+
+	var afterCancel models.Product
+	database.DB.First(&afterCancel, p1.ID)
+	if afterCancel.StockQuantity != 20 {
+		t.Fatalf("after cancel stock want 20 got %v", afterCancel.StockQuantity)
+	}
+
+	var sales, returns []models.InventoryMovement
+	database.DB.Where("product_id = ? AND movement_type = ?", p1.ID, "sale").Find(&sales)
+	database.DB.Where("product_id = ? AND movement_type = ?", p1.ID, "return").Find(&returns)
+	if len(sales) != 1 || sales[0].Quantity != 5 {
+		t.Fatalf("sale movements=%v", sales)
+	}
+	if len(returns) != 1 || returns[0].Quantity != 5 {
+		t.Fatalf("return movements=%v", returns)
+	}
+
+	// Duplicate cancel must not create another return.
+	_, err = CancelInvoice(invoice.ID, dto.CancelInvoiceRequest{Reason: "Ponovo"}, user.ID)
+	if err == nil {
+		t.Fatal("expected duplicate cancel to fail")
+	}
+	database.DB.Where("product_id = ? AND movement_type = ?", p1.ID, "return").Find(&returns)
+	if len(returns) != 1 {
+		t.Fatalf("duplicate cancel must not add return, got %d", len(returns))
+	}
+}
+
+func safeQty(movements []models.InventoryMovement) float64 {
+	if len(movements) == 0 {
+		return 0
+	}
+	return movements[0].Quantity
 }

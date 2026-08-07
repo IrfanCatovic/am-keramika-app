@@ -92,21 +92,20 @@ func CreateInvoice(req dto.CreateInvoiceRequest, createdByUserID uint) (*models.
 		// Ukupan iznos se sabira za svaki račun (sa kupcem i bez).
 		totalAmount += totalPrice
 
-		// Gotovinski račun: inventory movement po stavci (payment se kreira jednom nakon petlje).
-		if req.CustomerID == nil {
-			movement := models.InventoryMovement{
-				ProductID:       product.ID,
-				CreatedByUserID: createdByUserID,
-				MovementType:    "sale",
-				Quantity:        item.Quantity,
-				Note:            "Prodaja kroz racun",
-			}
+		// Svaka uspješna stavka koja skida lager dobija audit sale movement
+		// (i customer i cash — payment/debt logika je odvojena ispod).
+		movement := models.InventoryMovement{
+			ProductID:       product.ID,
+			CreatedByUserID: createdByUserID,
+			MovementType:    "sale",
+			Quantity:        item.Quantity,
+			Note:            "Prodaja kroz racun",
+		}
 
-			err = tx.Create(&movement).Error
-			if err != nil {
-				tx.Rollback()
-				return nil, err
-			}
+		err = tx.Create(&movement).Error
+		if err != nil {
+			tx.Rollback()
+			return nil, err
 		}
 	}
 
