@@ -1,21 +1,37 @@
-import Link from "next/link";
+import Link from 'next/link';
 
-import { PublicProductGrid } from "@/components/storefront/PublicProductCard";
-import type { PublicCategory, PublicProduct } from "@/types/public-catalog";
+import { PublicProductGrid } from '@/components/storefront/PublicProductCard';
+import type { PublicCategory, PublicProduct } from '@/types/public-catalog';
 
 export function StorefrontHero() {
   return (
-    <section className="relative overflow-hidden border-b border-stone-200 bg-[#111110] text-white">
-      <div className="pointer-events-none absolute inset-0 marble-veil opacity-80" />
-      <div className="pointer-events-none absolute -right-24 top-10 h-72 w-72 rounded-full bg-[#c4a484]/15 blur-3xl" />
-      <div className="relative mx-auto flex min-h-[68vh] max-w-7xl flex-col justify-end px-4 pb-16 pt-24 sm:px-6 lg:px-8 lg:pb-20">
-        <p className="text-xs uppercase tracking-[0.22em] text-[#c4a484]">
+    <section className="relative isolate min-h-[78vh] overflow-hidden border-b border-stone-200 text-white sm:min-h-[85vh]">
+      {/* Full-bleed photo */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/logo-stampa-racuni/Amslika.jpg"
+        alt="AM Keramika — poslovnica"
+        className="absolute inset-0 h-full w-full scale-[1.02] object-cover object-[center_42%] motion-safe:transition-transform motion-safe:duration-[1.2s]"
+        fetchPriority="high"
+      />
+      {/* Readability overlays — keep photo dominant */}
+      <div
+        className="absolute inset-0 bg-gradient-to-t from-stone-950/85 via-stone-950/35 to-stone-950/20"
+        aria-hidden
+      />
+      <div
+        className="absolute inset-0 bg-gradient-to-r from-stone-950/55 via-stone-950/15 to-transparent"
+        aria-hidden
+      />
+
+      <div className="relative mx-auto flex min-h-[78vh] max-w-7xl flex-col justify-end px-4 pb-16 pt-28 sm:min-h-[85vh] sm:px-6 lg:px-8 lg:pb-20">
+        <p className="text-xs uppercase tracking-[0.22em] text-[#e2c9a8]">
           AM Keramika
         </p>
-        <h1 className="mt-4 max-w-3xl font-[family-name:var(--font-storefront-display)] text-4xl leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
+        <h1 className="mt-4 max-w-3xl font-[family-name:var(--font-storefront-display)] text-4xl leading-[1.05] tracking-tight drop-shadow-sm sm:text-5xl lg:text-6xl">
           Sve za vaš dom na jednom mjestu.
         </h1>
-        <p className="mt-5 max-w-xl text-base text-stone-300 sm:text-lg">
+        <p className="mt-5 max-w-xl text-base text-stone-200 sm:text-lg">
           Keramika, sanitarije, grijanje i oprema.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
@@ -27,7 +43,7 @@ export function StorefrontHero() {
           </Link>
           <Link
             href="#kategorije"
-            className="inline-flex min-h-11 items-center rounded-full border border-white/25 px-5 text-sm font-medium text-white transition hover:border-white/50 hover:bg-white/5"
+            className="inline-flex min-h-11 items-center rounded-full border border-white/35 bg-white/10 px-5 text-sm font-medium text-white backdrop-blur-[2px] transition hover:border-white/55 hover:bg-white/15"
           >
             Istražite kategorije
           </Link>
@@ -44,7 +60,10 @@ export function CategoryShowcase({
 }) {
   if (categories.length === 0) return null;
   return (
-    <section id="kategorije" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+    <section
+      id="kategorije"
+      className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8"
+    >
       <div className="mb-8 flex items-end justify-between gap-4">
         <div>
           <p className="text-xs uppercase tracking-[0.16em] text-stone-400">
@@ -140,7 +159,9 @@ export function StorefrontEmpty({
       <h2 className="font-[family-name:var(--font-storefront-display)] text-2xl text-stone-900">
         {title}
       </h2>
-      <p className="mx-auto mt-3 max-w-md text-sm text-stone-500">{description}</p>
+      <p className="mx-auto mt-3 max-w-md text-sm text-stone-500">
+        {description}
+      </p>
       {actionHref && actionLabel ? (
         <Link
           href={actionHref}
@@ -162,7 +183,10 @@ export function StorefrontBreadcrumb({
     <nav aria-label="Breadcrumb" className="mb-6 text-sm text-stone-500">
       <ol className="flex flex-wrap items-center gap-2">
         {items.map((item, index) => (
-          <li key={`${item.label}-${index}`} className="inline-flex items-center gap-2">
+          <li
+            key={`${item.label}-${index}`}
+            className="inline-flex items-center gap-2"
+          >
             {index > 0 ? <span className="text-stone-300">/</span> : null}
             {item.href ? (
               <Link href={item.href} className="hover:text-stone-800">
