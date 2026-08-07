@@ -57,3 +57,52 @@ export function previewCalculatedSalePrice(
     finalSalePrice: final,
   };
 }
+
+/** Matches backend RoundUpToTen. */
+export function roundUpToTen(raw: number): number {
+  const twoDecimals = Math.round(raw * 100) / 100;
+  const remainder = twoDecimals % 10;
+  if (remainder < 1e-9 || remainder > 10 - 1e-9) {
+    return Math.round(twoDecimals * 100) / 100;
+  }
+  return Math.ceil(twoDecimals / 10) * 10;
+}
+
+/** Frontend preview of effective sale price; backend remains source of truth. */
+export function getEffectiveSalePrice(
+  salePrice: number,
+  isOnSale: boolean,
+  discountPercent: number,
+): number {
+  if (!isOnSale || !(discountPercent > 0)) {
+    return salePrice;
+  }
+  return roundUpToTen(salePrice * (1 - discountPercent / 100));
+}
+
+export function getDiscountedRawSalePrice(
+  salePrice: number,
+  discountPercent: number,
+): number {
+  return Math.round(salePrice * (1 - discountPercent / 100) * 100) / 100;
+}
+
+/** Prefer API effectiveSalePrice; fall back to local preview. */
+export function resolveProductUnitPrice(product: {
+  salePrice: number;
+  effectiveSalePrice?: number;
+  isOnSale?: boolean;
+  discountPercent?: number;
+}): number {
+  if (
+    typeof product.effectiveSalePrice === "number" &&
+    Number.isFinite(product.effectiveSalePrice)
+  ) {
+    return product.effectiveSalePrice;
+  }
+  return getEffectiveSalePrice(
+    product.salePrice,
+    Boolean(product.isOnSale),
+    product.discountPercent ?? 0,
+  );
+}

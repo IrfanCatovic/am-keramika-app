@@ -73,6 +73,14 @@ func main() {
 	r.GET("/health", handlers.Health)
 	r.POST("/auth/login", handlers.Login)
 
+	public := r.Group("/public")
+	{
+		public.GET("/products", handlers.GetPublicProducts)
+		public.GET("/products/:slug", handlers.GetPublicProductBySlug)
+		public.GET("/categories", handlers.GetPublicCategories)
+		public.GET("/product-groups", handlers.GetPublicProductGroups)
+	}
+
 	authorized := r.Group("/")
 	authorized.Use(middleware.AuthRequired())
 	{

@@ -33,10 +33,12 @@ export interface Product {
   group?: ProductGroupSummary;
   unit: string;
   salePrice: number;
+  effectiveSalePrice: number;
   stockQuantity: number;
   minStockQuantity: number;
   isActive: boolean;
   isOnSale: boolean;
+  discountPercent: number;
   showOnHomepage: boolean;
   pricingMode: PricingMode;
   purchasePrice?: number;
@@ -82,6 +84,7 @@ export interface CreateProductPayload {
   marginPercent?: number;
   vatPercent?: number;
   isOnSale?: boolean;
+  discountPercent?: number;
   showOnHomepage?: boolean;
 }
 
@@ -99,6 +102,7 @@ export interface UpdateProductPayload {
   vatPercent?: number | null;
   isActive?: boolean;
   isOnSale?: boolean;
+  discountPercent?: number;
   showOnHomepage?: boolean;
 }
 

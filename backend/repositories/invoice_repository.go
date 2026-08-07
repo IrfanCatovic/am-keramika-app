@@ -10,6 +10,7 @@ import (
 	"am-keramika-backend/database"
 	"am-keramika-backend/dto"
 	"am-keramika-backend/models"
+	"am-keramika-backend/pricing"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -65,7 +66,7 @@ func CreateInvoice(req dto.CreateInvoiceRequest, createdByUserID uint) (*models.
 			return nil, errors.New("nema dovoljno stoka na skladištu")
 		}
 
-		unitPrice := product.SalePrice
+		unitPrice := pricing.GetEffectiveSalePrice(product.SalePrice, product.IsOnSale, product.DiscountPercent)
 		totalPrice := unitPrice * item.Quantity
 
 		invoiceItem := models.InvoiceItem{

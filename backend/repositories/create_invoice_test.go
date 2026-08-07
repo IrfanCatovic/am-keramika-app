@@ -658,3 +658,82 @@ func TestCreateInvoiceCashIgnoresCustomerPaymentMode(t *testing.T) {
 		t.Fatalf("cash payment count want 1 got %d", paymentCount)
 	}
 }
+
+func TestCreateInvoiceUsesEffectiveSalePrice(t *testing.T) {
+	setupCreateInvoiceTestDB(t)
+	user, customer, _, _ := seedInvoiceCreateFixtures(t)
+
+	cat := models.Category{}
+	database.DB.First(&cat)
+
+	product := models.Product{
+		Name: "Sale", Slug: "sale-eff", CategoryID: cat.ID, Unit: "kom",
+		SalePrice: 2350, StockQuantity: 10, IsActive: true,
+		IsOnSale: true, DiscountPercent: 15,
+	}
+	if err := database.DB.Create(&product).Error; err != nil {
+		t.Fatalf("product: %v", err)
+	}
+
+	invoice, err := CreateInvoice(dto.CreateInvoiceRequest{
+		CustomerID: &customer.ID,
+		Items:      []dto.CreateInvoiceItemRequest{{ProductID: product.ID, Quantity: 1}},
+	}, user.ID)
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+	if len(invoice.Items) != 1 {
+		t.Fatalf("items=%d", len(invoice.Items))
+	}
+	if invoice.Items[0].UnitPrice != 2000 {
+		t.Fatalf("unitPrice want 2000 got %v", invoice.Items[0].UnitPrice)
+	}
+	if invoice.TotalAmount != 2000 {
+		t.Fatalf("total want 2000 got %v", invoice.TotalAmount)
+	}
+}
+
+func TestCreateInvoiceSnapshotKeepsSalePriceAfterSaleEnds(t *testing.T) {
+	setupCreateInvoiceTestDB(t)
+	user, customer, _, _ := seedInvoiceCreateFixtures(t)
+
+	cat := models.Category{}
+	database.DB.First(&cat)
+
+	product := models.Product{
+		Name: "SaleSnap", Slug: "sale-snap", CategoryID: cat.ID, Unit: "kom",
+		SalePrice: 2350, StockQuantity: 10, IsActive: true,
+		IsOnSale: true, DiscountPercent: 15,
+	}
+	if err := database.DB.Create(&product).Error; err != nil {
+		t.Fatalf("product: %v", err)
+	}
+
+	invoice, err := CreateInvoice(dto.CreateInvoiceRequest{
+		CustomerID: &customer.ID,
+		Items:      []dto.CreateInvoiceItemRequest{{ProductID: product.ID, Quantity: 1}},
+	}, user.ID)
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+
+	if err := database.DB.Model(&product).Updates(map[string]interface{}{
+		"is_on_sale": false, "discount_percent": 0,
+	}).Error; err != nil {
+		t.Fatalf("end sale: %v", err)
+	}
+
+	var item models.InvoiceItem
+	if err := database.DB.First(&item, invoice.Items[0].ID).Error; err != nil {
+		t.Fatalf("reload item: %v", err)
+	}
+	if item.UnitPrice != 2000 {
+		t.Fatalf("snapshot unitPrice want 2000 got %v", item.UnitPrice)
+	}
+
+	var refreshed models.Product
+	database.DB.First(&refreshed, product.ID)
+	if refreshed.SalePrice != 2350 {
+		t.Fatalf("regular salePrice should stay 2350 got %v", refreshed.SalePrice)
+	}
+}

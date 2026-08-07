@@ -1,6 +1,7 @@
 "use client";
 
-import { formatMoney, formatQuantity } from "@/lib/format";
+import { ProductSalePrice } from "@/components/products/ProductSalePrice";
+import { formatQuantity } from "@/lib/format";
 import { Product } from "@/types/product";
 
 function productImageUrl(product: Product): string | null {
@@ -62,9 +63,7 @@ export function PosProductResultRow({
         </p>
       </div>
       <div className="shrink-0 text-right">
-        <p className="text-sm font-semibold tabular-nums text-stone-900">
-          {formatMoney(product.salePrice)}
-        </p>
+        <ProductSalePrice product={product} className="justify-end text-sm" />
         <p
           className={`mt-0.5 text-[11px] tabular-nums ${
             outOfStock ? "font-medium text-red-700" : "text-stone-500"

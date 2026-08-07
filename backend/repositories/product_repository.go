@@ -105,6 +105,87 @@ func ListProducts(q ProductListQuery) ([]models.Product, int64, error) {
 	return products, total, err
 }
 
+type PublicProductListQuery struct {
+	Search       string
+	CategoryID   string
+	GroupID      string
+	Ungrouped    bool
+	OnSaleOnly   bool
+	HomepageOnly bool
+	Page         int
+	Limit        int
+}
+
+func buildPublicProductListQuery(q PublicProductListQuery) *gorm.DB {
+	query := database.DB.Model(&models.Product{}).
+		Where("products.is_active = ?", true).
+		Joins("JOIN categories ON categories.id = products.category_id AND categories.deleted_at IS NULL AND categories.is_active = ?", true)
+
+	if q.Search != "" {
+		search := strings.ToLower(strings.TrimSpace(q.Search))
+		pattern := "%" + search + "%"
+		query = query.Where("LOWER(products.name) LIKE ? OR LOWER(products.slug) LIKE ?", pattern, pattern)
+	}
+	if q.CategoryID != "" {
+		query = query.Where("products.category_id = ?", q.CategoryID)
+	}
+	if q.GroupID != "" {
+		query = query.Where("products.group_id = ?", q.GroupID)
+	}
+	if q.Ungrouped {
+		query = query.Where("products.group_id IS NULL")
+	}
+	if q.OnSaleOnly {
+		query = query.Where("products.is_on_sale = ?", true)
+	}
+	if q.HomepageOnly {
+		query = query.Where("products.show_on_homepage = ?", true)
+	}
+	return query
+}
+
+func ListPublicProducts(q PublicProductListQuery) ([]models.Product, int64, error) {
+	if q.Page <= 0 {
+		q.Page = DefaultProductListPage
+	}
+	if q.Limit <= 0 {
+		q.Limit = DefaultProductListLimit
+	}
+
+	var total int64
+	if err := buildPublicProductListQuery(q).Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	var products []models.Product
+	offset := (q.Page - 1) * q.Limit
+	err := buildPublicProductListQuery(q).
+		Preload("Category").
+		Preload("Group").
+		Order("products.name ASC, products.id ASC").
+		Limit(q.Limit).
+		Offset(offset).
+		Find(&products).Error
+	return products, total, err
+}
+
+func GetPublicProductBySlug(slug string) (*models.Product, error) {
+	var product models.Product
+	result := database.DB.Model(&models.Product{}).
+		Where("products.slug = ? AND products.is_active = ?", slug, true).
+		Joins("JOIN categories ON categories.id = products.category_id AND categories.deleted_at IS NULL AND categories.is_active = ?", true).
+		Preload("Category").
+		Preload("Group").
+		Preload("Images", func(db *gorm.DB) *gorm.DB {
+			return db.Order("is_primary DESC, sort_order ASC, id ASC")
+		}).
+		First(&product)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &product, nil
+}
+
 func CreateProduct(product *models.Product) error {
 	if err := validateCategoryActive(product.CategoryID); err != nil {
 		return err
@@ -147,7 +228,7 @@ func UpdateProduct(product *models.Product) error {
 			"Name", "Slug", "Description", "CategoryID", "GroupID", "Unit",
 			"SalePrice", "StockQuantity", "MinStockQuantity",
 			"PurchasePrice", "MarginPercent", "VatPercent",
-			"IsActive", "IsOnSale", "ShowOnHomepage",
+			"IsActive", "IsOnSale", "DiscountPercent", "ShowOnHomepage",
 		).
 		Updates(product).Error
 }

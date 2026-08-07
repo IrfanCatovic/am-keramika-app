@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { ListSkeleton } from "@/components/ui/EmptyState";
+import { ProductSalePrice } from "@/components/products/ProductSalePrice";
 import { fetchCategories, fetchProductGroups } from "@/lib/categories-api";
-import { formatMoney } from "@/lib/format";
 import { fetchProducts, getApiBusinessMessage } from "@/lib/products-api";
 import { Category } from "@/types/category";
 import { Product } from "@/types/product";
@@ -279,7 +279,7 @@ export function ProductSelector({
                           {product.unit}
                         </p>
                         <p className="mt-1 text-sm text-stone-700">
-                          {formatMoney(product.salePrice)} · Stanje{" "}
+                          <ProductSalePrice product={product} /> · Stanje{" "}
                           {product.stockQuantity}
                           {outOfStock ? " · Nema na stanju" : ""}
                         </p>

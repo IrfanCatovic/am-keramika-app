@@ -1,6 +1,7 @@
 "use client";
 
-import { formatMoney, formatQuantity } from "@/lib/format";
+import { ProductSalePrice } from "@/components/products/ProductSalePrice";
+import { formatQuantity } from "@/lib/format";
 import { Product } from "@/types/product";
 
 function productImageUrl(product: Product): string | null {
@@ -76,8 +77,8 @@ export function PosQuickProducts({
                 <p className="line-clamp-2 text-xs font-medium text-stone-900">
                   {product.name}
                 </p>
-                <p className="mt-1 text-xs font-semibold tabular-nums text-stone-800">
-                  {formatMoney(product.salePrice)}
+                <p className="mt-1 text-xs">
+                  <ProductSalePrice product={product} />
                 </p>
                 <p
                   className={`mt-0.5 text-[10px] tabular-nums ${

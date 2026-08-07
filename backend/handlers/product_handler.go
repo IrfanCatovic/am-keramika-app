@@ -23,21 +23,23 @@ func mapProductResponse(product models.Product, role string) dto.ProductResponse
 
 func mapProductListResponse(product models.Product, role string, primary *models.ProductImage) dto.ProductResponse {
 	response := dto.ProductResponse{
-		ID:               product.ID,
-		Name:             product.Name,
-		Slug:             product.Slug,
-		Description:      product.Description,
-		CategoryID:       product.CategoryID,
-		GroupID:          product.GroupID,
-		Unit:             product.Unit,
-		SalePrice:        product.SalePrice,
-		StockQuantity:    product.StockQuantity,
-		MinStockQuantity: product.MinStockQuantity,
-		IsActive:         product.IsActive,
-		IsOnSale:         product.IsOnSale,
-		ShowOnHomepage:   product.ShowOnHomepage,
-		PricingMode:      pricing.DetectMode(product.PurchasePrice, product.MarginPercent, product.VatPercent),
-		PrimaryImage:     nil,
+		ID:                 product.ID,
+		Name:               product.Name,
+		Slug:               product.Slug,
+		Description:        product.Description,
+		CategoryID:         product.CategoryID,
+		GroupID:            product.GroupID,
+		Unit:               product.Unit,
+		SalePrice:          product.SalePrice,
+		EffectiveSalePrice: pricing.GetEffectiveSalePrice(product.SalePrice, product.IsOnSale, product.DiscountPercent),
+		StockQuantity:      product.StockQuantity,
+		MinStockQuantity:   product.MinStockQuantity,
+		IsActive:           product.IsActive,
+		IsOnSale:           product.IsOnSale,
+		DiscountPercent:    product.DiscountPercent,
+		ShowOnHomepage:     product.ShowOnHomepage,
+		PricingMode:        pricing.DetectMode(product.PurchasePrice, product.MarginPercent, product.VatPercent),
+		PrimaryImage:       nil,
 	}
 
 	if product.Category.ID != 0 {
@@ -92,7 +94,10 @@ func isProductValidationError(err error) bool {
 		errors.Is(err, pricing.ErrNegativePurchasePrice) ||
 		errors.Is(err, pricing.ErrNegativeSalePrice) ||
 		errors.Is(err, pricing.ErrNegativeMargin) ||
-		errors.Is(err, pricing.ErrNegativeVAT)
+		errors.Is(err, pricing.ErrNegativeVAT) ||
+		errors.Is(err, pricing.ErrNegativeDiscount) ||
+		errors.Is(err, pricing.ErrDiscountTooHigh) ||
+		errors.Is(err, pricing.ErrSaleRequiresDiscount)
 }
 
 func rejectWorkerSensitiveProductFields(c *gin.Context, purchasePrice, marginPercent, vatPercent *float64) bool {
@@ -104,6 +109,21 @@ func rejectWorkerSensitiveProductFields(c *gin.Context, purchasePrice, marginPer
 	if role == models.RoleWorker && (purchasePrice != nil || marginPercent != nil || vatPercent != nil) {
 		c.JSON(http.StatusForbidden, gin.H{
 			"message": "Radnik ne smije unositi ili mijenjati nabavnu cijenu, maržu ni PDV",
+		})
+		return true
+	}
+	return false
+}
+
+func rejectWorkerDiscountField(c *gin.Context, discountPercent *float64) bool {
+	role, err := auth.GetRole(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Korisnik nije autentifikovan"})
+		return true
+	}
+	if role == models.RoleWorker && discountPercent != nil {
+		c.JSON(http.StatusForbidden, gin.H{
+			"message": "Radnik ne smije unositi ili mijenjati procenat popusta",
 		})
 		return true
 	}
@@ -125,6 +145,9 @@ func CreateProduct(c *gin.Context) {
 	}
 
 	if rejectWorkerSensitiveProductFields(c, req.PurchasePrice, req.MarginPercent, req.VatPercent) {
+		return
+	}
+	if rejectWorkerDiscountField(c, req.DiscountPercent) {
 		return
 	}
 
@@ -151,6 +174,15 @@ func CreateProduct(c *gin.Context) {
 		return
 	}
 
+	discountPercent := 0.0
+	if models.CanViewSensitiveProductFields(role) && req.DiscountPercent != nil {
+		discountPercent = *req.DiscountPercent
+	}
+	if err := pricing.ValidateSaleDiscount(req.IsOnSale, discountPercent); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"message": err.Error(), "error": err.Error()})
+		return
+	}
+
 	product := models.Product{
 		Name:             req.Name,
 		Slug:             slug,
@@ -162,6 +194,7 @@ func CreateProduct(c *gin.Context) {
 		Description:      req.Description,
 		IsActive:         true,
 		IsOnSale:         req.IsOnSale,
+		DiscountPercent:  discountPercent,
 		ShowOnHomepage:   req.ShowOnHomepage,
 	}
 	applyPricingResult(&product, priced)
@@ -339,6 +372,9 @@ func UpdateProduct(c *gin.Context) {
 	if rejectWorkerSensitiveProductFields(c, req.PurchasePrice, req.MarginPercent, req.VatPercent) {
 		return
 	}
+	if rejectWorkerDiscountField(c, req.DiscountPercent) {
+		return
+	}
 
 	role, _ := auth.GetRole(c)
 
@@ -406,8 +442,16 @@ func UpdateProduct(c *gin.Context) {
 	if req.IsOnSale != nil {
 		product.IsOnSale = *req.IsOnSale
 	}
+	if models.CanViewSensitiveProductFields(role) && req.DiscountPercent != nil {
+		product.DiscountPercent = *req.DiscountPercent
+	}
 	if req.ShowOnHomepage != nil {
 		product.ShowOnHomepage = *req.ShowOnHomepage
+	}
+
+	if err := pricing.ValidateSaleDiscount(product.IsOnSale, product.DiscountPercent); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"message": err.Error(), "error": err.Error()})
+		return
 	}
 
 	err = repositories.UpdateProduct(product)

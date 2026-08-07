@@ -30,9 +30,10 @@ type Product struct {
 
 	HasVariants bool `gorm:"default:false"`
 
-	IsActive       bool `gorm:"default:true"`
-	IsOnSale       bool `gorm:"default:false"`
-	ShowOnHomepage bool `gorm:"default:false"`
+	IsActive         bool    `gorm:"default:true"`
+	IsOnSale         bool    `gorm:"default:false"`
+	DiscountPercent  float64 `gorm:"default:0"`
+	ShowOnHomepage   bool    `gorm:"default:false"`
 
 	Images []ProductImage `gorm:"foreignKey:ProductID"`
 }

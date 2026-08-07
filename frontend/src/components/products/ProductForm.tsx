@@ -22,7 +22,12 @@ import {
   fetchCategories,
   fetchProductGroups,
 } from "@/lib/categories-api";
-import { canViewSensitivePricing } from "@/lib/product-pricing";
+import {
+  canViewSensitivePricing,
+  getDiscountedRawSalePrice,
+  getEffectiveSalePrice,
+} from "@/lib/product-pricing";
+import { formatMoney } from "@/lib/format";
 import {
   createProduct,
   deleteProductImage,
@@ -68,6 +73,7 @@ type FormState = {
   minStockQuantity: string;
   isActive: boolean;
   isOnSale: boolean;
+  discountPercent: string;
   showOnHomepage: boolean;
   pricing: PricingFieldValues;
 };
@@ -90,6 +96,7 @@ function emptyForm(): FormState {
     minStockQuantity: "0",
     isActive: true,
     isOnSale: false,
+    discountPercent: "",
     showOnHomepage: false,
     pricing: { ...emptyPricing },
   };
@@ -106,6 +113,10 @@ function formFromProduct(product: Product): FormState {
     minStockQuantity: String(product.minStockQuantity),
     isActive: product.isActive,
     isOnSale: product.isOnSale,
+    discountPercent:
+      product.discountPercent > 0
+        ? formatOptionalNumber(product.discountPercent)
+        : "",
     showOnHomepage: product.showOnHomepage,
     pricing: {
       purchasePrice: formatOptionalNumber(product.purchasePrice),
@@ -144,6 +155,28 @@ export function ProductForm({
   const [uploadWarning, setUploadWarning] = useState<string | null>(null);
 
   const selectedCategoryId = Number(form.categoryID) || null;
+
+  const salePreview = useMemo(() => {
+    if (!form.isOnSale || !privileged) {
+      return null;
+    }
+    const discount = parseOptionalNumber(form.discountPercent);
+    const sale = parseOptionalNumber(form.pricing.salePrice);
+    if (discount == null || discount <= 0 || sale == null || sale <= 0) {
+      return null;
+    }
+    return {
+      regular: sale,
+      discount,
+      raw: getDiscountedRawSalePrice(sale, discount),
+      effective: getEffectiveSalePrice(sale, true, discount),
+    };
+  }, [
+    form.isOnSale,
+    form.discountPercent,
+    form.pricing.salePrice,
+    privileged,
+  ]);
 
   const categoryOptions = useMemo(() => {
     if (mode === "create") {
@@ -323,6 +356,20 @@ export function ProductForm({
       }
     }
 
+    if (form.isOnSale) {
+      if (privileged) {
+        const discount = parseOptionalNumber(form.discountPercent);
+        if (discount == null || discount <= 0) {
+          return "Za akciju unesite popust veći od 0%.";
+        }
+        if (discount >= 100) {
+          return "Popust mora biti manji od 100%.";
+        }
+      } else if ((product?.discountPercent ?? 0) <= 0) {
+        return "Akciju može uključiti samo kada je popust već postavljen (developer/šef/menadžer).";
+      }
+    }
+
     return null;
   }
 
@@ -345,6 +392,7 @@ export function ProductForm({
       const margin = parseOptionalNumber(form.pricing.marginPercent);
       const vat = parseOptionalNumber(form.pricing.vatPercent);
       const sale = parseOptionalNumber(form.pricing.salePrice);
+      const discount = parseOptionalNumber(form.discountPercent);
       if (purchase != null) {
         payload.purchasePrice = purchase;
       }
@@ -357,6 +405,7 @@ export function ProductForm({
       if (sale != null) {
         payload.salePrice = sale;
       }
+      payload.discountPercent = discount ?? 0;
     } else {
       const sale = parseOptionalNumber(form.pricing.salePrice);
       if (sale != null) {
@@ -390,6 +439,7 @@ export function ProductForm({
       if (sale != null) {
         payload.salePrice = sale;
       }
+      payload.discountPercent = parseOptionalNumber(form.discountPercent) ?? 0;
     } else if (product?.pricingMode !== "calculated") {
       const sale = parseOptionalNumber(form.pricing.salePrice);
       if (sale != null) {
@@ -896,18 +946,20 @@ export function ProductForm({
               Aktivan
             </label>
           ) : null}
-          <label className="inline-flex min-h-10 cursor-pointer items-center gap-2 text-sm text-stone-700">
-            <input
-              type="checkbox"
-              checked={form.isOnSale}
-              onChange={(event) =>
-                patchForm({ isOnSale: event.target.checked })
-              }
-              disabled={saving}
-              className="h-4 w-4 rounded border-stone-300 text-stone-900 focus:ring-[#c4a484]"
-            />
-            Na akciji
-          </label>
+          {!privileged ? (
+            <label className="inline-flex min-h-10 cursor-pointer items-center gap-2 text-sm text-stone-700">
+              <input
+                type="checkbox"
+                checked={form.isOnSale}
+                onChange={(event) =>
+                  patchForm({ isOnSale: event.target.checked })
+                }
+                disabled={saving}
+                className="h-4 w-4 rounded border-stone-300 text-stone-900 focus:ring-[#c4a484]"
+              />
+              Na akciji
+            </label>
+          ) : null}
           <label className="inline-flex min-h-10 cursor-pointer items-center gap-2 text-sm text-stone-700">
             <input
               type="checkbox"
@@ -921,6 +973,90 @@ export function ProductForm({
             Prikaži na početnoj
           </label>
         </div>
+
+        {privileged ? (
+          <section className="space-y-3 rounded-2xl border border-stone-200 bg-[#faf8f5] p-4">
+            <div>
+              <h2 className="text-sm font-semibold text-stone-900">
+                Akcija proizvoda
+              </h2>
+              <p className="mt-1 text-xs text-stone-500">
+                Regularna prodajna cijena ostaje nepromijenjena; kupac plaća
+                akcijsku cijenu dok je akcija uključena.
+              </p>
+            </div>
+            <label className="inline-flex min-h-10 cursor-pointer items-center gap-2 text-sm text-stone-700">
+              <input
+                type="checkbox"
+                checked={form.isOnSale}
+                onChange={(event) =>
+                  patchForm({ isOnSale: event.target.checked })
+                }
+                disabled={saving}
+                className="h-4 w-4 rounded border-stone-300 text-stone-900 focus:ring-[#c4a484]"
+              />
+              Proizvod je na akciji
+            </label>
+            {form.isOnSale ? (
+              <div className="space-y-3">
+                <div>
+                  <label
+                    htmlFor="discount-percent"
+                    className="mb-1.5 block text-sm font-medium text-stone-700"
+                  >
+                    Popust (%)
+                  </label>
+                  <input
+                    id="discount-percent"
+                    type="text"
+                    inputMode="decimal"
+                    value={form.discountPercent}
+                    onChange={(event) =>
+                      patchForm({ discountPercent: event.target.value })
+                    }
+                    disabled={saving}
+                    className="w-full max-w-xs rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm text-stone-900 outline-none ring-[#c4a484]/40 transition focus:ring-2 disabled:opacity-60"
+                  />
+                </div>
+                {salePreview ? (
+                  <dl className="grid gap-2 text-sm text-stone-700 sm:grid-cols-2">
+                    <div>
+                      <dt className="text-xs text-stone-500">Regularna cijena</dt>
+                      <dd className="tabular-nums font-medium text-stone-900">
+                        {formatMoney(salePreview.regular)}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-stone-500">Popust</dt>
+                      <dd className="tabular-nums font-medium text-stone-900">
+                        {salePreview.discount}%
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-stone-500">
+                        Cijena nakon popusta
+                      </dt>
+                      <dd className="tabular-nums font-medium text-stone-900">
+                        {formatMoney(salePreview.raw)}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-stone-500">
+                        Prodajna akcijska cijena
+                      </dt>
+                      <dd className="tabular-nums text-base font-semibold text-stone-900">
+                        {formatMoney(salePreview.effective)}
+                      </dd>
+                    </div>
+                  </dl>
+                ) : null}
+                <p className="text-xs text-stone-500">
+                  Akcijska cijena se zaokružuje naviše na 10 RSD.
+                </p>
+              </div>
+            ) : null}
+          </section>
+        ) : null}
 
         <ProductImagesField
           mode={mode}

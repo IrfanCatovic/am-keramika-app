@@ -9,7 +9,8 @@ import {
   ListSkeleton,
   StatusBadge,
 } from "@/components/ui/EmptyState";
-import { formatMoney, formatQuantity } from "@/lib/format";
+import { ProductSalePrice } from "@/components/products/ProductSalePrice";
+import { formatQuantity } from "@/lib/format";
 import { Product, ProductPagination } from "@/types/product";
 
 function PricingModeBadge({ mode }: { mode: string }) {
@@ -78,9 +79,7 @@ function ProductCard({
             {product.group?.name ? ` · ${product.group.name}` : " · Bez grupe"}
           </p>
           <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-sm text-stone-600">
-            <span className="tabular-nums font-medium text-stone-900">
-              {formatMoney(product.salePrice)}
-            </span>
+            <ProductSalePrice product={product} />
             <span>
               {formatQuantity(product.stockQuantity)} {product.unit}
             </span>
@@ -234,8 +233,8 @@ export function ProductList({
                       <td className="border-b border-stone-50 px-3 py-3 text-stone-600">
                         {product.unit}
                       </td>
-                      <td className="border-b border-stone-50 px-3 py-3 tabular-nums font-medium text-stone-900">
-                        {formatMoney(product.salePrice)}
+                      <td className="border-b border-stone-50 px-3 py-3">
+                        <ProductSalePrice product={product} />
                       </td>
                       <td className="border-b border-stone-50 px-3 py-3 tabular-nums text-stone-700">
                         {formatQuantity(product.stockQuantity)}

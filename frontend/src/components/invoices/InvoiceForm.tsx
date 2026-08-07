@@ -36,6 +36,7 @@ import {
   getApiBusinessMessage,
   invoiceCustomerLabel,
 } from "@/lib/invoices-api";
+import { resolveProductUnitPrice } from "@/lib/product-pricing";
 import { fetchProducts } from "@/lib/products-api";
 import { Category } from "@/types/category";
 import { CustomerListItem } from "@/types/customer";
@@ -387,7 +388,7 @@ export function InvoiceForm({
                   ...line,
                   quantity: nextQty,
                   stockQuantity: product.stockQuantity,
-                  salePrice: product.salePrice,
+                  salePrice: resolveProductUnitPrice(product),
                 }
               : line,
           );
@@ -398,7 +399,7 @@ export function InvoiceForm({
             productID: product.id,
             name: product.name,
             unit: product.unit,
-            salePrice: product.salePrice,
+            salePrice: resolveProductUnitPrice(product),
             stockQuantity: product.stockQuantity,
             imageUrl: productImageUrl(product),
             quantity: 1,
