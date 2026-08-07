@@ -5,28 +5,27 @@
 
 function env(key: string): string {
   const value = process.env[key];
-  return typeof value === "string" ? value.trim() : "";
+  return typeof value === 'string' ? value.trim() : '';
 }
 
-export const COMPANY_LOGO_SRC =
-  "/logo-stampa-racuni/logo-stampa-racuni.jpeg";
+export const COMPANY_LOGO_SRC = '/logo-stampa-racuni/logo-stampa-racuni.svg';
 
 export const companyConfig = {
-  name: env("NEXT_PUBLIC_COMPANY_NAME") || "AM Keramika",
-  address: env("NEXT_PUBLIC_COMPANY_ADDRESS"),
-  city: env("NEXT_PUBLIC_COMPANY_CITY"),
-  phone: env("NEXT_PUBLIC_COMPANY_PHONE"),
-  email: env("NEXT_PUBLIC_COMPANY_EMAIL"),
-  taxId: env("NEXT_PUBLIC_COMPANY_TAX_ID"),
-  registrationNumber: env("NEXT_PUBLIC_COMPANY_REGISTRATION_NUMBER"),
-  bankAccount: env("NEXT_PUBLIC_COMPANY_BANK_ACCOUNT"),
-  website: env("NEXT_PUBLIC_COMPANY_WEBSITE"),
+  name: env('NEXT_PUBLIC_COMPANY_NAME') || 'AM Keramika',
+  address: env('NEXT_PUBLIC_COMPANY_ADDRESS'),
+  city: env('NEXT_PUBLIC_COMPANY_CITY'),
+  phone: env('NEXT_PUBLIC_COMPANY_PHONE'),
+  email: env('NEXT_PUBLIC_COMPANY_EMAIL'),
+  taxId: env('NEXT_PUBLIC_COMPANY_TAX_ID'),
+  registrationNumber: env('NEXT_PUBLIC_COMPANY_REGISTRATION_NUMBER'),
+  bankAccount: env('NEXT_PUBLIC_COMPANY_BANK_ACCOUNT'),
+  website: env('NEXT_PUBLIC_COMPANY_WEBSITE'),
 } as const;
 
 export type CompanyConfig = typeof companyConfig;
 
 export function companyAddressLines(
-  config: CompanyConfig = companyConfig,
+  config: CompanyConfig = companyConfig
 ): string[] {
   const lines: string[] = [];
   if (config.address) lines.push(config.address);
@@ -35,7 +34,7 @@ export function companyAddressLines(
 }
 
 export function companyContactLines(
-  config: CompanyConfig = companyConfig,
+  config: CompanyConfig = companyConfig
 ): string[] {
   const lines: string[] = [];
   if (config.phone) lines.push(`Tel: ${config.phone}`);
@@ -44,7 +43,9 @@ export function companyContactLines(
   return lines;
 }
 
-export function companyIdLines(config: CompanyConfig = companyConfig): string[] {
+export function companyIdLines(
+  config: CompanyConfig = companyConfig
+): string[] {
   const lines: string[] = [];
   if (config.taxId) lines.push(`PIB: ${config.taxId}`);
   if (config.registrationNumber) lines.push(`MB: ${config.registrationNumber}`);

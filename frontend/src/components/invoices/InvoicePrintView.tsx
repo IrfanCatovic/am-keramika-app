@@ -75,6 +75,26 @@ export function InvoicePrintView({
     return () => window.clearTimeout(timer);
   }, [loadInvoice, reloadToken]);
 
+  // Hide browser print chrome (date + page title like "8/7/26, 10:15 AM AM Keramika").
+  useEffect(() => {
+    const previousTitle = document.title;
+    const blankTitle = () => {
+      document.title = " ";
+    };
+    const restoreTitle = () => {
+      document.title = previousTitle;
+    };
+
+    blankTitle();
+    window.addEventListener("beforeprint", blankTitle);
+    window.addEventListener("afterprint", restoreTitle);
+    return () => {
+      window.removeEventListener("beforeprint", blankTitle);
+      window.removeEventListener("afterprint", restoreTitle);
+      restoreTitle();
+    };
+  }, []);
+
   useEffect(() => {
     if (!autoprint || loading || error || !invoice || printTriggeredRef.current) {
       return;

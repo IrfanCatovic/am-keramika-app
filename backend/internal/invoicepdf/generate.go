@@ -16,9 +16,6 @@ var fontRegular []byte
 //go:embed assets/DejaVuSans-Bold.ttf
 var fontBold []byte
 
-//go:embed assets/logo-stampa-racuni.jpeg
-var logoJPEG []byte
-
 // Company holds optional firm details for the PDF header.
 // Empty fields are omitted from the document.
 type Company struct {
@@ -166,9 +163,9 @@ func drawHeader(pdf *fpdf.Fpdf, doc Document) {
 
 	logoH := 18.0
 	logoW := 0.0
-	if len(logoJPEG) > 0 {
-		opt := fpdf.ImageOptions{ImageType: "JPG", ReadDpi: true}
-		info := pdf.RegisterImageOptionsReader("logo", opt, bytes.NewReader(logoJPEG))
+	if logoPNG := logoPNGBytes(); len(logoPNG) > 0 {
+		opt := fpdf.ImageOptions{ImageType: "PNG", ReadDpi: true}
+		info := pdf.RegisterImageOptionsReader("logo", opt, bytes.NewReader(logoPNG))
 		if info != nil {
 			logoW = logoH * info.Width() / info.Height()
 			if logoW > 55 {

@@ -52,8 +52,8 @@ export function InvoicePrintDocument({
       ) : null}
 
       <header className="invoice-print-header flex items-start justify-between gap-6 border-b border-stone-300 pb-4">
-        <div className="min-w-0 flex-1">
-          <div className="invoice-print-logo-wrap">
+        <div className="flex min-w-0 flex-1 items-start gap-3">
+          <div className="invoice-print-logo-wrap shrink-0">
             <Image
               src={COMPANY_LOGO_SRC}
               alt={companyConfig.name}
@@ -64,24 +64,26 @@ export function InvoicePrintDocument({
               unoptimized
             />
           </div>
-          <p className="mt-2 text-sm font-semibold tracking-tight text-stone-900">
-            {companyConfig.name}
-          </p>
-          {addressLines.map((line) => (
-            <p key={line} className="text-xs text-stone-600">
-              {line}
+          <div className="min-w-0 pt-0.5">
+            <p className="text-sm font-semibold tracking-tight text-stone-900">
+              {companyConfig.name}
             </p>
-          ))}
-          {contactLines.map((line) => (
-            <p key={line} className="text-xs text-stone-600">
-              {line}
-            </p>
-          ))}
-          {idLines.map((line) => (
-            <p key={line} className="text-xs text-stone-600">
-              {line}
-            </p>
-          ))}
+            {addressLines.map((line) => (
+              <p key={line} className="text-xs text-stone-600">
+                {line}
+              </p>
+            ))}
+            {contactLines.map((line) => (
+              <p key={line} className="text-xs text-stone-600">
+                {line}
+              </p>
+            ))}
+            {idLines.map((line) => (
+              <p key={line} className="text-xs text-stone-600">
+                {line}
+              </p>
+            ))}
+          </div>
         </div>
 
         <div className="shrink-0 text-right">
