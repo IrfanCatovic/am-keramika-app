@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"errors"
 	"math"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"am-keramika-backend/auth"
 	"am-keramika-backend/dto"
@@ -12,6 +14,7 @@ import (
 	"am-keramika-backend/repositories"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func missingQuantity(stockQuantity, minStockQuantity float64) float64 {
@@ -57,34 +60,70 @@ func mapLowStockProductResponse(product models.Product, primary *models.ProductI
 	return response
 }
 
+func mapInventoryMovementResponse(movement models.InventoryMovement) dto.InventoryMovementResponse {
+	response := dto.InventoryMovementResponse{
+		ID:           movement.ID,
+		ProductID:    movement.ProductID,
+		ProductName:  movement.Product.Name,
+		ProductUnit:  movement.Product.Unit,
+		MovementType: movement.MovementType,
+		Quantity:     movement.Quantity,
+		Note:         movement.Note,
+		CreatedAt:    movement.CreatedAt.Format("2006-01-02 15:04"),
+	}
+
+	if movement.CreatedByUser.ID != 0 {
+		response.CreatedByUser = &dto.InventoryMovementUserResponse{
+			ID:       movement.CreatedByUser.ID,
+			Username: movement.CreatedByUser.Username,
+		}
+	}
+
+	return response
+}
+
+func parseInventoryPagination(c *gin.Context, defaultPage, defaultLimit, maxLimit int) (page int, limit int, ok bool) {
+	page = defaultPage
+	if pageStr := c.Query("page"); pageStr != "" {
+		parsed, err := strconv.Atoi(pageStr)
+		if err != nil || parsed <= 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "page mora biti pozitivan broj"})
+			return 0, 0, false
+		}
+		page = parsed
+	}
+
+	limit = defaultLimit
+	if limitStr := c.Query("limit"); limitStr != "" {
+		parsed, err := strconv.Atoi(limitStr)
+		if err != nil || parsed <= 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "limit mora biti pozitivan broj"})
+			return 0, 0, false
+		}
+		if parsed > maxLimit {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "limit ne smije biti veći od 100"})
+			return 0, 0, false
+		}
+		limit = parsed
+	}
+
+	return page, limit, true
+}
+
 func GetLowStock(c *gin.Context) {
 	if _, err := auth.GetRole(c); err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "Korisnik nije autentifikovan"})
 		return
 	}
 
-	page := repositories.DefaultLowStockPage
-	if pageStr := c.Query("page"); pageStr != "" {
-		parsed, err := strconv.Atoi(pageStr)
-		if err != nil || parsed <= 0 {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "page mora biti pozitivan broj"})
-			return
-		}
-		page = parsed
-	}
-
-	limit := repositories.DefaultLowStockLimit
-	if limitStr := c.Query("limit"); limitStr != "" {
-		parsed, err := strconv.Atoi(limitStr)
-		if err != nil || parsed <= 0 {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "limit mora biti pozitivan broj"})
-			return
-		}
-		if parsed > repositories.MaxLowStockLimit {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "limit ne smije biti veći od 100"})
-			return
-		}
-		limit = parsed
+	page, limit, ok := parseInventoryPagination(
+		c,
+		repositories.DefaultLowStockPage,
+		repositories.DefaultLowStockLimit,
+		repositories.MaxLowStockLimit,
+	)
+	if !ok {
+		return
 	}
 
 	search := strings.TrimSpace(c.Query("search"))
@@ -96,13 +135,15 @@ func GetLowStock(c *gin.Context) {
 	if groupID == "" {
 		groupID = c.Query("groupId")
 	}
+	excludeOutOfStock := c.Query("excludeOutOfStock") == "true"
 
 	products, total, err := repositories.ListLowStockProducts(repositories.LowStockQuery{
-		Page:       page,
-		Limit:      limit,
-		Search:     search,
-		CategoryID: categoryID,
-		GroupID:    groupID,
+		Page:              page,
+		Limit:             limit,
+		Search:            search,
+		CategoryID:        categoryID,
+		GroupID:           groupID,
+		ExcludeOutOfStock: excludeOutOfStock,
 	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Greška pri učitavanju low-stock proizvoda", "error": err.Error()})
@@ -146,6 +187,104 @@ func GetLowStock(c *gin.Context) {
 	})
 }
 
+func GetInventorySummary(c *gin.Context) {
+	if _, err := auth.GetRole(c); err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Korisnik nije autentifikovan"})
+		return
+	}
+
+	lowCount, err := repositories.CountLowStockProducts(true)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Greška pri učitavanju sažetka lagera"})
+		return
+	}
+
+	outCount, err := repositories.CountOutOfStockProducts()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Greška pri učitavanju sažetka lagera"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"lowStockCount":  lowCount,
+		"outOfStockCount": outCount,
+	})
+}
+
+func GetInventoryMovements(c *gin.Context) {
+	if _, err := auth.GetRole(c); err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Korisnik nije autentifikovan"})
+		return
+	}
+
+	page, limit, ok := parseInventoryPagination(
+		c,
+		repositories.DefaultMovementListPage,
+		repositories.DefaultMovementListLimit,
+		repositories.MaxMovementListLimit,
+	)
+	if !ok {
+		return
+	}
+
+	productID := strings.TrimSpace(c.Query("productID"))
+	if productID == "" {
+		productID = strings.TrimSpace(c.Query("productId"))
+	}
+	movementType := strings.TrimSpace(c.Query("type"))
+	if movementType == "" {
+		movementType = strings.TrimSpace(c.Query("movementType"))
+	}
+	fromDate := strings.TrimSpace(c.Query("fromDate"))
+	toDate := strings.TrimSpace(c.Query("toDate"))
+
+	if fromDate != "" {
+		if _, err := time.Parse("2006-01-02", fromDate); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "fromDate mora biti u formatu YYYY-MM-DD"})
+			return
+		}
+	}
+	if toDate != "" {
+		if _, err := time.Parse("2006-01-02", toDate); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "toDate mora biti u formatu YYYY-MM-DD"})
+			return
+		}
+	}
+
+	movements, total, err := repositories.ListInventoryMovements(repositories.MovementListQuery{
+		Page:         page,
+		Limit:        limit,
+		ProductID:    productID,
+		MovementType: movementType,
+		FromDate:     fromDate,
+		ToDate:       toDate,
+	})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Greška pri učitavanju istorije lagera", "error": err.Error()})
+		return
+	}
+
+	response := make([]dto.InventoryMovementResponse, 0, len(movements))
+	for _, movement := range movements {
+		response = append(response, mapInventoryMovementResponse(movement))
+	}
+
+	totalPages := 0
+	if total > 0 {
+		totalPages = int(math.Ceil(float64(total) / float64(limit)))
+	}
+
+	c.JSON(http.StatusOK, dto.PaginatedInventoryMovementsResponse{
+		Movements: response,
+		Pagination: dto.InventoryMovementPaginationResponse{
+			Page:       page,
+			Limit:      limit,
+			TotalItems: total,
+			TotalPages: totalPages,
+		},
+	})
+}
+
 func AddStock(c *gin.Context) {
 	var req dto.AddStockRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -171,7 +310,7 @@ func AddStock(c *gin.Context) {
 func AdjustStock(c *gin.Context) {
 	var req dto.AdjustStockRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Neuspjelo bindovanje JSON-a", "error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Neispravan zahtjev", "error": err.Error()})
 		return
 	}
 
@@ -181,13 +320,34 @@ func AdjustStock(c *gin.Context) {
 		return
 	}
 
-	err = repositories.AdjustStock(req.ProductID, req.Quantity, req.Note, createdByUserID)
+	result, err := repositories.AdjustStock(req.ProductID, req.NewQuantity, req.Note, createdByUserID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspjelo prilagođavanje stoka", "error": err.Error()})
+		if errors.Is(err, gorm.ErrRecordNotFound) || err.Error() == "proizvod nije pronađen" {
+			c.JSON(http.StatusNotFound, gin.H{"message": "Proizvod nije pronađen"})
+			return
+		}
+		if err.Error() == "proizvod nije aktivan" {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "Proizvod nije aktivan"})
+			return
+		}
+		if err.Error() == "nova količina ne smije biti negativna" {
+			c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Korekcija lagera nije uspjela", "error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Stok prilagođen", "data": req})
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Stanje lagera je ažurirano",
+		"data": dto.AdjustStockResponse{
+			ProductID:     result.ProductID,
+			PreviousStock: result.PreviousStock,
+			NewStock:      result.NewStock,
+			Change:        result.Change,
+			MovementID:    result.MovementID,
+		},
+	})
 }
 
 func SellStock(c *gin.Context) {

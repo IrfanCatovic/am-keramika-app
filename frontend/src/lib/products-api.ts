@@ -38,6 +38,9 @@ function buildListQuery(params: ProductListParams): string {
   if (params.includeInactive) {
     searchParams.set("includeInactive", "true");
   }
+  if (params.stockStatus) {
+    searchParams.set("stockStatus", params.stockStatus);
+  }
   const query = searchParams.toString();
   return query ? `?${query}` : "";
 }

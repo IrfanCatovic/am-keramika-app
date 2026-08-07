@@ -197,6 +197,11 @@ func GetAllProducts(c *gin.Context) {
 	}
 	ungrouped := c.Query("ungrouped") == "true"
 	includeInactive := c.Query("includeInactive") == "true"
+	stockStatus := strings.TrimSpace(c.Query("stockStatus"))
+	if stockStatus != "" && stockStatus != "out" {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "stockStatus mora biti out ili prazan"})
+		return
+	}
 
 	if groupID != "" && ungrouped {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -241,6 +246,7 @@ func GetAllProducts(c *gin.Context) {
 		GroupID:         groupID,
 		Ungrouped:       ungrouped,
 		IncludeInactive: includeInactive,
+		StockStatus:     stockStatus,
 		Page:            page,
 		Limit:           limit,
 	})

@@ -66,6 +66,7 @@ export interface ProductListParams {
   groupID?: number;
   ungrouped?: boolean;
   includeInactive?: boolean;
+  stockStatus?: "out";
 }
 
 export interface CreateProductPayload {

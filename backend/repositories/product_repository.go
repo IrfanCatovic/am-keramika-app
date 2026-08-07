@@ -22,6 +22,7 @@ type ProductListQuery struct {
 	GroupID         string
 	Ungrouped       bool
 	IncludeInactive bool
+	StockStatus     string
 	Page            int
 	Limit           int
 }
@@ -69,6 +70,11 @@ func buildProductListQuery(q ProductListQuery) *gorm.DB {
 	}
 	if q.Ungrouped {
 		query = query.Where("products.group_id IS NULL")
+	}
+
+	switch strings.ToLower(strings.TrimSpace(q.StockStatus)) {
+	case "out":
+		query = query.Where("products.stock_quantity <= 0")
 	}
 
 	return query

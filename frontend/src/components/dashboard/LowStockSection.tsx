@@ -61,7 +61,12 @@ function LowStockRow({ product }: { product: LowStockProduct }) {
               </span>
             </p>
             <p className="font-medium text-[#8a6a45]">
-              Nedostaje {formatQuantity(product.missingQuantity)} {product.unit}
+              Nedostaje{" "}
+              {formatQuantity(
+                product.missingQuantity ??
+                  Math.max(0, product.minStockQuantity - product.stockQuantity),
+              )}{" "}
+              {product.unit}
             </p>
           </div>
 
@@ -106,7 +111,7 @@ export function LowStockSection() {
       description="Proizvodi ispod minimalnog stocka"
       action={
         <Link
-          href="/inventory"
+          href="/inventory?status=low"
           className="shrink-0 text-sm font-medium text-[#8a6a45] transition hover:text-stone-900"
         >
           Prikaži sve

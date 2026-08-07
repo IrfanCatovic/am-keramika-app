@@ -1,15 +1,19 @@
+import { Suspense } from "react";
+
+import { InventoryWorkspace } from "@/components/inventory/InventoryWorkspace";
+import { ListSkeleton } from "@/components/ui/EmptyState";
+
 export default function InventoryPage() {
   return (
-    <div className="space-y-3">
-      <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-        Lager
-      </h1>
-      <p className="text-sm text-slate-500">
-        Pregled stanja i low-stock proizvoda.
-      </p>
-      <div className="rounded-xl border border-dashed border-slate-300 bg-white px-5 py-8 text-sm text-slate-500">
-        Modul će biti implementiran u narednoj fazi.
-      </div>
-    </div>
+    <Suspense
+      fallback={
+        <div className="space-y-4">
+          <ListSkeleton rows={2} />
+          <ListSkeleton rows={5} />
+        </div>
+      }
+    >
+      <InventoryWorkspace />
+    </Suspense>
   );
 }
