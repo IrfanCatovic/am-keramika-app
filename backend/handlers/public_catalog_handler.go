@@ -63,18 +63,43 @@ func GetPublicProducts(c *gin.Context) {
 	if categoryID == "" {
 		categoryID = c.Query("categoryId")
 	}
+	categorySlug := strings.TrimSpace(c.Query("categorySlug"))
+	if categorySlug == "" {
+		categorySlug = strings.TrimSpace(c.Query("category"))
+	}
 	groupID := c.Query("groupID")
 	if groupID == "" {
 		groupID = c.Query("groupId")
 	}
+	groupSlug := strings.TrimSpace(c.Query("groupSlug"))
+	if groupSlug == "" {
+		groupSlug = strings.TrimSpace(c.Query("group"))
+	}
 	ungrouped := c.Query("ungrouped") == "true"
 	onSaleOnly := c.Query("onSale") == "true"
-	homepageOnly := c.Query("homepage") == "true"
+	homepageOnly := c.Query("homepage") == "true" || c.Query("featured") == "true"
+	inStockOnly := c.Query("inStock") == "true"
+	random := c.Query("random") == "true"
+	sortRaw := c.Query("sort")
 
-	if groupID != "" && ungrouped {
+	if categoryID != "" && categorySlug != "" {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "categoryID i categorySlug ne mogu biti korišteni zajedno"})
+		return
+	}
+	if groupID != "" && groupSlug != "" {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "groupID i groupSlug ne mogu biti korišteni zajedno"})
+		return
+	}
+	if (groupID != "" || groupSlug != "") && ungrouped {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "groupID i ungrouped=true ne mogu biti korišteni zajedno",
+			"message": "group filter i ungrouped=true ne mogu biti korišteni zajedno",
 		})
+		return
+	}
+
+	sort := repositories.NormalizePublicSort(sortRaw)
+	if sortRaw != "" && sort == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "nepodržan sort parametar"})
 		return
 	}
 
@@ -102,13 +127,29 @@ func GetPublicProducts(c *gin.Context) {
 		limit = parsedLimit
 	}
 
+	var excludeID uint
+	if excludeStr := strings.TrimSpace(c.Query("excludeId")); excludeStr != "" {
+		parsed, err := strconv.ParseUint(excludeStr, 10, 64)
+		if err != nil || parsed == 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "excludeId mora biti pozitivan broj"})
+			return
+		}
+		excludeID = uint(parsed)
+	}
+
 	products, total, err := repositories.ListPublicProducts(repositories.PublicProductListQuery{
 		Search:       search,
 		CategoryID:   categoryID,
+		CategorySlug: categorySlug,
 		GroupID:      groupID,
+		GroupSlug:    groupSlug,
 		Ungrouped:    ungrouped,
 		OnSaleOnly:   onSaleOnly,
 		HomepageOnly: homepageOnly,
+		InStockOnly:  inStockOnly,
+		ExcludeID:    excludeID,
+		Random:       random,
+		Sort:         sort,
 		Page:         page,
 		Limit:        limit,
 	})
@@ -171,7 +212,6 @@ func GetPublicProductBySlug(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"message": "Proizvod nije pronadjen",
-			"error":   err.Error(),
 		})
 		return
 	}
@@ -216,10 +256,48 @@ func GetPublicCategories(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+func GetPublicCategoryBySlug(c *gin.Context) {
+	slug := strings.TrimSpace(c.Param("slug"))
+	if slug == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Slug je obavezan"})
+		return
+	}
+
+	category, err := repositories.GetPublicCategoryBySlug(slug)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"message": "Kategorija nije pronađena"})
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.PublicCategoryResponse{
+		ID:   category.ID,
+		Name: category.Name,
+		Slug: category.Slug,
+	})
+}
+
 func GetPublicProductGroups(c *gin.Context) {
 	categoryID := c.Query("categoryID")
 	if categoryID == "" {
 		categoryID = c.Query("categoryId")
+	}
+	categorySlug := strings.TrimSpace(c.Query("categorySlug"))
+	if categorySlug == "" {
+		categorySlug = strings.TrimSpace(c.Query("category"))
+	}
+
+	if categoryID != "" && categorySlug != "" {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "categoryID i categorySlug ne mogu biti korišteni zajedno"})
+		return
+	}
+
+	if categorySlug != "" {
+		category, err := repositories.GetPublicCategoryBySlug(categorySlug)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"message": "Kategorija nije pronađena"})
+			return
+		}
+		categoryID = strconv.FormatUint(uint64(category.ID), 10)
 	}
 
 	groups, err := repositories.GetAllProductGroups(categoryID)

@@ -78,6 +78,7 @@ func main() {
 		public.GET("/products", handlers.GetPublicProducts)
 		public.GET("/products/:slug", handlers.GetPublicProductBySlug)
 		public.GET("/categories", handlers.GetPublicCategories)
+		public.GET("/categories/:slug", handlers.GetPublicCategoryBySlug)
 		public.GET("/product-groups", handlers.GetPublicProductGroups)
 	}
 

@@ -37,8 +37,19 @@ body {
   }
 }
 
-.dash-enter {
-  animation: dash-enter 420ms ease-out both;
+@keyframes storefront-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.storefront-fade-up {
+  animation: storefront-fade-up 520ms ease-out both;
 }
 
 /* Samo diskretan detalj na tamnom headeru — ne koristiti iza tabela/teksta */

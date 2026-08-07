@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "AM Keramika",
-  description: "Interna poslovna aplikacija AM Keramika",
+  description: "AM Keramika — keramika, sanitarije, grijanje i interna poslovna aplikacija",
 };
 
 export default function RootLayout({

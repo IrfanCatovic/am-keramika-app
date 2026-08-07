@@ -106,14 +106,73 @@ func ListProducts(q ProductListQuery) ([]models.Product, int64, error) {
 }
 
 type PublicProductListQuery struct {
-	Search       string
-	CategoryID   string
-	GroupID      string
-	Ungrouped    bool
-	OnSaleOnly   bool
-	HomepageOnly bool
-	Page         int
-	Limit        int
+	Search        string
+	CategoryID    string
+	CategorySlug  string
+	GroupID       string
+	GroupSlug     string
+	Ungrouped     bool
+	OnSaleOnly    bool
+	HomepageOnly  bool
+	InStockOnly   bool
+	ExcludeID     uint
+	Random        bool
+	Sort          string
+	Page          int
+	Limit         int
+}
+
+const (
+	PublicSortRecommended = "recommended"
+	PublicSortPriceAsc    = "price_asc"
+	PublicSortPriceDesc   = "price_desc"
+	PublicSortNameAsc     = "name_asc"
+	PublicSortNameDesc    = "name_desc"
+)
+
+// Approximate effective price for server-side sort (discount applied; round-up to 10 not required for ordering).
+const publicEffectivePriceExpr = `
+CASE
+  WHEN products.is_on_sale AND products.discount_percent > 0
+  THEN products.sale_price * (1 - products.discount_percent / 100.0)
+  ELSE products.sale_price
+END
+`
+
+func NormalizePublicSort(sort string) string {
+	switch strings.ToLower(strings.TrimSpace(sort)) {
+	case "", PublicSortRecommended, "default":
+		return PublicSortRecommended
+	case PublicSortPriceAsc, "price-asc", "price":
+		return PublicSortPriceAsc
+	case PublicSortPriceDesc, "price-desc":
+		return PublicSortPriceDesc
+	case PublicSortNameAsc, "name", "name-asc":
+		return PublicSortNameAsc
+	case PublicSortNameDesc, "name-desc":
+		return PublicSortNameDesc
+	default:
+		return ""
+	}
+}
+
+func publicProductOrderClause(sort string, random bool) string {
+	if random {
+		return "RANDOM()"
+	}
+	switch NormalizePublicSort(sort) {
+	case PublicSortPriceAsc:
+		return "(" + publicEffectivePriceExpr + ") ASC, products.name ASC, products.id ASC"
+	case PublicSortPriceDesc:
+		return "(" + publicEffectivePriceExpr + ") DESC, products.name ASC, products.id ASC"
+	case PublicSortNameDesc:
+		return "products.name DESC, products.id DESC"
+	case PublicSortNameAsc:
+		return "products.name ASC, products.id ASC"
+	default:
+		// recommended: featured first, then name
+		return "products.show_on_homepage DESC, products.name ASC, products.id ASC"
+	}
 }
 
 func buildPublicProductListQuery(q PublicProductListQuery) *gorm.DB {
@@ -121,15 +180,24 @@ func buildPublicProductListQuery(q PublicProductListQuery) *gorm.DB {
 		Where("products.is_active = ?", true).
 		Joins("JOIN categories ON categories.id = products.category_id AND categories.deleted_at IS NULL AND categories.is_active = ?", true)
 
+	needsGroupJoin := q.GroupSlug != ""
+	if needsGroupJoin {
+		query = query.Joins("LEFT JOIN product_groups ON product_groups.id = products.group_id AND product_groups.deleted_at IS NULL")
+	}
+
 	if q.Search != "" {
 		search := strings.ToLower(strings.TrimSpace(q.Search))
 		pattern := "%" + search + "%"
 		query = query.Where("LOWER(products.name) LIKE ? OR LOWER(products.slug) LIKE ?", pattern, pattern)
 	}
-	if q.CategoryID != "" {
+	if q.CategorySlug != "" {
+		query = query.Where("categories.slug = ?", strings.TrimSpace(q.CategorySlug))
+	} else if q.CategoryID != "" {
 		query = query.Where("products.category_id = ?", q.CategoryID)
 	}
-	if q.GroupID != "" {
+	if q.GroupSlug != "" {
+		query = query.Where("product_groups.slug = ?", strings.TrimSpace(q.GroupSlug))
+	} else if q.GroupID != "" {
 		query = query.Where("products.group_id = ?", q.GroupID)
 	}
 	if q.Ungrouped {
@@ -141,6 +209,12 @@ func buildPublicProductListQuery(q PublicProductListQuery) *gorm.DB {
 	if q.HomepageOnly {
 		query = query.Where("products.show_on_homepage = ?", true)
 	}
+	if q.InStockOnly {
+		query = query.Where("products.stock_quantity > ?", 0)
+	}
+	if q.ExcludeID > 0 {
+		query = query.Where("products.id <> ?", q.ExcludeID)
+	}
 	return query
 }
 
@@ -150,6 +224,9 @@ func ListPublicProducts(q PublicProductListQuery) ([]models.Product, int64, erro
 	}
 	if q.Limit <= 0 {
 		q.Limit = DefaultProductListLimit
+	}
+	if q.Random {
+		q.Page = 1
 	}
 
 	var total int64
@@ -162,11 +239,22 @@ func ListPublicProducts(q PublicProductListQuery) ([]models.Product, int64, erro
 	err := buildPublicProductListQuery(q).
 		Preload("Category").
 		Preload("Group").
-		Order("products.name ASC, products.id ASC").
+		Order(publicProductOrderClause(q.Sort, q.Random)).
 		Limit(q.Limit).
 		Offset(offset).
 		Find(&products).Error
 	return products, total, err
+}
+
+func GetPublicCategoryBySlug(slug string) (*models.Category, error) {
+	var category models.Category
+	err := database.DB.
+		Where("slug = ? AND is_active = ?", strings.TrimSpace(slug), true).
+		First(&category).Error
+	if err != nil {
+		return nil, err
+	}
+	return &category, nil
 }
 
 func GetPublicProductBySlug(slug string) (*models.Product, error) {
