@@ -6,14 +6,14 @@ import { Modal } from "@/components/ui/Modal";
 
 export function CancelInvoiceDialog({
   open,
-  paidAmount,
+  invoiceId,
   loading,
   error,
   onClose,
   onConfirm,
 }: {
   open: boolean;
-  paidAmount: number;
+  invoiceId?: number;
   loading: boolean;
   error: string | null;
   onClose: () => void;
@@ -21,6 +21,11 @@ export function CancelInvoiceDialog({
 }) {
   const [reason, setReason] = useState("");
   const [localError, setLocalError] = useState<string | null>(null);
+
+  const confirmMessage =
+    invoiceId != null
+      ? `Da li ste sigurni da želite da stornirate račun #${invoiceId}? Nakon potvrde račun će biti označen kao storniran.`
+      : "Da li ste sigurni da želite da stornirate ovaj račun? Nakon potvrde račun će biti označen kao storniran.";
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -36,24 +41,19 @@ export function CancelInvoiceDialog({
   return (
     <Modal
       open={open}
-      title="Otkaži račun"
-      description="Roba će biti vraćena na lager. Status postaje cancelled."
+      title="Storniranje računa"
       onClose={loading ? () => undefined : onClose}
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <p className="text-sm leading-relaxed text-stone-600">
-          Backend će vratiti količine na skladište i smanjiti dug kupca za
-          neplaćeni dio.{" "}
-          {paidAmount > 0
-            ? "Pošto postoji plaćeni iznos, backend može evidentirati refund prema postojećoj logici — iznos se ne računa na frontendu."
-            : null}
+          {confirmMessage}
         </p>
         <div>
           <label
             htmlFor="cancel-reason"
             className="mb-1.5 block text-sm font-medium text-stone-700"
           >
-            Razlog otkazivanja *
+            Razlog storniranja *
           </label>
           <textarea
             id="cancel-reason"
@@ -84,7 +84,7 @@ export function CancelInvoiceDialog({
             disabled={loading}
             className="inline-flex min-h-11 items-center justify-center rounded-xl bg-red-700 px-4 text-sm font-medium text-white hover:bg-red-800 disabled:opacity-60"
           >
-            {loading ? "Otkazivanje..." : "Potvrdi otkazivanje"}
+            {loading ? "Storniranje…" : "Storniraj račun"}
           </button>
         </div>
       </form>

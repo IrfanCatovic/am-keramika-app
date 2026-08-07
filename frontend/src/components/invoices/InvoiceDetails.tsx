@@ -66,7 +66,7 @@ export function InvoiceDetailsView({ invoiceId }: { invoiceId: number }) {
       setReloadToken((value) => value + 1);
     } catch (err) {
       setCancelError(
-        getApiBusinessMessage(err, "Otkazivanje računa nije uspjelo."),
+        getApiBusinessMessage(err, "Storniranje računa nije uspjelo."),
       );
     } finally {
       setCancelLoading(false);
@@ -149,7 +149,7 @@ export function InvoiceDetailsView({ invoiceId }: { invoiceId: number }) {
               }}
               className="inline-flex min-h-11 items-center rounded-xl border border-red-200 px-4 text-sm font-medium text-red-700 hover:bg-red-50"
             >
-              Otkaži račun
+              Storniraj račun
             </button>
           ) : null}
         </div>
@@ -213,21 +213,11 @@ export function InvoiceDetailsView({ invoiceId }: { invoiceId: number }) {
       {lastCancel ? (
         <section className="rounded-2xl border border-amber-200 bg-amber-50/60 p-4 sm:p-5">
           <h2 className="text-sm font-semibold text-amber-950">
-            Rezultat otkazivanja
+            Račun je storniran
           </h2>
           <p className="mt-1 text-sm text-amber-900">
             Razlog: {lastCancel.reason}
           </p>
-          <p className="mt-2 text-sm text-amber-900">
-            Smanjen dug: {formatMoney(lastCancel.debtReducedAmount)} · Refund:{" "}
-            {formatMoney(lastCancel.refundedAmount)}
-          </p>
-          {lastCancel.refund ? (
-            <p className="mt-1 text-xs text-amber-800">
-              Refund #{lastCancel.refund.id}:{" "}
-              {formatMoney(lastCancel.refund.amount)}
-            </p>
-          ) : null}
         </section>
       ) : null}
 
@@ -265,7 +255,7 @@ export function InvoiceDetailsView({ invoiceId }: { invoiceId: number }) {
 
       <CancelInvoiceDialog
         open={cancelOpen}
-        paidAmount={invoice.paidAmount}
+        invoiceId={invoice.id}
         loading={cancelLoading}
         error={cancelError}
         onClose={() => {

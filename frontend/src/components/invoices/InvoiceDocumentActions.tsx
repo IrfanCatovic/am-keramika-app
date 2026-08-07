@@ -10,6 +10,7 @@ export function InvoiceDocumentActions({
   invoiceId,
   variant = "inline",
   showOpen = false,
+  showShare = true,
   openLabel = "Otvori",
   printLabel = "Štampaj",
   className = "",
@@ -17,6 +18,7 @@ export function InvoiceDocumentActions({
   invoiceId: number;
   variant?: Variant;
   showOpen?: boolean;
+  showShare?: boolean;
   openLabel?: string;
   printLabel?: string;
   className?: string;
@@ -59,17 +61,19 @@ export function InvoiceDocumentActions({
         >
           {downloading ? "Preuzimanje…" : "Preuzmi PDF"}
         </button>
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => {
-            clearMessages();
-            void share(invoiceId);
-          }}
-          className={baseBtn}
-        >
-          {sharing ? "Dijeljenje…" : "Podijeli"}
-        </button>
+        {showShare ? (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => {
+              clearMessages();
+              void share(invoiceId);
+            }}
+            className={baseBtn}
+          >
+            {sharing ? "Dijeljenje…" : "Podijeli"}
+          </button>
+        ) : null}
         <a
           href={`/invoices/${invoiceId}/print?autoprint=1`}
           target="_blank"
