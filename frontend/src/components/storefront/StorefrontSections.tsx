@@ -85,10 +85,9 @@ export function CategoryShowcase({
           </div>
           <Link
             href="/proizvodi"
-            className="group hidden items-center gap-2 text-sm text-stone-500 sm:inline-flex"
+            className="hidden text-sm text-stone-500 transition hover:text-stone-800 sm:inline"
           >
             Svi proizvodi
-            <span className="transition group-hover:translate-x-0.5">→</span>
           </Link>
         </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -108,9 +107,8 @@ export function CategoryShowcase({
               <p className="mt-3 font-[family-name:var(--font-storefront-display)] text-2xl tracking-tight text-stone-900 transition group-hover:text-[#5c4630]">
                 {category.name}
               </p>
-              <span className="mt-8 inline-flex items-center gap-2 text-sm text-stone-500 transition group-hover:text-stone-800">
+              <span className="mt-8 inline-flex text-sm text-stone-500 transition group-hover:text-stone-800">
                 Pogledajte
-                <span className="transition group-hover:translate-x-0.5">→</span>
               </span>
             </Link>
           ))}
@@ -226,10 +224,9 @@ export function ProductSection({
           {href ? (
             <Link
               href={href}
-              className={`group hidden items-center gap-2 text-sm sm:inline-flex ${linkClass}`}
+              className={`hidden text-sm sm:inline ${linkClass}`}
             >
               Pogledajte sve
-              <span className="transition group-hover:translate-x-0.5">→</span>
             </Link>
           ) : null}
         </div>

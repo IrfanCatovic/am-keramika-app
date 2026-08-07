@@ -36,7 +36,7 @@ export function StorefrontFooter({
             alt={companyConfig.name}
             width={160}
             height={52}
-            className="h-12 w-auto object-contain brightness-110 contrast-105"
+            className="h-11 w-auto object-contain sm:h-12"
           />
           <p className="mt-5 max-w-sm text-sm leading-relaxed text-stone-400">
             Keramika, sanitarije, grijanje i oprema za vaš dom.

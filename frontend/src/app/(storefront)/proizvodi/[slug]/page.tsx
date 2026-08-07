@@ -144,13 +144,16 @@ export default async function ProductDetailPage({
             {product.name}
           </h1>
 
-          <div className="mt-6 space-y-3">
+          <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2">
             <PublicProductPrice product={product} size="lg" />
-            <PublicAvailability inStock={product.inStock} />
-            {product.unit ? (
-              <p className="text-sm text-stone-500">Jedinica: {product.unit}</p>
-            ) : null}
+            <PublicAvailability
+              inStock={product.inStock}
+              className="self-center"
+            />
           </div>
+          {product.unit ? (
+            <p className="mt-3 text-sm text-stone-500">Jedinica: {product.unit}</p>
+          ) : null}
 
           {product.description ? (
             <div className="mt-8 border-t border-stone-200 pt-8">

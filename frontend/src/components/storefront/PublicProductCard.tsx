@@ -45,6 +45,10 @@ export function PublicProductCard({ product }: { product: PublicProduct }) {
             -{Math.round(product.discountPercent)}%
           </span>
         ) : null}
+        <PublicAvailability
+          inStock={product.inStock}
+          className="absolute right-3 top-3 rounded-md bg-white/90 px-2 py-1 shadow-sm backdrop-blur-sm"
+        />
       </div>
       <div className="flex flex-1 flex-col gap-2 px-4 pb-4 pt-3">
         {meta ? (
@@ -55,9 +59,8 @@ export function PublicProductCard({ product }: { product: PublicProduct }) {
         <h3 className="line-clamp-2 text-[15px] font-medium leading-snug text-stone-900 transition group-hover:text-[#5c4630]">
           {product.name}
         </h3>
-        <div className="mt-auto space-y-2 pt-2">
+        <div className="mt-auto pt-2">
           <PublicProductPrice product={product} size="sm" />
-          <PublicAvailability inStock={product.inStock} />
         </div>
       </div>
     </Link>
