@@ -39,7 +39,7 @@ export default async function StorefrontLayout({
 
   return (
     <div
-      className={`${display.variable} ${sans.variable} flex min-h-screen flex-col bg-[#f7f5f2] font-[family-name:var(--font-storefront-sans)] text-stone-900 antialiased`}
+      className={`${display.variable} ${sans.variable} flex min-h-screen flex-col bg-[#f6f4f1] font-[family-name:var(--font-storefront-sans)] text-stone-900 antialiased`}
     >
       <StorefrontHeader categories={categories} />
       <main className="flex-1">{children}</main>

@@ -1,6 +1,8 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import {
+  STOREFRONT_LOGO_SRC,
   companyAddressLines,
   companyConfig,
   companyContactLines,
@@ -17,13 +19,26 @@ export function StorefrontFooter({
   const year = new Date().getFullYear();
 
   return (
-    <footer className="mt-auto border-t border-stone-200 bg-stone-950 text-stone-300">
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1.2fr_1fr_1fr] lg:px-8">
+    <footer className="relative mt-auto overflow-hidden bg-[#121110] text-stone-300">
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#8a6a45]/50 to-transparent"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute -left-20 bottom-0 h-48 w-48 rounded-full bg-[#8a6a45]/10 blur-3xl"
+        aria-hidden
+      />
+
+      <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[1.3fr_1fr_1fr] lg:px-8">
         <div>
-          <p className="font-[family-name:var(--font-storefront-display)] text-2xl text-white">
-            {companyConfig.name}
-          </p>
-          <p className="mt-3 max-w-sm text-sm leading-relaxed text-stone-400">
+          <Image
+            src={STOREFRONT_LOGO_SRC}
+            alt={companyConfig.name}
+            width={160}
+            height={52}
+            className="h-12 w-auto object-contain brightness-110 contrast-105"
+          />
+          <p className="mt-5 max-w-sm text-sm leading-relaxed text-stone-400">
             Keramika, sanitarije, grijanje i oprema za vaš dom.
           </p>
           {(address.length > 0 || contact.length > 0) && (
@@ -39,10 +54,10 @@ export function StorefrontFooter({
         </div>
 
         <div>
-          <p className="text-xs uppercase tracking-[0.16em] text-stone-500">
+          <p className="text-[11px] uppercase tracking-[0.18em] text-stone-500">
             Navigacija
           </p>
-          <ul className="mt-4 space-y-2 text-sm">
+          <ul className="mt-4 space-y-2.5 text-sm">
             <li>
               <Link href="/" className="transition hover:text-white">
                 Početna
@@ -53,7 +68,12 @@ export function StorefrontFooter({
                 Proizvodi
               </Link>
             </li>
-            {categories.slice(0, 6).map((category) => (
+            <li>
+              <Link href="/#kategorije" className="transition hover:text-white">
+                Kategorije
+              </Link>
+            </li>
+            {categories.slice(0, 5).map((category) => (
               <li key={category.id}>
                 <Link
                   href={`/kategorije/${category.slug}`}
@@ -67,22 +87,20 @@ export function StorefrontFooter({
         </div>
 
         <div>
-          <p className="text-xs uppercase tracking-[0.16em] text-stone-500">
-            Informacije
+          <p className="text-[11px] uppercase tracking-[0.18em] text-stone-500">
+            Nalog
           </p>
-          <ul className="mt-4 space-y-2 text-sm">
+          <ul className="mt-4 space-y-2.5 text-sm">
             <li>
-              <Link
-                href="/login"
-                className="text-stone-500 transition hover:text-stone-300"
-              >
-                Prijava za zaposlene
+              <Link href="/login" className="transition hover:text-white">
+                Login
               </Link>
             </li>
           </ul>
         </div>
       </div>
-      <div className="border-t border-white/10 px-4 py-4 text-center text-xs text-stone-500 sm:px-6 lg:px-8">
+
+      <div className="relative border-t border-white/10 px-4 py-4 text-center text-xs text-stone-500 sm:px-6 lg:px-8">
         © {year} {companyConfig.name}
       </div>
     </footer>

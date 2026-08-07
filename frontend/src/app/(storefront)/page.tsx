@@ -1,6 +1,8 @@
 import {
   CategoryShowcase,
+  FinalCtaSection,
   ProductSection,
+  SalonSection,
   StorefrontHero,
 } from "@/components/storefront/StorefrontSections";
 import {
@@ -27,31 +29,24 @@ export default async function StorefrontHomePage() {
         title="Istaknuti proizvodi"
         products={featured?.products ?? []}
         href="/proizvodi"
+        tone="default"
       />
+      <SalonSection />
       <ProductSection
         eyebrow="Povoljno"
         title="Na akciji"
         products={onSale?.products ?? []}
         href="/proizvodi?onSale=true"
+        tone="muted"
       />
       <ProductSection
         eyebrow="Inspiracija"
         title="Izdvajamo za vas"
         products={picks?.products ?? []}
         href="/proizvodi"
+        tone="default"
       />
-      <section className="border-t border-stone-200 bg-white/50 py-16">
-        <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
-          <h2 className="font-[family-name:var(--font-storefront-display)] text-3xl text-stone-900">
-            Kvalitet koji traje
-          </h2>
-          <p className="mt-4 text-sm leading-relaxed text-stone-500 sm:text-base">
-            Pregledajte katalog i pronađite keramiku, sanitarije i opremu za
-            svoj prostor. Online narudžba stiže uskoro — za sada istražite
-            asortiman i detalje proizvoda.
-          </p>
-        </div>
-      </section>
+      <FinalCtaSection />
     </>
   );
 }

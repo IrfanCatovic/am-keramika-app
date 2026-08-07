@@ -10,6 +10,14 @@ function env(key: string): string {
 
 export const COMPANY_LOGO_SRC = '/logo-stampa-racuni/logo-stampa-racuni.svg';
 
+/** Primary public storefront brand mark (marble AM identity). */
+export const STOREFRONT_LOGO_SRC =
+  '/logo-stampa-racuni/logo-stampa-racuni.jpeg';
+
+export const STOREFRONT_HERO_SRC = '/logo-stampa-racuni/Amslika.jpg';
+
+export const STOREFRONT_SALON_SRC = '/logo-stampa-racuni/slika1.jpg';
+
 export const companyConfig = {
   name: env('NEXT_PUBLIC_COMPANY_NAME') || 'AM Keramika',
   address: env('NEXT_PUBLIC_COMPANY_ADDRESS'),

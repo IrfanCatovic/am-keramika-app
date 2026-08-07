@@ -5,6 +5,9 @@
   --foreground: #1c1917;
   --accent-bronze: #8a6a45;
   --accent-bronze-soft: #c4a484;
+  --storefront-bg: #f6f4f1;
+  --storefront-ink: #141311;
+  --storefront-stone: #8a6a45;
 }
 
 @theme inline {

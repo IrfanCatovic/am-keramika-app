@@ -61,7 +61,7 @@ export function PublicProductPrice({
       <span className={`tabular-nums text-stone-900 ${priceClass}`}>
         {formatMoney(product.effectiveSalePrice)}
       </span>
-      <span className="rounded-md bg-[#f3ebe3] px-1.5 py-0.5 text-xs font-medium text-[#6b4f32]">
+      <span className="rounded-md bg-[#f1ebe4] px-1.5 py-0.5 text-xs font-medium text-[#5c4630]">
         -{Math.round(product.discountPercent)}%
       </span>
     </span>

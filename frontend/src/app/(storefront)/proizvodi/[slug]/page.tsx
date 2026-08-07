@@ -162,14 +162,17 @@ export default async function ProductDetailPage({
           ) : null}
 
           {/* Cart actions reserved for KORAK 3 */}
-          <div className="mt-10 rounded-2xl border border-dashed border-stone-300 bg-white/70 px-5 py-6">
-            <p className="text-sm text-stone-500">
+          <div className="mt-10 rounded-xl border border-stone-200 bg-[#f6f4f1] px-5 py-6">
+            <p className="text-[11px] uppercase tracking-[0.16em] text-[#8a6a45]">
+              Narudžba
+            </p>
+            <p className="mt-2 text-sm text-stone-600">
               Online narudžba stiže uskoro. Za sada pregledajte detalje proizvoda
               i dostupnost.
             </p>
             <Link
               href="/proizvodi"
-              className="mt-4 inline-flex text-sm font-medium text-stone-900 underline-offset-4 hover:underline"
+              className="mt-5 inline-flex min-h-10 items-center rounded-full bg-[#141311] px-5 text-sm text-white transition hover:bg-[#2a2420]"
             >
               Nastavite pregled kataloga
             </Link>
