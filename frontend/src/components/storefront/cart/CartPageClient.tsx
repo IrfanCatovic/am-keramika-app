@@ -187,6 +187,11 @@ export function CartPageClient() {
           productCount={availableItems.length}
           subtotal={subtotal}
           savings={savings}
+          checkoutEnabled={
+            items.length > 0 &&
+            availableItems.length === items.length &&
+            !refreshing
+          }
         />
       </div>
     </div>

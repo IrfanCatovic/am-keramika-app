@@ -1,15 +1,19 @@
 "use client";
 
+import Link from "next/link";
+
 import { formatMoney } from "@/lib/format";
 
 export function CartSummary({
   productCount,
   subtotal,
   savings,
+  checkoutEnabled = false,
 }: {
   productCount: number;
   subtotal: number;
   savings: number;
+  checkoutEnabled?: boolean;
 }) {
   return (
     <aside className="rounded-xl border border-stone-200 bg-white p-6 lg:sticky lg:top-24">
@@ -54,7 +58,23 @@ export function CartSummary({
           dogovora o načinu i ceni dostave.
         </p>
       </div>
-      {/* Checkout CTA reserved for KORAK 4 */}
+
+      {checkoutEnabled ? (
+        <Link
+          href="/narudzbina"
+          className="mt-6 flex min-h-12 w-full items-center justify-center rounded-full bg-[#141311] px-5 text-sm font-medium text-white transition hover:bg-[#2a2420]"
+        >
+          Nastavi na podatke za narudžbinu
+        </Link>
+      ) : (
+        <button
+          type="button"
+          disabled
+          className="mt-6 flex min-h-12 w-full cursor-not-allowed items-center justify-center rounded-full bg-[#141311]/40 px-5 text-sm font-medium text-white"
+        >
+          Nastavi na podatke za narudžbinu
+        </button>
+      )}
     </aside>
   );
 }

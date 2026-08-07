@@ -52,6 +52,8 @@ func main() {
 		&models.PaymentAllocation{},
 		&models.InvoiceCancellation{},
 		&models.Refund{},
+		&models.OnlineOrder{},
+		&models.OnlineOrderItem{},
 	)
 	if err != nil {
 		log.Fatal("Neuspela migracija modela: ", err)
@@ -78,6 +80,7 @@ func main() {
 		public.GET("/products", handlers.GetPublicProducts)
 		public.GET("/products/:slug", handlers.GetPublicProductBySlug)
 		public.POST("/products/:id/check-availability", handlers.CheckPublicProductAvailability)
+		public.POST("/orders", handlers.CreatePublicOnlineOrder)
 		public.GET("/categories", handlers.GetPublicCategories)
 		public.GET("/categories/:slug", handlers.GetPublicCategoryBySlug)
 		public.GET("/product-groups", handlers.GetPublicProductGroups)
