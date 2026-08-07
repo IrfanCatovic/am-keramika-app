@@ -38,7 +38,7 @@ export default function NewCustomerPage() {
             router.replace(`/customers/${response.customer.id}`);
           } catch (err) {
             setError(
-              getApiBusinessMessage(err, "Kreiranje kupca nije uspjelo."),
+              getApiBusinessMessage(err, "Kreiranje kupca nije uspelo."),
             );
           } finally {
             setLoading(false);

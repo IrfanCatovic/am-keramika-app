@@ -46,7 +46,7 @@ export function CustomerList({
         title={searchActive ? "Nema rezultata pretrage" : "Nema kupaca"}
         description={
           searchActive
-            ? "Pokušajte drugačiji pojam ili promijenite status filter."
+            ? "Pokušajte drugačiji pojam ili promenite status filter."
             : "Dodajte prvog kupca da biste evidentirali dugovanja i račune."
         }
         action={

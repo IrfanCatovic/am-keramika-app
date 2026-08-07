@@ -20,7 +20,7 @@ func CORSAllowedOrigins() ([]string, error) {
 			continue
 		}
 		if origin == "*" {
-			return nil, errors.New("CORS_ALLOWED_ORIGINS ne smije sadržavati *")
+			return nil, errors.New("CORS_ALLOWED_ORIGINS ne sme sadržavati *")
 		}
 		origins = append(origins, origin)
 	}

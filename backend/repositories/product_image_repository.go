@@ -19,7 +19,7 @@ var (
 	ErrImageNotFound         = errors.New("slika nije pronađena")
 	ErrImageWrongProduct     = errors.New("slika ne pripada proizvodu")
 	ErrMaxImagesReached      = errors.New("proizvod već ima maksimalan broj slika")
-	ErrProductHasImages      = errors.New("proizvod ima slike; uklonite slike prije deaktivacije")
+	ErrProductHasImages      = errors.New("proizvod ima slike; uklonite slike pre deaktivacije")
 	ErrInvalidReorderRequest = errors.New("neispravan reorder zahtjev")
 )
 
@@ -173,7 +173,7 @@ func UploadProductImages(ctx context.Context, store storage.ImageStorage, produc
 		})
 		if err != nil {
 			cleanup()
-			return nil, fmt.Errorf("cloudinary upload neuspješan: %w", err)
+			return nil, fmt.Errorf("cloudinary upload neuspešan: %w", err)
 		}
 		uploaded = append(uploaded, *result)
 		uploadedPublicIDs = append(uploadedPublicIDs, result.PublicID)
@@ -280,7 +280,7 @@ func DeleteProductImage(ctx context.Context, store storage.ImageStorage, product
 	}
 
 	if err := store.Delete(ctx, image.PublicID); err != nil {
-		return fmt.Errorf("cloudinary brisanje neuspješno: %w", err)
+		return fmt.Errorf("cloudinary brisanje neuspešno: %w", err)
 	}
 
 	wasPrimary := image.IsPrimary

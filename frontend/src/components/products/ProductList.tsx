@@ -194,7 +194,7 @@ export function ProductList({
                       Jedinica
                     </th>
                     <th className="border-b border-stone-100 px-3 pb-3 font-medium">
-                      Cijena
+                      Cena
                     </th>
                     <th className="border-b border-stone-100 px-3 pb-3 font-medium">
                       Stanje
@@ -293,7 +293,7 @@ export function ProductList({
               onClick={() => onPageChange(pagination.page + 1)}
               className="inline-flex min-h-10 items-center rounded-xl border border-stone-200 px-3 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-50"
             >
-              Sljedeća
+              Sledeća
             </button>
           </div>
         ) : null}

@@ -80,7 +80,7 @@ func GetInvoicePDF(c *gin.Context) {
 
 	pdfBytes, err := invoicepdf.Generate(doc)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Generisanje PDF-a nije uspjelo"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Generisanje PDF-a nije uspelo"})
 		return
 	}
 

@@ -73,7 +73,7 @@ function markMatchingLines(
   if (Object.keys(next).length === 0 && lower.includes("lager")) {
     for (const line of lines) {
       next[line.productID] =
-        "Provjerite lager — nema dovoljno robe na stanju.";
+        "Proverite lager — nema dovoljno robe na stanju.";
     }
   }
   return next;
@@ -458,7 +458,7 @@ export function InvoiceForm({
         nextErrors[line.productID] = "Količina mora biti veća od 0.";
       } else if (line.quantity > line.stockQuantity) {
         nextErrors[line.productID] =
-          `Količina ne smije prelaziti lager (${line.stockQuantity}).`;
+          `Količina ne sme prelaziti lager (${line.stockQuantity}).`;
       }
     }
     setLineErrors(nextErrors);
@@ -485,7 +485,7 @@ export function InvoiceForm({
     }
     if (amount >= previewTotal - 0.0001) {
       setPartialAmountError(
-        "Za puni iznos izaberite „Plati sve“. Djelimična uplata mora biti manja od ukupnog.",
+        "Za puni iznos izaberite „Plati sve“. Delimična uplata mora biti manja od ukupnog.",
       );
       return false;
     }
@@ -546,7 +546,7 @@ export function InvoiceForm({
     } catch (err) {
       const message = getApiBusinessMessage(
         err,
-        "Kreiranje računa nije uspjelo.",
+        "Kreiranje računa nije uspelo.",
       );
       setError(message);
       setLineErrors((current) => ({
@@ -686,12 +686,12 @@ export function InvoiceForm({
 
   function successTitle(invoice: InvoiceDetails): string {
     if (invoice.status === "paid") {
-      return `Račun #${invoice.id} je uspješno kreiran i plaćen.`;
+      return `Račun #${invoice.id} je uspešno kreiran i plaćen.`;
     }
     if (invoice.status === "partially_paid") {
       return `Račun #${invoice.id} je kreiran. Evidentirana uplata: ${formatMoney(invoice.paidAmount)}.`;
     }
-    return `Račun #${invoice.id} je uspješno kreiran.`;
+    return `Račun #${invoice.id} je uspešno kreiran.`;
   }
 
   const paymentPicker =

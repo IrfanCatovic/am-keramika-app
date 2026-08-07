@@ -162,7 +162,7 @@ func UpdateCategoryStatus(c *gin.Context) {
 		if isCategoryNotFoundError(err) {
 			status = http.StatusNotFound
 		}
-		c.JSON(status, gin.H{"message": "Greška pri promjeni statusa kategorije", "error": err.Error()})
+		c.JSON(status, gin.H{"message": "Greška pri promeni statusa kategorije", "error": err.Error()})
 		return
 	}
 

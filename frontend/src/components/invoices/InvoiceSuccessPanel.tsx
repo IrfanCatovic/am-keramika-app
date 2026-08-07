@@ -13,7 +13,7 @@ export function InvoiceSuccessPanel({
   onNewSale,
   newSaleLabel = "Nova prodaja",
   extraActions,
-  title = "Račun je uspješno kreiran",
+  title = "Račun je uspešno kreiran",
 }: {
   invoice: Pick<
     InvoiceDetails,
@@ -35,7 +35,7 @@ export function InvoiceSuccessPanel({
       >
         <div className="shrink-0 border-b border-stone-100 px-4 py-4 sm:px-5">
           <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#8a6a45]">
-            Uspjeh
+            Uspeh
           </p>
           <h2
             id="invoice-success-title"

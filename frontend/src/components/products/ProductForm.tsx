@@ -342,16 +342,16 @@ export function ProductForm({
       const calculated = margin > 0 || vat > 0;
       if (calculated) {
         if (purchase == null || purchase <= 0) {
-          return "Za automatski obračun nabavna cijena mora biti veća od 0.";
+          return "Za automatski obračun nabavna cena mora biti veća od 0.";
         }
       } else if (sale == null || sale <= 0) {
-        return "Prodajna cijena je obavezna i mora biti veća od 0.";
+        return "Prodajna cena je obavezna i mora biti veća od 0.";
       }
     } else if (isWorker) {
       if (mode === "create" || product?.pricingMode === "manual") {
         const sale = parseOptionalNumber(form.pricing.salePrice);
         if (sale == null || sale <= 0) {
-          return "Prodajna cijena je obavezna i mora biti veća od 0.";
+          return "Prodajna cena je obavezna i mora biti veća od 0.";
         }
       }
     }
@@ -467,7 +467,7 @@ export function ProductForm({
     } catch (error) {
       return getApiBusinessMessage(
         error,
-        "Proizvod je sačuvan, ali upload nekih slika nije uspio.",
+        "Proizvod je sačuvan, ali upload nekih slika nije uspeo.",
       );
     }
   }
@@ -603,7 +603,7 @@ export function ProductForm({
       setExistingImages(images);
     } catch (error) {
       setFormError(
-        getApiBusinessMessage(error, "Promjena redoslijeda nije uspjela."),
+        getApiBusinessMessage(error, "Promena redosleda nije uspela."),
       );
     } finally {
       setImagesBusy(false);
@@ -634,7 +634,7 @@ export function ProductForm({
       await refreshImages();
     } catch (error) {
       setFormError(
-        getApiBusinessMessage(error, "Upload slika nije uspio."),
+        getApiBusinessMessage(error, "Upload slika nije uspeo."),
       );
     } finally {
       setImagesBusy(false);
@@ -671,7 +671,7 @@ export function ProductForm({
     return (
       <EmptyState
         title="Proizvod nije pronađen"
-        description="Provjerite ID ili se vratite na listu."
+        description="Proverite ID ili se vratite na listu."
         action={
           <Link
             href="/products"
@@ -874,7 +874,7 @@ export function ProductForm({
           <section className="space-y-3 rounded-2xl border border-stone-200 bg-stone-50/70 p-4">
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="text-sm font-semibold text-stone-900">
-                Prodajna cijena
+                Prodajna cena
               </h3>
               {product ? (
                 <span
@@ -893,7 +893,7 @@ export function ProductForm({
             {workerCalculatedReadonly ? (
               <>
                 <p className="text-sm text-stone-600">
-                  Cijena se automatski obračunava. Promjenu nabavne cijene,
+                  Cena se automatski obračunava. Promenu nabavne cene,
                   marže ili PDV-a može uraditi menadžer ili šef.
                 </p>
                 <p className="text-lg font-semibold tabular-nums text-stone-900">
@@ -908,7 +908,7 @@ export function ProductForm({
                   htmlFor="worker-sale-price"
                   className="mb-1.5 block text-sm font-medium text-stone-700"
                 >
-                  Prodajna cijena *
+                  Prodajna cena *
                 </label>
                 <input
                   id="worker-sale-price"
@@ -981,8 +981,8 @@ export function ProductForm({
                 Akcija proizvoda
               </h2>
               <p className="mt-1 text-xs text-stone-500">
-                Regularna prodajna cijena ostaje nepromijenjena; kupac plaća
-                akcijsku cijenu dok je akcija uključena.
+                Regularna prodajna cena ostaje nepromenjena; kupac plaća
+                akcijsku cenu dok je akcija uključena.
               </p>
             </div>
             <label className="inline-flex min-h-10 cursor-pointer items-center gap-2 text-sm text-stone-700">
@@ -1021,7 +1021,7 @@ export function ProductForm({
                 {salePreview ? (
                   <dl className="grid gap-2 text-sm text-stone-700 sm:grid-cols-2">
                     <div>
-                      <dt className="text-xs text-stone-500">Regularna cijena</dt>
+                      <dt className="text-xs text-stone-500">Regularna cena</dt>
                       <dd className="tabular-nums font-medium text-stone-900">
                         {formatMoney(salePreview.regular)}
                       </dd>
@@ -1034,7 +1034,7 @@ export function ProductForm({
                     </div>
                     <div>
                       <dt className="text-xs text-stone-500">
-                        Cijena nakon popusta
+                        Cena nakon popusta
                       </dt>
                       <dd className="tabular-nums font-medium text-stone-900">
                         {formatMoney(salePreview.raw)}
@@ -1042,7 +1042,7 @@ export function ProductForm({
                     </div>
                     <div>
                       <dt className="text-xs text-stone-500">
-                        Prodajna akcijska cijena
+                        Prodajna akcijska cena
                       </dt>
                       <dd className="tabular-nums text-base font-semibold text-stone-900">
                         {formatMoney(salePreview.effective)}
@@ -1051,7 +1051,7 @@ export function ProductForm({
                   </dl>
                 ) : null}
                 <p className="text-xs text-stone-500">
-                  Akcijska cijena se zaokružuje naviše na 10 RSD.
+                  Akcijska cena se zaokružuje naviše na 10 RSD.
                 </p>
               </div>
             ) : null}
@@ -1101,7 +1101,7 @@ export function ProductForm({
                 onClick={() => void submitForm("save-and-next")}
                 className="inline-flex min-h-11 items-center justify-center rounded-xl border border-stone-200 px-4 text-sm font-medium text-stone-800 transition hover:bg-stone-50 disabled:opacity-60"
               >
-                {saving ? "Čuvanje..." : "Sačuvaj i dodaj sljedeći"}
+                {saving ? "Čuvanje..." : "Sačuvaj i dodaj sledeći"}
               </button>
             ) : null}
             <button

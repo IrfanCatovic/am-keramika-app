@@ -54,7 +54,7 @@ func main() {
 		&models.Refund{},
 	)
 	if err != nil {
-		log.Fatal("Neuspjela migracija modela: ", err)
+		log.Fatal("Neuspela migracija modela: ", err)
 	}
 
 	if err := auth.EnsureInitialDeveloper(); err != nil {
@@ -178,6 +178,6 @@ func main() {
 
 	err = r.Run(":" + port)
 	if err != nil {
-		log.Fatal("Neuspjela pokretanje servera: ", err)
+		log.Fatal("Neuspela pokretanje servera: ", err)
 	}
 }

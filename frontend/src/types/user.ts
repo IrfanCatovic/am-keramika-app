@@ -1,6 +1,6 @@
 import { roleLabel, UserRole } from "@/types/auth";
 
-/** Role koje se smiju dodijeliti kroz Users UI (nikad developer). */
+/** Role koje se smeju dodeliti kroz Users UI (nikad developer). */
 export type AssignableEmployeeRole = Exclude<UserRole, "developer">;
 
 export interface Employee {

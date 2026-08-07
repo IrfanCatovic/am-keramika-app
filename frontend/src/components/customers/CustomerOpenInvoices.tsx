@@ -61,7 +61,7 @@ export function CustomerOpenInvoices({ customerId }: { customerId: number }) {
           Otvoreni računi
         </h2>
         <p className="mt-0.5 text-sm text-stone-500">
-          Neplaćeni i djelimično plaćeni računi
+          Neplaćeni i delimično plaćeni računi
         </p>
       </div>
       <div className="px-4 py-4 sm:px-5">

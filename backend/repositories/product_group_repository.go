@@ -79,7 +79,7 @@ func UpdateProductGroup(group *models.ProductGroup) error {
 				return err
 			}
 			if productCount > 0 {
-				return errors.New("grupa ima proizvode; premjestite ili uklonite proizvode iz grupe prije promjene kategorije")
+				return errors.New("grupa ima proizvode; premestite ili uklonite proizvode iz grupe pre promene kategorije")
 			}
 		}
 
@@ -112,7 +112,7 @@ func DeleteProductGroup(id uint) error {
 		return err
 	}
 	if productCount > 0 {
-		return errors.New("grupa ima proizvode; premjestite ili uklonite proizvode prije brisanja")
+		return errors.New("grupa ima proizvode; premestite ili uklonite proizvode pre brisanja")
 	}
 
 	return database.DB.Delete(&group).Error

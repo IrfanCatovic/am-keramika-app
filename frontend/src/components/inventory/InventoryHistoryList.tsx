@@ -39,7 +39,7 @@ export function InventoryHistoryList({
             <tr className="border-b border-stone-200 bg-stone-50/80 text-left text-xs uppercase tracking-[0.08em] text-stone-500">
               <th className="px-4 py-3 font-semibold">Datum</th>
               <th className="px-4 py-3 font-semibold">Proizvod</th>
-              <th className="px-4 py-3 font-semibold">Promjena</th>
+              <th className="px-4 py-3 font-semibold">Promena</th>
               <th className="px-4 py-3 font-semibold">Tip</th>
               <th className="px-4 py-3 font-semibold">Korisnik</th>
             </tr>

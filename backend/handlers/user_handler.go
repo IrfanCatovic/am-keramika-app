@@ -33,7 +33,7 @@ func rejectBossTargetingDeveloper(c *gin.Context, target models.User) bool {
 		return true
 	}
 	if actorRole == models.RoleBoss {
-		c.JSON(http.StatusForbidden, gin.H{"message": "Šef ne smije mijenjati developer nalog"})
+		c.JSON(http.StatusForbidden, gin.H{"message": "Šef ne sme menjati developer nalog"})
 		return true
 	}
 	return false
@@ -42,7 +42,7 @@ func rejectBossTargetingDeveloper(c *gin.Context, target models.User) bool {
 func GetUsers(c *gin.Context) {
 	users, err := repositories.GetManagedUsers()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspjelo dobavljanje korisnika"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspelo dobavljanje korisnika"})
 		return
 	}
 
@@ -76,7 +76,7 @@ func CreateUser(c *gin.Context) {
 
 	hash, err := auth.HashPassword(req.Password)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspjelo kreiranje korisnika"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspelo kreiranje korisnika"})
 		return
 	}
 
@@ -139,14 +139,14 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 	if user.Role == models.RoleDeveloper {
-		c.JSON(http.StatusForbidden, gin.H{"message": "Developer nalog se ne smije mijenjati kroz ovaj endpoint"})
+		c.JSON(http.StatusForbidden, gin.H{"message": "Developer nalog se ne sme menjati kroz ovaj endpoint"})
 		return
 	}
 
 	if user.Role == models.RoleBoss && user.IsActive && req.Role != models.RoleBoss {
 		remaining, countErr := repositories.CountActiveBossesExcluding(user.ID)
 		if countErr != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspjelo ažuriranje korisnika"})
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspelo ažuriranje korisnika"})
 			return
 		}
 		if remaining == 0 {
@@ -199,7 +199,7 @@ func UpdateUserPassword(c *gin.Context) {
 			return
 		}
 		if actorRole != models.RoleDeveloper {
-			c.JSON(http.StatusForbidden, gin.H{"message": "Developer nalog se ne smije mijenjati kroz ovaj endpoint"})
+			c.JSON(http.StatusForbidden, gin.H{"message": "Developer nalog se ne sme menjati kroz ovaj endpoint"})
 			return
 		}
 	}
@@ -216,13 +216,13 @@ func UpdateUserPassword(c *gin.Context) {
 
 	hash, err := auth.HashPassword(req.Password)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspjela promjena lozinke"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspela promena lozinke"})
 		return
 	}
 
 	user.PasswordHash = hash
 	if err := repositories.UpdateUser(&user); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspjela promjena lozinke"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspela promena lozinke"})
 		return
 	}
 
@@ -251,7 +251,7 @@ func UpdateUserStatus(c *gin.Context) {
 		return
 	}
 	if user.Role == models.RoleDeveloper {
-		c.JSON(http.StatusForbidden, gin.H{"message": "Developer nalog se ne smije mijenjati kroz ovaj endpoint"})
+		c.JSON(http.StatusForbidden, gin.H{"message": "Developer nalog se ne sme menjati kroz ovaj endpoint"})
 		return
 	}
 
@@ -269,7 +269,7 @@ func UpdateUserStatus(c *gin.Context) {
 	if user.Role == models.RoleBoss && user.IsActive && !req.IsActive {
 		remaining, countErr := repositories.CountActiveBossesExcluding(user.ID)
 		if countErr != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspjela izmjena statusa"})
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspela izmena statusa"})
 			return
 		}
 		if remaining == 0 {
@@ -280,7 +280,7 @@ func UpdateUserStatus(c *gin.Context) {
 
 	user.IsActive = req.IsActive
 	if err := repositories.UpdateUser(&user); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspjela izmjena statusa"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspela izmena statusa"})
 		return
 	}
 

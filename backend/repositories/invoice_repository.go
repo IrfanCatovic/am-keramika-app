@@ -237,13 +237,13 @@ func resolveCustomerInitialPayment(req dto.CreateInvoiceRequest, invoiceTotal fl
 
 	case dto.InvoicePaymentModePartial:
 		if !hasAmount {
-			return 0, errors.New("za djelimičnu uplatu iznos je obavezan")
+			return 0, errors.New("za delimičnu uplatu iznos je obavezan")
 		}
 		if amount <= 0 {
-			return 0, errors.New("iznos djelimične uplate mora biti veći od 0")
+			return 0, errors.New("iznos delimične uplate mora biti veći od 0")
 		}
 		if amount >= invoiceTotal-0.0001 {
-			return 0, errors.New("za puni iznos izaberite Plati sve umjesto djelimične uplate")
+			return 0, errors.New("za puni iznos izaberite Plati sve umesto delimične uplate")
 		}
 		return amount, nil
 

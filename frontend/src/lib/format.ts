@@ -1,5 +1,5 @@
 /**
- * Centralni formatteri za cijelu AM Keramika aplikaciju.
+ * Centralni formatteri za celu AM Keramika aplikaciju.
  */
 
 const rsdNumberFormatInteger = new Intl.NumberFormat("sr-RS", {
@@ -22,7 +22,7 @@ function hasMeaningfulFraction(amount: number): boolean {
 
 /**
  * Formatira iznos u RSD.
- * Primjeri: 5800 → "5.800 RSD", 1500.5 → "1.500,50 RSD"
+ * Primeri: 5800 → "5.800 RSD", 1500.5 → "1.500,50 RSD"
  */
 export function formatMoney(amount: number): string {
   const value = Number.isFinite(amount) ? amount : 0;

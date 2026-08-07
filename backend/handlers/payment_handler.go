@@ -122,7 +122,7 @@ func GetAllPayments(c *gin.Context) {
 
 	location, err := time.LoadLocation("Europe/Belgrade")
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspjelo učitavanje vremenske zone"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspelo učitavanje vremenske zone"})
 		return
 	}
 
@@ -150,7 +150,7 @@ func GetAllPayments(c *gin.Context) {
 		toDateExclusive = &end
 	}
 	if fromDateParam != "" && toDateParam != "" && toDay.Before(fromDay) {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "toDate ne može biti prije fromDate"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "toDate ne može biti pre fromDate"})
 		return
 	}
 
@@ -162,7 +162,7 @@ func GetAllPayments(c *gin.Context) {
 		ToDate:     toDateExclusive,
 	})
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspjelo dobavljanje uplata"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspelo dobavljanje uplata"})
 		return
 	}
 

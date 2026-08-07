@@ -327,7 +327,7 @@ export function CategoriesWorkspace() {
       setConfirm({ open: false });
     } catch (error) {
       setConfirmError(
-        getApiBusinessMessage(error, "Akcija nije uspjela. Pokušajte ponovo."),
+        getApiBusinessMessage(error, "Akcija nije uspela. Pokušajte ponovo."),
       );
     } finally {
       setConfirmLoading(false);
@@ -397,7 +397,7 @@ export function CategoriesWorkspace() {
           Kategorije i grupe
         </h1>
         <p className="mt-1 max-w-2xl break-words text-sm text-stone-500">
-          Organizujte katalog: kategorije lijevo, grupe izabrane kategorije
+          Organizujte katalog: kategorije levo, grupe izabrane kategorije
           desno.
         </p>
       </header>

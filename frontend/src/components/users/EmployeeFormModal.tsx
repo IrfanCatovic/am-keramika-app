@@ -205,7 +205,7 @@ export function EmployeeFormModal({
               ? "Sačekajte…"
               : mode === "create"
                 ? "Kreiraj zaposlenog"
-                : "Sačuvaj izmjene"}
+                : "Sačuvaj izmene"}
           </button>
         </div>
       </form>

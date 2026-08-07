@@ -176,7 +176,7 @@ export function CustomersWorkspace() {
           err,
           confirm.kind === "delete"
             ? "Kupac se ne može obrisati jer postoji istorija računa ili uplata. Možete ga deaktivirati ako nema otvorenih računa."
-            : "Promjena statusa nije uspjela.",
+            : "Promena statusa nije uspela.",
         ),
       );
     } finally {
@@ -343,7 +343,7 @@ export function CustomersWorkspace() {
               onClick={() => syncQuery({ page: page + 1 })}
               className="inline-flex min-h-10 items-center rounded-xl border border-stone-200 px-3 text-sm disabled:opacity-50"
             >
-              Sljedeća
+              Sledeća
             </button>
           </div>
         </div>
@@ -352,7 +352,7 @@ export function CustomersWorkspace() {
       {inactiveOnly && totalPages > 1 ? (
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-stone-500">
-            Stranica {page} / {totalPages} (miješani aktivni/neaktivni
+            Stranica {page} / {totalPages} (mešani aktivni/neaktivni
             rezultat)
           </p>
           <div className="flex gap-2">
@@ -370,7 +370,7 @@ export function CustomersWorkspace() {
               onClick={() => syncQuery({ page: page + 1 })}
               className="inline-flex min-h-10 items-center rounded-xl border border-stone-200 px-3 text-sm disabled:opacity-50"
             >
-              Sljedeća
+              Sledeća
             </button>
           </div>
         </div>

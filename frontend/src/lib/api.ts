@@ -40,7 +40,7 @@ export async function apiRequest<T>(
 ): Promise<T> {
   if (!API_URL) {
     throw new ApiError(
-      "API adresa nije podešena. Provjerite .env.local datoteku.",
+      "API adresa nije podešena. Proverite .env.local datoteku.",
       500,
     );
   }

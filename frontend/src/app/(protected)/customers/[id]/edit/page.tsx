@@ -96,7 +96,7 @@ export default function EditCustomerPage() {
             router.replace(`/customers/${customer.id}`);
           } catch (err) {
             setError(
-              getApiBusinessMessage(err, "Ažuriranje kupca nije uspjelo."),
+              getApiBusinessMessage(err, "Ažuriranje kupca nije uspelo."),
             );
           } finally {
             setSaving(false);

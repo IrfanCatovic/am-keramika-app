@@ -30,7 +30,7 @@ func Login(c *gin.Context) {
 
 	token, err := auth.GenerateToken(user.ID, user.Username, user.Role)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspjelo generisanje tokena"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspelo generisanje tokena"})
 		return
 	}
 

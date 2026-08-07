@@ -81,7 +81,7 @@ export function ProductGroupList({
         <div className="px-4 py-4 sm:px-5">
           <EmptyState
             title="Izaberite kategoriju"
-            description="Odaberite kategoriju s lijeve strane da vidite njene grupe."
+            description="Odaberite kategoriju s leve strane da vidite njene grupe."
           />
         </div>
       </section>
@@ -119,7 +119,7 @@ export function ProductGroupList({
       <div className="space-y-3 px-4 py-4 sm:px-5">
         {!canAddGroup ? (
           <p className="rounded-xl border border-amber-100 bg-amber-50/80 px-3 py-2.5 text-sm text-amber-900">
-            Kategorija je neaktivna. Aktivirajte je prije dodavanja novih grupa.
+            Kategorija je neaktivna. Aktivirajte je pre dodavanja novih grupa.
             Pregled postojećih grupa je i dalje dostupan.
           </p>
         ) : null}

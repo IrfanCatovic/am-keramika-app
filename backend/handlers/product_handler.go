@@ -108,7 +108,7 @@ func rejectWorkerSensitiveProductFields(c *gin.Context, purchasePrice, marginPer
 	}
 	if role == models.RoleWorker && (purchasePrice != nil || marginPercent != nil || vatPercent != nil) {
 		c.JSON(http.StatusForbidden, gin.H{
-			"message": "Radnik ne smije unositi ili mijenjati nabavnu cijenu, maržu ni PDV",
+			"message": "Radnik ne sme unositi ili menjati nabavnu cenu, maržu ni PDV",
 		})
 		return true
 	}
@@ -123,7 +123,7 @@ func rejectWorkerDiscountField(c *gin.Context, discountPercent *float64) bool {
 	}
 	if role == models.RoleWorker && discountPercent != nil {
 		c.JSON(http.StatusForbidden, gin.H{
-			"message": "Radnik ne smije unositi ili mijenjati procenat popusta",
+			"message": "Radnik ne sme unositi ili menjati procenat popusta",
 		})
 		return true
 	}
@@ -261,7 +261,7 @@ func GetAllProducts(c *gin.Context) {
 			return
 		}
 		if parsedLimit > repositories.MaxProductListLimit {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "limit ne smije biti veći od 100"})
+			c.JSON(http.StatusBadRequest, gin.H{"message": "limit ne sme biti veći od 100"})
 			return
 		}
 		limit = parsedLimit
@@ -401,8 +401,8 @@ func UpdateProduct(c *gin.Context) {
 		if existingMode == pricing.ModeCalculated {
 			if req.SalePrice != nil && *req.SalePrice != product.SalePrice {
 				c.JSON(http.StatusForbidden, gin.H{
-					"message": "Cijena se automatski obračunava; radnik ne smije mijenjati calculated prodajnu cijenu",
-					"error":   "Cijena se automatski obračunava; radnik ne smije mijenjati calculated prodajnu cijenu",
+					"message": "Cena se automatski obračunava; radnik ne sme menjati calculated prodajnu cenu",
+					"error":   "Cena se automatski obračunava; radnik ne sme menjati calculated prodajnu cenu",
 				})
 				return
 			}

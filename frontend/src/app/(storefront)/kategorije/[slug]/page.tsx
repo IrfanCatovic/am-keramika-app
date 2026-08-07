@@ -178,7 +178,7 @@ export default async function CategoryPage({
           ) : products.length === 0 ? (
             <StorefrontEmpty
               title="Nema proizvoda u ovoj kategoriji"
-              description="Pokušajte drugu grupu ili pogledajte cijeli katalog."
+              description="Pokušajte drugu grupu ili pogledajte celi katalog."
               actionHref="/proizvodi"
               actionLabel="Svi proizvodi"
             />

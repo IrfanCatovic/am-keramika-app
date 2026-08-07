@@ -11,12 +11,12 @@ const (
 )
 
 var (
-	ErrNegativePurchasePrice = errors.New("nabavna cijena ne smije biti negativna")
-	ErrNegativeSalePrice     = errors.New("prodajna cijena ne smije biti negativna")
-	ErrNegativeMargin        = errors.New("marža ne smije biti negativna")
-	ErrNegativeVAT           = errors.New("PDV ne smije biti negativan")
-	ErrPurchaseRequired      = errors.New("za automatski obračun nabavna cijena je obavezna i mora biti veća od 0")
-	ErrManualSaleRequired    = errors.New("za ručni način prodajna cijena je obavezna i mora biti veća od 0")
+	ErrNegativePurchasePrice = errors.New("nabavna cena ne sme biti negativna")
+	ErrNegativeSalePrice     = errors.New("prodajna cena ne sme biti negativna")
+	ErrNegativeMargin        = errors.New("marža ne sme biti negativna")
+	ErrNegativeVAT           = errors.New("PDV ne sme biti negativan")
+	ErrPurchaseRequired      = errors.New("za automatski obračun nabavna cena je obavezna i mora biti veća od 0")
+	ErrManualSaleRequired    = errors.New("za ručni način prodajna cena je obavezna i mora biti veća od 0")
 )
 
 // Input su ulazne vrijednosti za obračun cijene.

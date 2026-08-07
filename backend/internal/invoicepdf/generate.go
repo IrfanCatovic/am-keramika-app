@@ -261,7 +261,7 @@ func drawCustomer(pdf *fpdf.Fpdf, doc Document) {
 }
 
 func drawItemsTable(pdf *fpdf.Fpdf, doc Document) {
-	headers := []string{"R.br.", "Proizvod", "Količina", "Jed.", "Jed. cijena", "Ukupno"}
+	headers := []string{"R.br.", "Proizvod", "Količina", "Jed.", "Jed. cena", "Ukupno"}
 	widths := []float64{12, 72, 22, 16, 30, 30}
 
 	pdf.SetFont("dejavu", "B", 8)

@@ -202,7 +202,7 @@ func AddStock(productID uint, quantity float64, note string, createdByUserID uin
 
 func AdjustStock(productID uint, newQuantity float64, note string, createdByUserID uint) (*AdjustStockResult, error) {
 	if newQuantity < 0 {
-		return nil, errors.New("nova količina ne smije biti negativna")
+		return nil, errors.New("nova količina ne sme biti negativna")
 	}
 
 	tx := database.DB.Begin()

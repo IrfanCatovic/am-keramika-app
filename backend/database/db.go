@@ -29,10 +29,10 @@ func ConnectDB() {
 
 	database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatal("Neuspjela konekcija na bazu: ", err)
+		log.Fatal("Neuspela konekcija na bazu: ", err)
 	}
 	DB = database
-	log.Println("Uspješna konekcija na bazu")
+	log.Println("Uspešna konekcija na bazu")
 }
 
 func Ping() error {

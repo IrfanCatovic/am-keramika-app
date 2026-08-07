@@ -86,7 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    // Odgodi bootstrap da se setState ne poziva sinhrono u effect tijelu.
+    // Odgodi bootstrap da se setState ne poziva sinhrono u effect telu.
     const timer = window.setTimeout(() => {
       void restoreSession();
     }, 0);

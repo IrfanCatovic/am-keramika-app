@@ -30,7 +30,7 @@ func HardDeleteUser(id uint) error {
 		return err
 	}
 	if user.Role == models.RoleDeveloper {
-		return errors.New("developer nalog se ne smije hard-deleteovati")
+		return errors.New("developer nalog se ne sme hard-deleteovati")
 	}
 	return database.DB.Unscoped().Delete(&user).Error
 }
@@ -106,7 +106,7 @@ func UpdateUser(user *models.User) error {
 		return err
 	}
 	if current.Role == models.RoleDeveloper && user.Role != models.RoleDeveloper {
-		return errors.New("developer uloga se ne smije mijenjati")
+		return errors.New("developer uloga se ne sme menjati")
 	}
 	if user.Role == models.RoleDeveloper && current.Role != models.RoleDeveloper {
 		return errors.New("nevalidna uloga")

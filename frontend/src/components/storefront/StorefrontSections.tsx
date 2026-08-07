@@ -34,25 +34,25 @@ export function StorefrontHero() {
       />
 
       <div className="relative mx-auto flex min-h-[72vh] max-w-7xl flex-col justify-end px-4 pb-14 pt-28 sm:min-h-[82vh] sm:px-6 lg:px-8 lg:pb-20">
-        <p className="text-[11px] uppercase tracking-[0.22em] text-[#d4b896]">
+        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#e8d4b8] sm:text-sm">
           {companyConfig.name}
         </p>
         <h1 className="mt-4 max-w-3xl font-[family-name:var(--font-storefront-display)] text-4xl leading-[1.05] tracking-tight sm:text-5xl lg:text-[3.5rem]">
-          Sve za vaš dom na jednom mjestu.
+          Sve za vaš dom na jednom mestu.
         </h1>
         <p className="mt-5 max-w-xl text-base text-stone-200/90 sm:text-lg">
           Keramika, sanitarije, grijanje i oprema.
         </p>
-        <div className="mt-8 flex flex-wrap gap-3">
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link
             href="/proizvodi"
-            className="inline-flex min-h-11 items-center rounded-full bg-[#141311] px-6 text-sm font-medium text-white transition hover:bg-[#2a2420] hover:shadow-[0_0_0_1px_rgba(138,106,69,0.45)]"
+            className="inline-flex min-h-12 items-center justify-center rounded-full bg-white px-7 text-sm font-medium text-[#141311] transition hover:bg-[#ece5db] sm:min-h-11"
           >
             Pogledajte proizvode
           </Link>
           <Link
             href="#kategorije"
-            className="inline-flex min-h-11 items-center rounded-full border border-white/30 px-6 text-sm font-medium text-white transition hover:border-[#d4b896]/60 hover:bg-white/5"
+            className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/30 px-7 text-sm font-medium text-white transition hover:border-[#d4b896]/70 hover:bg-white/5 sm:min-h-11"
           >
             Istražite kategorije
           </Link>
@@ -71,10 +71,10 @@ export function CategoryShowcase({
   return (
     <section
       id="kategorije"
-      className="border-b border-stone-200/80 bg-[#f6f4f1] px-4 py-16 sm:px-6 lg:px-8"
+      className="scroll-mt-24 border-b border-stone-200/80 bg-[#f6f4f1] px-4 py-14 sm:px-6 sm:py-16 lg:px-8"
     >
       <div className="mx-auto max-w-7xl">
-        <div className="mb-10 flex items-end justify-between gap-4">
+        <div className="mb-8 flex items-end justify-between gap-4 sm:mb-10">
           <div>
             <p className="text-[11px] uppercase tracking-[0.2em] text-[#8a6a45]">
               Asortiman
@@ -91,27 +91,35 @@ export function CategoryShowcase({
           </Link>
         </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {categories.map((category) => (
+          {categories.map((category, index) => (
             <Link
               key={category.id}
               href={`/kategorije/${category.slug}`}
-              className="group relative overflow-hidden rounded-xl border border-stone-300/70 bg-white px-6 py-8 transition duration-300 hover:-translate-y-0.5 hover:border-stone-400 hover:shadow-[0_18px_40px_rgba(28,25,23,0.07)]"
+              className="group relative overflow-hidden rounded-xl border border-stone-300/70 bg-white px-6 py-7 transition duration-300 hover:-translate-y-0.5 hover:border-stone-400 hover:shadow-[0_18px_40px_rgba(28,25,23,0.07)] sm:py-8"
             >
               <div
                 className="pointer-events-none absolute inset-y-0 left-0 w-px bg-gradient-to-b from-transparent via-[#8a6a45]/50 to-transparent opacity-0 transition group-hover:opacity-100"
                 aria-hidden
               />
-              <p className="text-[11px] uppercase tracking-[0.2em] text-stone-400">
-                Kategorija
+              <p className="font-[family-name:var(--font-storefront-display)] text-sm tabular-nums tracking-[0.18em] text-[#b39a7c] transition group-hover:text-[#8a6a45]">
+                {String(index + 1).padStart(2, "0")}
               </p>
               <p className="mt-3 font-[family-name:var(--font-storefront-display)] text-2xl tracking-tight text-stone-900 transition group-hover:text-[#5c4630]">
                 {category.name}
               </p>
-              <span className="mt-8 inline-flex text-sm text-stone-500 transition group-hover:text-stone-800">
+              <span className="mt-7 inline-flex text-sm text-stone-500 transition group-hover:text-stone-800 sm:mt-8">
                 Pogledajte
               </span>
             </Link>
           ))}
+        </div>
+        <div className="mt-6 text-center sm:hidden">
+          <Link
+            href="/proizvodi"
+            className="text-sm text-stone-500 underline-offset-4 hover:text-stone-800 hover:underline"
+          >
+            Svi proizvodi
+          </Link>
         </div>
       </div>
     </section>
@@ -123,9 +131,17 @@ export function SalonSection() {
   const contact = companyContactLines();
 
   return (
-    <section className="border-y border-stone-200 bg-white">
-      <div className="mx-auto grid max-w-7xl lg:grid-cols-[1.15fr_0.85fr]">
-        <div className="relative min-h-[320px] overflow-hidden sm:min-h-[420px] lg:min-h-[520px]">
+    <section className="relative overflow-hidden bg-[#141311] text-white">
+      <div
+        className="pointer-events-none absolute inset-0 marble-veil opacity-50"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#8a6a45]/50 to-transparent"
+        aria-hidden
+      />
+      <div className="relative mx-auto grid max-w-7xl lg:grid-cols-[1.15fr_0.85fr]">
+        <div className="relative min-h-[280px] overflow-hidden sm:min-h-[420px] lg:min-h-[540px]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={STOREFRONT_SALON_SRC}
@@ -134,27 +150,27 @@ export function SalonSection() {
             loading="lazy"
           />
           <div
-            className="absolute inset-0 bg-[#141311]/10 mix-blend-multiply"
+            className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#141311]/60 max-lg:bg-gradient-to-t max-lg:to-[#141311]/70"
             aria-hidden
           />
         </div>
         <div className="flex flex-col justify-center px-6 py-12 sm:px-10 lg:px-12 lg:py-16">
-          <p className="text-[11px] uppercase tracking-[0.2em] text-[#8a6a45]">
+          <p className="text-[11px] uppercase tracking-[0.2em] text-[#d4b896]">
             {companyConfig.name}
           </p>
-          <h2 className="mt-3 font-[family-name:var(--font-storefront-display)] text-3xl leading-tight text-stone-900 sm:text-4xl">
-            Posjetite naš salon
+          <h2 className="mt-3 font-[family-name:var(--font-storefront-display)] text-3xl leading-tight text-white sm:text-4xl">
+            Posetite naš salon
           </h2>
-          <div className="mt-4 h-px w-12 bg-gradient-to-r from-[#8a6a45] to-transparent" />
-          <p className="mt-6 text-sm leading-relaxed text-stone-600 sm:text-base">
-            Pogledajte našu ponudu i pronađite rješenja za vaš prostor.
+          <div className="mt-4 h-px w-12 bg-gradient-to-r from-[#d4b896] to-transparent" />
+          <p className="mt-6 text-sm leading-relaxed text-stone-300 sm:text-base">
+            Pogledajte našu ponudu i pronađite rešenja za vaš prostor.
           </p>
-          <p className="mt-4 text-sm leading-relaxed text-stone-600 sm:text-base">
+          <p className="mt-4 text-sm leading-relaxed text-stone-300 sm:text-base">
             Naš tim vam može pomoći pri izboru keramike, sanitarija, grijanja i
             ostale opreme.
           </p>
           {(address.length > 0 || contact.length > 0) && (
-            <div className="mt-8 space-y-1 text-sm text-stone-500">
+            <div className="mt-8 space-y-1 text-sm text-stone-400">
               {address.map((line) => (
                 <p key={line}>{line}</p>
               ))}
@@ -165,7 +181,7 @@ export function SalonSection() {
           )}
           <Link
             href="/proizvodi"
-            className="mt-10 inline-flex min-h-11 w-fit items-center rounded-full bg-[#141311] px-6 text-sm font-medium text-white transition hover:bg-[#2a2420] hover:shadow-[0_0_0_1px_rgba(138,106,69,0.4)]"
+            className="mt-10 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-white px-6 text-sm font-medium text-[#141311] transition hover:bg-[#ece5db] sm:min-h-11 sm:w-fit"
           >
             Pregledajte proizvode
           </Link>
@@ -206,9 +222,9 @@ export function ProductSection({
       : "text-stone-500 hover:text-stone-800";
 
   return (
-    <section className={`${sectionClass} px-4 py-16 sm:px-6 lg:px-8`}>
+    <section className={`${sectionClass} px-4 py-14 sm:px-6 sm:py-16 lg:px-8`}>
       <div className="mx-auto max-w-7xl">
-        <div className="mb-10 flex items-end justify-between gap-4">
+        <div className="mb-8 flex items-end justify-between gap-4 sm:mb-10">
           <div>
             {eyebrow ? (
               <p className={`text-[11px] uppercase tracking-[0.2em] ${eyebrowClass}`}>
@@ -231,6 +247,16 @@ export function ProductSection({
           ) : null}
         </div>
         <PublicProductGrid products={products} />
+        {href ? (
+          <div className="mt-6 text-center sm:hidden">
+            <Link
+              href={href}
+              className={`text-sm underline-offset-4 hover:underline ${linkClass}`}
+            >
+              Pogledajte sve
+            </Link>
+          </div>
+        ) : null}
       </div>
     </section>
   );
@@ -238,9 +264,13 @@ export function ProductSection({
 
 export function FinalCtaSection() {
   return (
-    <section className="relative overflow-hidden bg-[#141311] px-4 py-16 text-center sm:px-6 lg:px-8">
+    <section className="relative overflow-hidden bg-[#141311] px-4 py-16 text-center sm:px-6 sm:py-20 lg:px-8">
       <div
         className="pointer-events-none absolute inset-0 marble-veil opacity-40"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#8a6a45]/40 to-transparent"
         aria-hidden
       />
       <div className="relative mx-auto max-w-2xl">
@@ -248,14 +278,14 @@ export function FinalCtaSection() {
           Katalog
         </p>
         <h2 className="mt-3 font-[family-name:var(--font-storefront-display)] text-3xl text-white sm:text-4xl">
-          Pronađite rješenje za svoj prostor
+          Pronađite rešenje za svoj prostor
         </h2>
         <p className="mt-4 text-sm leading-relaxed text-stone-400 sm:text-base">
           Pregledajte asortiman keramike, sanitarija, grijanja i opreme.
         </p>
         <Link
           href="/proizvodi"
-          className="mt-8 inline-flex min-h-11 items-center rounded-full border border-[#d4b896]/50 px-6 text-sm font-medium text-white transition hover:border-[#d4b896] hover:bg-white/5"
+          className="mt-8 inline-flex min-h-12 w-full max-w-xs items-center justify-center rounded-full border border-[#d4b896]/50 px-6 text-sm font-medium text-white transition hover:border-[#d4b896] hover:bg-white/5 sm:min-h-11 sm:w-auto sm:max-w-none"
         >
           Otvorite katalog
         </Link>

@@ -102,7 +102,7 @@ export function CustomerForm({
             ? "Čuvanje..."
             : mode === "create"
               ? "Sačuvaj kupca"
-              : "Sačuvaj izmjene"}
+              : "Sačuvaj izmene"}
         </button>
       </div>
     </form>

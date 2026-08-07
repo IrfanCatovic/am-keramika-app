@@ -113,7 +113,7 @@ export function PaymentDetails({ payment }: { payment: Payment }) {
       ) : null}
 
       <section className="rounded-2xl border border-stone-200 bg-white p-4 sm:p-5">
-        <h2 className="text-base font-semibold text-stone-900">Raspodjela</h2>
+        <h2 className="text-base font-semibold text-stone-900">Raspodela</h2>
         <ul className="mt-3 space-y-3">
           {(payment.allocations ?? []).map((allocation) => (
             <li

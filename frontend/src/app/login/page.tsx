@@ -38,7 +38,7 @@ export default function LoginPage() {
       if (err instanceof ApiError) {
         setError(err.message);
       } else {
-        setError("Prijava nije uspjela. Pokušajte ponovo.");
+        setError("Prijava nije uspela. Pokušajte ponovo.");
       }
     } finally {
       setSubmitting(false);

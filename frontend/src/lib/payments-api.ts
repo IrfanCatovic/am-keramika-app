@@ -67,7 +67,7 @@ export function roundMoney(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
-/** FIFO raspodjela na najstarije račune (createdAt ASC). */
+/** FIFO raspodela na najstarije račune (createdAt ASC). */
 export function autoAllocatePayments(
   totalAmount: number,
   invoices: { id: number; remainingAmount: number; createdAt: string }[],

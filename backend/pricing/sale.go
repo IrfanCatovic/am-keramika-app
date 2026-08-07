@@ -3,7 +3,7 @@ package pricing
 import "errors"
 
 var (
-	ErrNegativeDiscount     = errors.New("popust ne smije biti negativan")
+	ErrNegativeDiscount     = errors.New("popust ne sme biti negativan")
 	ErrDiscountTooHigh      = errors.New("popust mora biti manji od 100%")
 	ErrSaleRequiresDiscount = errors.New("za akciju popust mora biti veći od 0%")
 )

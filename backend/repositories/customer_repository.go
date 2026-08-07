@@ -12,7 +12,7 @@ import (
 
 var (
 	ErrCustomerNotFound          = errors.New("kupac nije pronađen")
-	ErrCustomerInactive          = errors.New("kupac nije aktivan; aktivirajte kupca prije kreiranja računa")
+	ErrCustomerInactive          = errors.New("kupac nije aktivan; aktivirajte kupca pre kreiranja računa")
 	ErrCustomerHasOpenInvoices   = errors.New("kupac ima neizmirene obaveze i ne može biti deaktiviran")
 	ErrCustomerHasHistory        = errors.New("kupac ima istoriju računa ili uplata i ne može biti obrisan; deaktivirajte kupca kada izmiri obaveze")
 )

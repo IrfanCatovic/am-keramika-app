@@ -148,7 +148,7 @@ func UpdateProductGroup(c *gin.Context) {
 	if err != nil {
 		status := http.StatusInternalServerError
 		switch {
-		case strings.Contains(err.Error(), "premjestite ili uklonite proizvode iz grupe prije promjene kategorije"):
+		case strings.Contains(err.Error(), "premestite ili uklonite proizvode iz grupe pre promene kategorije"):
 			status = http.StatusConflict
 		case strings.Contains(err.Error(), "kategorija nije pronađena"),
 			strings.Contains(err.Error(), "kategorija nije aktivna"),

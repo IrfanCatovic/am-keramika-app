@@ -454,7 +454,7 @@ export function InventoryWorkspace() {
               onClick={() => syncQuery({ page: activePagination.page + 1 })}
               className="inline-flex min-h-10 items-center rounded-xl border border-stone-200 px-3 font-medium text-stone-700 disabled:opacity-50"
             >
-              Sljedeća
+              Sledeća
             </button>
           </div>
         </div>

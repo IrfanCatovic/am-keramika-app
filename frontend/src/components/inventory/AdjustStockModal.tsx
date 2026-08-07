@@ -75,7 +75,7 @@ function AdjustStockForm({
       onClose();
     } catch (err) {
       setError(
-        getApiBusinessMessage(err, "Korekcija lagera nije uspjela."),
+        getApiBusinessMessage(err, "Korekcija lagera nije uspela."),
       );
     } finally {
       setSubmitting(false);
@@ -128,7 +128,7 @@ function AdjustStockForm({
             </span>
           </p>
           <p className="mt-1">
-            Promjena:{" "}
+            Promena:{" "}
             <span
               className={`font-semibold tabular-nums ${
                 (preview.change ?? 0) < 0

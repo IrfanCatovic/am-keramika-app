@@ -15,7 +15,7 @@ export type PosProductSearchHandle = {
 
 /**
  * Glavni POS search. Barcode podrška se može kasnije dodati
- * (npr. poseban input / scanner mode) bez mijenjanja invoice toka.
+ * (npr. poseban input / scanner mode) bez menjanja invoice toka.
  */
 export const PosProductSearch = forwardRef<
   PosProductSearchHandle,

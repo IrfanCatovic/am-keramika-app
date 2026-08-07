@@ -234,7 +234,7 @@ export function PaymentsWorkspace() {
                 onClick={() => updateQuery({ page: String(page + 1) })}
                 className="rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm disabled:opacity-40"
               >
-                Sljedeća
+                Sledeća
               </button>
             </div>
           ) : null}

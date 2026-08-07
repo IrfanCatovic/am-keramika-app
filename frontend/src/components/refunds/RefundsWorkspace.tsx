@@ -126,7 +126,7 @@ export function RefundsWorkspace() {
           href="/reports"
           className="inline-flex min-h-11 items-center rounded-xl border border-stone-200 bg-white px-4 text-sm font-medium text-stone-700 hover:bg-stone-50"
         >
-          Nazad na izvještaje
+          Nazad na izveštaje
         </Link>
       </div>
 
@@ -179,7 +179,7 @@ export function RefundsWorkspace() {
               }
               className="inline-flex min-h-11 flex-1 items-center justify-center rounded-xl bg-stone-900 px-4 text-sm font-semibold text-white"
             >
-              Primijeni
+              Primeni
             </button>
             <button
               type="button"
@@ -326,7 +326,7 @@ export function RefundsWorkspace() {
               onClick={() => syncQuery({ page: pagination.page + 1 })}
               className="inline-flex min-h-10 items-center rounded-xl border border-stone-200 px-3 disabled:opacity-50"
             >
-              Sljedeća
+              Sledeća
             </button>
           </div>
         </div>

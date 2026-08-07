@@ -47,7 +47,7 @@ export function CatalogPagination({
           href={buildPageHref(basePath, query, page + 1)}
           className="rounded-full border border-stone-200 bg-white px-4 py-2 text-sm text-stone-700"
         >
-          Sljedeća
+          Sledeća
         </Link>
       ) : null}
     </div>

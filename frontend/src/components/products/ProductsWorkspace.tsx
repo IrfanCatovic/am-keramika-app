@@ -281,7 +281,7 @@ export function ProductsWorkspace() {
       await loadProducts();
     } catch (err) {
       setConfirmError(
-        getApiBusinessMessage(err, "Akcija nije uspjela. Pokušajte ponovo."),
+        getApiBusinessMessage(err, "Akcija nije uspela. Pokušajte ponovo."),
       );
     } finally {
       setConfirmLoading(false);

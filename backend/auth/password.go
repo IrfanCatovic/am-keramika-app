@@ -29,7 +29,7 @@ func ValidatePassword(password string) error {
 func HashPassword(password string) (string, error) {
 	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return "", errors.New("neuspjelo heširanje lozinke")
+		return "", errors.New("neuspelo heširanje lozinke")
 	}
 	return string(hashed), nil
 }

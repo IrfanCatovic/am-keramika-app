@@ -43,7 +43,7 @@ func CreateInvoice(c *gin.Context) {
 			strings.Contains(msg, "nema dovoljno"),
 			strings.Contains(msg, "način plaćanja"),
 			strings.Contains(msg, "nacin placanja"),
-			strings.Contains(msg, "djelimičn"),
+			strings.Contains(msg, "delimičn"),
 			strings.Contains(msg, "Plati sve"),
 			strings.Contains(msg, "bez uplate"),
 			strings.Contains(msg, "nepoznat način"),
@@ -128,7 +128,7 @@ func GetAllInvoices(c *gin.Context) {
 
 	location, err := time.LoadLocation("Europe/Belgrade")
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspjelo učitavanje vremenske zone"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspelo učitavanje vremenske zone"})
 		return
 	}
 
@@ -156,7 +156,7 @@ func GetAllInvoices(c *gin.Context) {
 		toDateExclusive = &end
 	}
 	if fromDateParam != "" && toDateParam != "" && toDay.Before(fromDay) {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "toDate ne može biti prije fromDate"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "toDate ne može biti pre fromDate"})
 		return
 	}
 
@@ -172,7 +172,7 @@ func GetAllInvoices(c *gin.Context) {
 		Direction:  direction,
 	})
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspjelo dobavljanje faktura"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspelo dobavljanje faktura"})
 		return
 	}
 

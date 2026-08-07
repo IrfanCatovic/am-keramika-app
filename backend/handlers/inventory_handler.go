@@ -102,7 +102,7 @@ func parseInventoryPagination(c *gin.Context, defaultPage, defaultLimit, maxLimi
 			return 0, 0, false
 		}
 		if parsed > maxLimit {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "limit ne smije biti veći od 100"})
+			c.JSON(http.StatusBadRequest, gin.H{"message": "limit ne sme biti veći od 100"})
 			return 0, 0, false
 		}
 		limit = parsed
@@ -289,7 +289,7 @@ func GetInventoryMovements(c *gin.Context) {
 func AddStock(c *gin.Context) {
 	var req dto.AddStockRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Neuspjelo bindovanje JSON-a"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Neuspelo bindovanje JSON-a"})
 		return
 	}
 
@@ -301,7 +301,7 @@ func AddStock(c *gin.Context) {
 
 	err = repositories.AddStock(req.ProductID, req.Quantity, req.Note, createdByUserID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspjelo dodavanje stoka", "error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspelo dodavanje stoka", "error": err.Error()})
 		return
 	}
 
@@ -336,11 +336,11 @@ func AdjustStock(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"message": "Proizvod nije aktivan"})
 			return
 		}
-		if err.Error() == "nova količina ne smije biti negativna" {
+		if err.Error() == "nova količina ne sme biti negativna" {
 			c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Korekcija lagera nije uspjela", "error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Korekcija lagera nije uspela", "error": err.Error()})
 		return
 	}
 
@@ -359,7 +359,7 @@ func AdjustStock(c *gin.Context) {
 func SellStock(c *gin.Context) {
 	var req dto.SellStockRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Neuspjelo bindovanje JSON-a", "error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Neuspelo bindovanje JSON-a", "error": err.Error()})
 		return
 	}
 
@@ -371,12 +371,12 @@ func SellStock(c *gin.Context) {
 
 	result, err := repositories.SellStock(req.ProductID, req.Quantity, req.Note, createdByUserID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspjelo prodajanje stoka", "error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspelo prodajanje stoka", "error": err.Error()})
 		return
 	}
 
 	response := gin.H{
-		"message": "Prodaja uspjesno evidentirana",
+		"message": "Prodaja uspešno evidentirana",
 	}
 
 	if result.Warning != "" {

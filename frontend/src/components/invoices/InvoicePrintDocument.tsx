@@ -138,7 +138,7 @@ export function InvoicePrintDocument({
               </th>
               <th className="w-14 py-2 pr-2 font-semibold">Jedinica</th>
               <th className="w-24 py-2 pr-2 text-right font-semibold">
-                Jedinična cijena
+                Jedinična cena
               </th>
               <th className="w-24 py-2 text-right font-semibold">Ukupno</th>
             </tr>

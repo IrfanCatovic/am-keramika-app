@@ -67,14 +67,14 @@ function InvoicesSkeleton() {
 export function RecentInvoicesSection() {
   const { data, error, status, retry } = useAsyncSection(
     () => fetchRecentInvoices(),
-    "Nije moguće učitati posljednje račune.",
+    "Nije moguće učitati poslednje račune.",
   );
 
   const invoices = data?.data ?? [];
 
   return (
     <SectionCard
-      title="Posljednji računi"
+      title="Poslednji računi"
       description="Najnoviji unosi u sistemu"
       action={
         <Link

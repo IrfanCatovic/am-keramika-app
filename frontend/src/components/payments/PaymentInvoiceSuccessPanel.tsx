@@ -19,7 +19,7 @@ export function PaymentInvoiceSuccessPanel({
     <InvoiceSuccessPanel
       invoice={invoice}
       customerLabel={customerLabel}
-      title="Uplata je uspješno evidentirana"
+      title="Uplata je uspešno evidentirana"
       extraActions={
         <Link
           href={`/payments/${payment.id}`}

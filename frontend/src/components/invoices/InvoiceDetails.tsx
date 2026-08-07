@@ -64,7 +64,7 @@ export function InvoiceDetailsView({ invoiceId }: { invoiceId: number }) {
       setReloadToken((value) => value + 1);
     } catch (err) {
       setCancelError(
-        getApiBusinessMessage(err, 'Storniranje računa nije uspjelo.')
+        getApiBusinessMessage(err, 'Storniranje računa nije uspelo.')
       );
     } finally {
       setCancelLoading(false);
@@ -235,7 +235,7 @@ export function InvoiceDetailsView({ invoiceId }: { invoiceId: number }) {
               </p>
             </div>
             <div>
-              <p className="text-xs text-amber-800/80">Plaćeno prije storna</p>
+              <p className="text-xs text-amber-800/80">Plaćeno pre storna</p>
               <p className="mt-0.5 font-semibold tabular-nums text-amber-950">
                 {formatMoney(invoice.paidAmount)}
               </p>
@@ -310,7 +310,7 @@ export function InvoiceDetailsView({ invoiceId }: { invoiceId: number }) {
           <p className="mt-2 text-sm text-stone-500">Nema stavki.</p>
         ) : null}
         <p className="mt-3 text-xs text-stone-400">
-          Cijene su sačuvane sa računa i ne mijenjaju se naknadno.
+          Cene su sačuvane sa računa i ne menjaju se naknadno.
         </p>
       </section>
 

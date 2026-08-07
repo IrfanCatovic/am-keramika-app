@@ -99,7 +99,7 @@ export function InvoiceStickyCartPanel({
         </dl>
 
         <p className="mt-2 text-[11px] leading-relaxed text-stone-500">
-          Konačne cijene i stanje lagera provjerava server.
+          Konačne cene i stanje lagera proverava server.
         </p>
 
         {error ? (

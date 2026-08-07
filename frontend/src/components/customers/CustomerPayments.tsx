@@ -61,7 +61,7 @@ export function CustomerPayments({
     <section className="rounded-2xl border border-stone-200 bg-white shadow-[0_1px_2px_rgba(28,25,23,0.04)]">
       <div className="border-b border-stone-100 px-4 py-3.5 sm:px-5">
         <h2 className="text-base font-semibold text-stone-900">
-          Posljednje uplate
+          Poslednje uplate
         </h2>
         <p className="mt-0.5 text-sm text-stone-500">
           Istorija evidentiranih uplata

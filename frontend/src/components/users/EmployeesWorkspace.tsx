@@ -60,7 +60,7 @@ export function EmployeesWorkspace() {
       setEmployees(data.filter((item) => item.role !== "developer"));
     } catch (err) {
       setError(
-        getApiBusinessMessage(err, "Učitavanje zaposlenih nije uspjelo."),
+        getApiBusinessMessage(err, "Učitavanje zaposlenih nije uspelo."),
       );
     } finally {
       setLoading(false);
@@ -158,7 +158,7 @@ export function EmployeesWorkspace() {
       await loadEmployees();
     } catch (err) {
       setFormError(
-        getApiBusinessMessage(err, "Čuvanje zaposlenog nije uspjelo."),
+        getApiBusinessMessage(err, "Čuvanje zaposlenog nije uspelo."),
       );
     } finally {
       setFormLoading(false);
@@ -177,7 +177,7 @@ export function EmployeesWorkspace() {
       setSuccessMessage("Lozinka je uspešno promenjena.");
     } catch (err) {
       setPasswordError(
-        getApiBusinessMessage(err, "Promjena lozinke nije uspjela."),
+        getApiBusinessMessage(err, "Promena lozinke nije uspela."),
       );
     } finally {
       setPasswordLoading(false);
@@ -202,7 +202,7 @@ export function EmployeesWorkspace() {
       await loadEmployees();
     } catch (err) {
       setStatusError(
-        getApiBusinessMessage(err, "Izmjena statusa nije uspjela."),
+        getApiBusinessMessage(err, "Izmena statusa nije uspela."),
       );
     } finally {
       setStatusLoading(false);

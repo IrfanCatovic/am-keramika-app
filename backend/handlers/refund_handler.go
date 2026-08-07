@@ -105,7 +105,7 @@ func GetRefunds(c *gin.Context) {
 			return
 		}
 		if parsed > repositories.MaxRefundListLimit {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "limit ne smije biti veći od 100"})
+			c.JSON(http.StatusBadRequest, gin.H{"message": "limit ne sme biti veći od 100"})
 			return
 		}
 		limit = parsed

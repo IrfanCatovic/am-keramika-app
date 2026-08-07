@@ -36,7 +36,7 @@ func ValidateImageFile(headerSize int64, reader io.Reader) (ValidatedImage, erro
 	buf := make([]byte, 512)
 	n, err := io.ReadFull(reader, buf)
 	if err != nil && !errors.Is(err, io.ErrUnexpectedEOF) && !errors.Is(err, io.EOF) {
-		return ValidatedImage{}, errors.New("neuspjelo čitanje fajla")
+		return ValidatedImage{}, errors.New("neuspelo čitanje fajla")
 	}
 	if n == 0 {
 		return ValidatedImage{}, errors.New("prazan fajl")

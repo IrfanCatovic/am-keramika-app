@@ -248,8 +248,8 @@ export function ReportsWorkspace() {
   const presets: { id: ReportRangePreset; label: string }[] = [
     { id: "today", label: "Danas" },
     { id: "yesterday", label: "Juče" },
-    { id: "this-month", label: "Ovaj mjesec" },
-    { id: "last-month", label: "Prošli mjesec" },
+    { id: "this-month", label: "Ovaj mesec" },
+    { id: "last-month", label: "Prošli mesec" },
     { id: "custom", label: "Prilagođeni" },
   ];
 
@@ -258,7 +258,7 @@ export function ReportsWorkspace() {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-stone-900">
-            Izvještaji
+            Izveštaji
           </h1>
           <p className="mt-1 text-sm text-stone-500">
             Finansijski pregled za {resolved.fromDate}
@@ -339,7 +339,7 @@ export function ReportsWorkspace() {
                 }
                 className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-stone-900 px-4 text-sm font-semibold text-white"
               >
-                Primijeni period
+                Primeni period
               </button>
             </div>
           </div>

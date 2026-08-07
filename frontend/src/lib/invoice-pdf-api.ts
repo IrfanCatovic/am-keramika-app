@@ -28,7 +28,7 @@ export async function fetchInvoicePdfBlob(
 ): Promise<Blob> {
   if (!API_URL) {
     throw new ApiError(
-      "API adresa nije podešena. Provjerite .env.local datoteku.",
+      "API adresa nije podešena. Proverite .env.local datoteku.",
       500,
     );
   }
@@ -70,7 +70,7 @@ export async function fetchInvoicePdfBlob(
           ? "Nemate dozvolu za ovu akciju."
           : response.status === 404
             ? "Račun nije pronađen."
-            : "Preuzimanje PDF-a nije uspjelo.";
+            : "Preuzimanje PDF-a nije uspelo.";
     throw new ApiError(extractErrorMessage(payload, fallback), response.status, payload);
   }
 

@@ -14,7 +14,7 @@ var (
 	ErrCategoryDuplicateSlug        = errors.New("kategorija sa ovim slugom već postoji")
 	ErrCategoryNotFound             = errors.New("kategorija nije pronađena")
 	ErrCategoryInactive             = errors.New("kategorija nije aktivna")
-	ErrCategoryHasGroupsOrProducts  = errors.New("kategorija ima grupe ili proizvode; deaktivirajte kategoriju umjesto brisanja")
+	ErrCategoryHasGroupsOrProducts  = errors.New("kategorija ima grupe ili proizvode; deaktivirajte kategoriju umesto brisanja")
 )
 
 func validateCategoryActive(categoryID uint) error {

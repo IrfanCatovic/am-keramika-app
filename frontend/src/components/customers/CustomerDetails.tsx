@@ -135,7 +135,7 @@ export function CustomerDetailsView({ customerId }: { customerId: number }) {
           err,
           confirm.kind === "delete"
             ? "Kupac se ne može obrisati jer postoji istorija računa ili uplata. Možete ga deaktivirati ako nema otvorenih računa."
-            : "Promjena statusa nije uspjela.",
+            : "Promena statusa nije uspela.",
         ),
       );
     } finally {

@@ -105,7 +105,7 @@ export function FinanceSummarySection({
             href="/reports?range=today"
             className="shrink-0 text-sm font-medium text-[#8a6a45] transition hover:text-stone-900"
           >
-            Izvještaji
+            Izveštaji
           </Link>
         ) : null
       }

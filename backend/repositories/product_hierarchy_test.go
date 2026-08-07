@@ -80,7 +80,7 @@ func TestUpdateProductGroup_RejectCategoryChangeWhenHasProducts(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error when changing category of group with products")
 	}
-	if !strings.Contains(err.Error(), "premjestite ili uklonite proizvode") {
+	if !strings.Contains(err.Error(), "premestite ili uklonite proizvode") {
 		t.Fatalf("unexpected error: %v", err)
 	}
 

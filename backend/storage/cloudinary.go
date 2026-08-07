@@ -16,7 +16,7 @@ type CloudinaryStorage struct {
 func NewCloudinaryStorage(cloudName, apiKey, apiSecret string) (*CloudinaryStorage, error) {
 	client, err := cloudinary.NewFromParams(cloudName, apiKey, apiSecret)
 	if err != nil {
-		return nil, fmt.Errorf("neuspjela inicijalizacija Cloudinary klijenta: %w", err)
+		return nil, fmt.Errorf("neuspela inicijalizacija Cloudinary klijenta: %w", err)
 	}
 	return &CloudinaryStorage{client: client}, nil
 }

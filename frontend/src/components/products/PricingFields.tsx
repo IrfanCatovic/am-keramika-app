@@ -41,15 +41,15 @@ export function PricingFields({
   return (
     <section className="space-y-3 rounded-2xl border border-stone-200 bg-stone-50/70 p-4">
       <div>
-        <h3 className="text-sm font-semibold text-stone-900">Cijena</h3>
+        <h3 className="text-sm font-semibold text-stone-900">Cena</h3>
         <p className="mt-0.5 text-xs text-stone-500">
           Režim:{" "}
           <span className="font-medium text-[#8a6a45]">
             {calculated ? "Automatski obračun" : "Ručni unos"}
           </span>
           {calculated
-            ? " — prodajna cijena se računa iz nabavne, marže i PDV-a."
-            : " — unesite prodajnu cijenu ručno."}
+            ? " — prodajna cena se računa iz nabavne, marže i PDV-a."
+            : " — unesite prodajnu cenu ručno."}
         </p>
       </div>
 
@@ -59,7 +59,7 @@ export function PricingFields({
             htmlFor="purchase-price"
             className="mb-1.5 block text-sm font-medium text-stone-700"
           >
-            Nabavna cijena {calculated ? "*" : ""}
+            Nabavna cena {calculated ? "*" : ""}
           </label>
           <input
             id="purchase-price"
@@ -115,7 +115,7 @@ export function PricingFields({
           htmlFor="sale-price"
           className="mb-1.5 block text-sm font-medium text-stone-700"
         >
-          Prodajna cijena {!calculated ? "*" : ""}
+          Prodajna cena {!calculated ? "*" : ""}
         </label>
         <input
           id="sale-price"

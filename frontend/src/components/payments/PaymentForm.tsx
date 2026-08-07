@@ -188,24 +188,24 @@ export function PaymentForm({
       return "Primljeni iznos mora biti veći od 0.";
     }
     if (coveredCount === 0) {
-      return "Dodajte najmanje jednu raspodjelu.";
+      return "Dodajte najmanje jednu raspodelu.";
     }
     if (Math.abs(unallocated) > 0.009) {
-      return "Zbir raspodjele mora tačno odgovarati primljenom iznosu.";
+      return "Zbir raspodele mora tačno odgovarati primljenom iznosu.";
     }
     if (mode === "invoice" && invoice) {
       const amount = allocations[invoice.id] ?? 0;
       if (amount > invoice.remainingAmount + 0.009) {
-        return "Iznos ne smije prelaziti preostalo na računu.";
+        return "Iznos ne sme prelaziti preostalo na računu.";
       }
     }
     for (const open of openInvoices) {
       const amount = allocations[open.id] ?? 0;
       if (amount < 0) {
-        return "Iznosi raspodjele ne mogu biti negativni.";
+        return "Iznosi raspodele ne mogu biti negativni.";
       }
       if (amount > open.remainingAmount + 0.009) {
-        return `Raspodjela za račun #${open.id} prelazi preostalo.`;
+        return `Raspodela za račun #${open.id} prelazi preostalo.`;
       }
     }
     return null;
@@ -280,7 +280,7 @@ export function PaymentForm({
     } catch (err) {
       const message = getApiBusinessMessage(
         err,
-        "Evidentiranje uplate nije uspjelo.",
+        "Evidentiranje uplate nije uspelo.",
       );
       setError(message);
       const lower = message.toLowerCase();
@@ -328,7 +328,7 @@ export function PaymentForm({
         <p className="mt-1 text-sm text-stone-500">
           {mode === "invoice"
             ? "Brza uplata za jedan račun."
-            : "Uplata kupca sa raspodjelom na otvorene račune."}
+            : "Uplata kupca sa raspodelom na otvorene račune."}
         </p>
       </header>
 
@@ -679,7 +679,7 @@ function PaymentSummaryPanel({
           onClick={onRefresh}
           className="mt-2 w-full rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-900"
         >
-          Osvježi podatke
+          Osveži podatke
         </button>
       ) : null}
 

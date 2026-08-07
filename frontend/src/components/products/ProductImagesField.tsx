@@ -106,7 +106,7 @@ export function ProductImagesField({
       setConfirmDeleteId(null);
     } catch (error) {
       setActionError(
-        error instanceof Error ? error.message : "Brisanje slike nije uspjelo.",
+        error instanceof Error ? error.message : "Brisanje slike nije uspelo.",
       );
     } finally {
       setConfirmLoading(false);

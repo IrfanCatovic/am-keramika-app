@@ -285,7 +285,7 @@ export function InvoicesWorkspace() {
               onClick={() => syncQuery({ page: page + 1 })}
               className="inline-flex min-h-10 items-center rounded-xl border border-stone-200 px-3 text-sm disabled:opacity-50"
             >
-              Sljedeća
+              Sledeća
             </button>
           </div>
         </div>

@@ -61,7 +61,7 @@ export function InvoiceSummary({
       </dl>
 
       <p className="mt-3 text-xs leading-relaxed text-stone-500">
-        Konačan obračun i provjeru cijena izvršava server prilikom kreiranja
+        Konačan obračun i proveru cena izvršava server prilikom kreiranja
         računa.
       </p>
 

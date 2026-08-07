@@ -79,7 +79,7 @@ func UploadProductImages(c *gin.Context) {
 		}
 		file, openErr := fileHeader.Open()
 		if openErr != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "Neuspjelo otvaranje fajla"})
+			c.JSON(http.StatusBadRequest, gin.H{"message": "Neuspelo otvaranje fajla"})
 			return
 		}
 		valid, validateErr := storage.ValidateImageFile(fileHeader.Size, file)
@@ -95,7 +95,7 @@ func UploadProductImages(c *gin.Context) {
 	for i, fileHeader := range files {
 		file, openErr := fileHeader.Open()
 		if openErr != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "Neuspjelo otvaranje fajla"})
+			c.JSON(http.StatusBadRequest, gin.H{"message": "Neuspelo otvaranje fajla"})
 			return
 		}
 		uploadFile, validateErr := storage.ValidateImageFile(fileHeader.Size, file)

@@ -29,7 +29,7 @@ export function useInvoicePdf() {
       const message =
         err instanceof ApiError
           ? err.message
-          : "Preuzimanje PDF-a nije uspjelo.";
+          : "Preuzimanje PDF-a nije uspelo.";
       setError(message);
     } finally {
       setDownloadLoadingId(null);

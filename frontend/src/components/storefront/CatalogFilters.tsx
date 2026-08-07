@@ -12,8 +12,8 @@ import type {
 
 const SORT_OPTIONS: { value: PublicProductSort; label: string }[] = [
   { value: "recommended", label: "Preporučeno" },
-  { value: "price_asc", label: "Cijena: niža prvo" },
-  { value: "price_desc", label: "Cijena: viša prvo" },
+  { value: "price_asc", label: "Cena: niža prvo" },
+  { value: "price_desc", label: "Cena: viša prvo" },
   { value: "name_asc", label: "Naziv A–Z" },
 ];
 

@@ -26,7 +26,7 @@ export default function ProtectedLayout({
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#f4f2ef]">
         <div className="rounded-xl border border-stone-200 bg-white px-6 py-4 text-sm text-stone-600 shadow-sm">
-          Provjera prijave...
+          Provera prijave...
         </div>
       </div>
     );
@@ -36,7 +36,7 @@ export default function ProtectedLayout({
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#f4f2ef]">
         <div className="rounded-xl border border-stone-200 bg-white px-6 py-4 text-sm text-stone-600 shadow-sm">
-          Preusmjeravanje na prijavu...
+          Preusmeravanje na prijavu...
         </div>
       </div>
     );
