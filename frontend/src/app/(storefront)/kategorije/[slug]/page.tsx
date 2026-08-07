@@ -5,8 +5,8 @@ import type { Metadata } from "next";
 
 import {
   CatalogFilters,
-  CatalogPagination,
 } from "@/components/storefront/CatalogFilters";
+import { CatalogPagination } from "@/components/storefront/CatalogPagination";
 import { PublicProductGrid } from "@/components/storefront/PublicProductCard";
 import {
   StorefrontBreadcrumb,
@@ -103,17 +103,13 @@ export default async function CategoryPage({
   const products = result?.products ?? [];
   const basePath = `/kategorije/${slug}`;
 
-  function makeHref(nextPage: number) {
-    const q = new URLSearchParams();
-    if (search) q.set("search", search);
-    if (group) q.set("group", group);
-    if (onSale) q.set("onSale", "true");
-    if (inStock) q.set("inStock", "true");
-    if (sort && sort !== "recommended") q.set("sort", sort);
-    if (nextPage > 1) q.set("page", String(nextPage));
-    const qs = q.toString();
-    return qs ? `${basePath}?${qs}` : basePath;
-  }
+  const paginationQuery = {
+    search: search || undefined,
+    group: group || undefined,
+    onSale: onSale ? "true" : undefined,
+    inStock: inStock ? "true" : undefined,
+    sort: sort && sort !== "recommended" ? sort : undefined,
+  };
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
@@ -193,7 +189,8 @@ export default async function CategoryPage({
                 <CatalogPagination
                   page={result.pagination.page}
                   totalPages={result.pagination.totalPages}
-                  makeHref={makeHref}
+                  basePath={basePath}
+                  query={paginationQuery}
                 />
               ) : null}
             </>

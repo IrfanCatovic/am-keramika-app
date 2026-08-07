@@ -347,38 +347,3 @@ function FilterFields({
     </div>
   );
 }
-
-export function CatalogPagination({
-  page,
-  totalPages,
-  makeHref,
-}: {
-  page: number;
-  totalPages: number;
-  makeHref: (page: number) => string;
-}) {
-  if (totalPages <= 1) return null;
-  return (
-    <div className="mt-10 flex flex-wrap items-center justify-center gap-2">
-      {page > 1 ? (
-        <Link
-          href={makeHref(page - 1)}
-          className="rounded-full border border-stone-200 bg-white px-4 py-2 text-sm text-stone-700"
-        >
-          Prethodna
-        </Link>
-      ) : null}
-      <span className="px-2 text-sm text-stone-500">
-        Stranica {page} / {totalPages}
-      </span>
-      {page < totalPages ? (
-        <Link
-          href={makeHref(page + 1)}
-          className="rounded-full border border-stone-200 bg-white px-4 py-2 text-sm text-stone-700"
-        >
-          Sljedeća
-        </Link>
-      ) : null}
-    </div>
-  );
-}

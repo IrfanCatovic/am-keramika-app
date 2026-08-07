@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 
 import {
   CatalogFilters,
-  CatalogPagination,
 } from "@/components/storefront/CatalogFilters";
+import { CatalogPagination } from "@/components/storefront/CatalogPagination";
 import { PublicProductGrid } from "@/components/storefront/PublicProductCard";
 import { StorefrontEmpty } from "@/components/storefront/StorefrontSections";
 import {
@@ -63,18 +63,14 @@ export default async function CatalogPage({
   const pagination = result?.pagination;
   const hasFilters = Boolean(search || category || group || onSale || inStock);
 
-  function makeHref(nextPage: number) {
-    const q = new URLSearchParams();
-    if (search) q.set("search", search);
-    if (category) q.set("category", category);
-    if (group) q.set("group", group);
-    if (onSale) q.set("onSale", "true");
-    if (inStock) q.set("inStock", "true");
-    if (sort && sort !== "recommended") q.set("sort", sort);
-    if (nextPage > 1) q.set("page", String(nextPage));
-    const qs = q.toString();
-    return qs ? `/proizvodi?${qs}` : "/proizvodi";
-  }
+  const paginationQuery = {
+    search: search || undefined,
+    category: category || undefined,
+    group: group || undefined,
+    onSale: onSale ? "true" : undefined,
+    inStock: inStock ? "true" : undefined,
+    sort: sort && sort !== "recommended" ? sort : undefined,
+  };
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
@@ -128,7 +124,8 @@ export default async function CatalogPage({
                 <CatalogPagination
                   page={pagination.page}
                   totalPages={pagination.totalPages}
-                  makeHref={makeHref}
+                  basePath="/proizvodi"
+                  query={paginationQuery}
                 />
               ) : null}
             </>
