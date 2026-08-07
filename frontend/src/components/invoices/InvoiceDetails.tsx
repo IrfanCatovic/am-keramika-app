@@ -307,7 +307,7 @@ export function InvoiceDetailsView({ invoiceId }: { invoiceId: number }) {
           <p className="mt-2 text-sm text-stone-500">Nema stavki.</p>
         ) : null}
         <p className="mt-3 text-xs text-stone-400">
-          Cijene su snapshot sa računa (unitPrice / totalPrice).
+          Cijene su sačuvane sa računa i ne mijenjaju se naknadno.
         </p>
       </section>
 

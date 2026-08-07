@@ -293,9 +293,9 @@ export function CustomersWorkspace() {
         </div>
         {inactiveOnly ? (
           <p className="mt-3 text-xs text-stone-500">
-            Prikazano {customers.length} neaktivnih sa trenutne backend
-            stranice. Filter „samo neaktivni“ nije server-side — ukupan broj
-            neaktivnih nije dostupan.
+            Prikazano {customers.length} neaktivnih na trenutnoj stranici.
+            Filter „samo neaktivni“ nije server-side — ukupan broj neaktivnih
+            nije dostupan.
           </p>
         ) : (
           <p className="mt-3 text-xs text-stone-500">Ukupno: {total}</p>
@@ -352,7 +352,7 @@ export function CustomersWorkspace() {
       {inactiveOnly && totalPages > 1 ? (
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-stone-500">
-            Backend stranica {page} / {totalPages} (miješani aktivni/neaktivni
+            Stranica {page} / {totalPages} (miješani aktivni/neaktivni
             rezultat)
           </p>
           <div className="flex gap-2">

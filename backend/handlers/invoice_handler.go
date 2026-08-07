@@ -39,6 +39,7 @@ func CreateInvoice(c *gin.Context) {
 			status = http.StatusConflict
 		case strings.Contains(msg, "kupac nije pronađen"),
 			strings.Contains(msg, "proizvod nije pronađen"),
+			strings.Contains(msg, "proizvod nije aktivan"),
 			strings.Contains(msg, "nema dovoljno"):
 			status = http.StatusBadRequest
 		}

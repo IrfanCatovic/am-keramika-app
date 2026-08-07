@@ -11,6 +11,7 @@ import (
 	"am-keramika-backend/models"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func CreateInvoice(req dto.CreateInvoiceRequest, createdByUserID uint) (*models.Invoice, error) {
@@ -47,10 +48,15 @@ func CreateInvoice(req dto.CreateInvoiceRequest, createdByUserID uint) (*models.
 	for _, item := range req.Items {
 		var product models.Product
 
-		err := tx.First(&product, item.ProductID).Error
+		err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&product, item.ProductID).Error
 		if err != nil {
 			tx.Rollback()
 			return nil, errors.New("proizvod nije pronađen")
+		}
+
+		if !product.IsActive {
+			tx.Rollback()
+			return nil, errors.New("proizvod nije aktivan")
 		}
 
 		if product.StockQuantity < item.Quantity {

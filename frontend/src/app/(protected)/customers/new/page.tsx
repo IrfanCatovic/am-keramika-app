@@ -21,8 +21,7 @@ export default function NewCustomerPage() {
           Novi kupac
         </h1>
         <p className="mt-1 text-sm text-stone-500">
-          Unesite ime/naziv i opciono telefon. Email i adresa nisu dio backend
-          DTO-a.
+          Unesite ime/naziv i opciono telefon.
         </p>
       </header>
 

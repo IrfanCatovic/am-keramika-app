@@ -7,9 +7,9 @@ type AddStockRequest struct {
 }
 
 type AdjustStockRequest struct {
-	ProductID   uint    `json:"productID" binding:"required"`
-	NewQuantity float64 `json:"newQuantity" binding:"required,min=0"`
-	Note        string  `json:"note"`
+	ProductID   uint     `json:"productID" binding:"required"`
+	NewQuantity *float64 `json:"newQuantity" binding:"required,min=0"`
+	Note        string   `json:"note"`
 }
 
 type SellStockRequest struct {

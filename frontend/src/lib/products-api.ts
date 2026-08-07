@@ -130,7 +130,7 @@ export async function uploadProductImages(
 ): Promise<ProductImage[]> {
   if (!API_URL) {
     throw new ApiError(
-      "NEXT_PUBLIC_API_URL nije podešen. Provjerite frontend/.env.local.",
+      "API adresa nije podešena. Provjerite .env.local datoteku.",
       500,
     );
   }

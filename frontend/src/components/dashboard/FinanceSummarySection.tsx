@@ -74,9 +74,9 @@ function MetricsGrid({ summary }: { summary: SalesSummaryReport }) {
         value={formatCount(summary.invoicesCount)}
       />
       <MetricCard
-        label="Preostali dug"
+        label="Potraživanja (period)"
         value={formatMoney(summary.outstandingAmount)}
-        hint="Outstanding na današnji period"
+        hint="Neplaćeni dio računa kreiranih danas"
       />
     </div>
   );

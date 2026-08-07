@@ -320,7 +320,12 @@ func AdjustStock(c *gin.Context) {
 		return
 	}
 
-	result, err := repositories.AdjustStock(req.ProductID, req.NewQuantity, req.Note, createdByUserID)
+	if req.NewQuantity == nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "newQuantity je obavezno"})
+		return
+	}
+
+	result, err := repositories.AdjustStock(req.ProductID, *req.NewQuantity, req.Note, createdByUserID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) || err.Error() == "proizvod nije pronađen" {
 			c.JSON(http.StatusNotFound, gin.H{"message": "Proizvod nije pronađen"})

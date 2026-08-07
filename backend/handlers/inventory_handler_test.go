@@ -108,7 +108,7 @@ func TestAdjustStockHandlerUsesNewQuantity(t *testing.T) {
 
 	payload, _ := json.Marshal(dto.AdjustStockRequest{
 		ProductID:   product.ID,
-		NewQuantity: 25,
+		NewQuantity: floatPtr(25),
 		Note:        "Popis",
 	})
 	req := httptest.NewRequest(http.MethodPost, "/inventory/adjust", bytes.NewReader(payload))
@@ -179,4 +179,36 @@ func TestGetInventoryMovementsPagination(t *testing.T) {
 	if len(resp.Movements) != 1 {
 		t.Fatalf("movements = %d want 1", len(resp.Movements))
 	}
+}
+
+func TestAdjustStockHandlerAcceptsZero(t *testing.T) {
+	setupInventoryHandlerTestDB(t)
+	r := setupInventoryHandlerRouter()
+	token := inventoryHandlerToken(t, r)
+	product := seedInventoryHandlerProduct(t, 4)
+
+	payload, _ := json.Marshal(dto.AdjustStockRequest{
+		ProductID:   product.ID,
+		NewQuantity: floatPtr(0),
+		Note:        "Nema na stanju",
+	})
+	req := httptest.NewRequest(http.MethodPost, "/inventory/adjust", bytes.NewReader(payload))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("status = %d body = %s", w.Code, w.Body.String())
+	}
+
+	var updated models.Product
+	database.DB.First(&updated, product.ID)
+	if updated.StockQuantity != 0 {
+		t.Fatalf("stock = %v want 0", updated.StockQuantity)
+	}
+}
+
+func floatPtr(v float64) *float64 {
+	return &v
 }

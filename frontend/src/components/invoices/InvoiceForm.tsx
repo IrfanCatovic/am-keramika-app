@@ -67,7 +67,7 @@ function markMatchingLines(
   if (Object.keys(next).length === 0 && lower.includes("lager")) {
     for (const line of lines) {
       next[line.productID] =
-        "Provjerite lager — backend je odbio količinu.";
+        "Provjerite lager — nema dovoljno robe na stanju.";
     }
   }
   return next;
