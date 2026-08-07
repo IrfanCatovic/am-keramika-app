@@ -73,6 +73,7 @@ func TestManagerAndWorkerForbiddenOnUsers(t *testing.T) {
 					"username": "x",
 					"password": "password123",
 					"role":     models.RoleWorker,
+					"fullName": "X Radnik",
 				},
 			},
 		} {

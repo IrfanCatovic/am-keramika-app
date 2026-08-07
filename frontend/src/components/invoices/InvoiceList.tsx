@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/EmptyState";
 import { formatMoney } from "@/lib/format";
 import { invoiceCustomerLabel } from "@/lib/invoices-api";
+import { userDisplayName } from "@/lib/user-display";
 import { InvoiceListItem } from "@/types/invoice";
 
 export function InvoiceList({
@@ -97,9 +98,9 @@ export function InvoiceList({
                 </td>
                 <td className="break-words px-3 py-3 align-top text-stone-700">
                   <p>{invoiceCustomerLabel(invoice)}</p>
-                  {invoice.createdByUser?.username ? (
+                  {invoice.createdByUser ? (
                     <p className="mt-0.5 text-xs text-stone-400">
-                      {invoice.createdByUser.username}
+                      {userDisplayName(invoice.createdByUser)}
                     </p>
                   ) : null}
                 </td>

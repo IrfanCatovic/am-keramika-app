@@ -93,10 +93,21 @@ func setupRouter() *gin.Engine {
 			boss.GET("/users", handlers.GetUsers)
 		}
 
+		dailyReports := authorized.Group("/reports")
+		dailyReports.Use(middleware.RequireRoles(models.RoleDeveloper, models.RoleBoss, models.RoleManager, models.RoleWorker))
+		{
+			dailyReports.GET("/daily", func(c *gin.Context) {
+				c.JSON(http.StatusOK, gin.H{"ok": true})
+			})
+			dailyReports.GET("/sales-summary", func(c *gin.Context) {
+				c.JSON(http.StatusOK, gin.H{"ok": true})
+			})
+		}
+
 		reports := authorized.Group("/reports")
 		reports.Use(middleware.RequireRoles(models.RoleDeveloper, models.RoleBoss, models.RoleManager))
 		{
-			reports.GET("/daily", func(c *gin.Context) {
+			reports.GET("/period", func(c *gin.Context) {
 				c.JSON(http.StatusOK, gin.H{"ok": true})
 			})
 		}
@@ -225,7 +236,7 @@ func TestExpiredTokenRejected(t *testing.T) {
 	}
 }
 
-func TestWorkerForbiddenOnReports(t *testing.T) {
+func TestWorkerAllowedOnDailyReportsButNotPeriod(t *testing.T) {
 	setupAuthTestDB(t)
 	createUser(t, "radnik1", "password123", models.RoleWorker, true)
 	r := setupRouter()
@@ -235,8 +246,24 @@ func TestWorkerForbiddenOnReports(t *testing.T) {
 	req.Header.Set("Authorization", "Bearer "+token)
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		t.Fatalf("daily: expected 200, got %d", w.Code)
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/reports/sales-summary?fromDate=2026-01-01&toDate=2026-01-01", nil)
+	req.Header.Set("Authorization", "Bearer "+token)
+	w = httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		t.Fatalf("sales-summary: expected 200, got %d", w.Code)
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/reports/period?fromDate=2026-01-01&toDate=2026-01-01", nil)
+	req.Header.Set("Authorization", "Bearer "+token)
+	w = httptest.NewRecorder()
+	r.ServeHTTP(w, req)
 	if w.Code != http.StatusForbidden {
-		t.Fatalf("expected 403, got %d", w.Code)
+		t.Fatalf("period: expected 403, got %d", w.Code)
 	}
 }
 
@@ -321,6 +348,7 @@ func TestOnlyBossCanCreateUser(t *testing.T) {
 		"username": "novi",
 		"password": "password123",
 		"role":     models.RoleWorker,
+		"fullName": "Novi Radnik",
 	})
 	req := httptest.NewRequest(http.MethodPost, "/users", bytes.NewReader(body))
 	req.Header.Set("Authorization", "Bearer "+workerToken)
@@ -371,6 +399,7 @@ func TestCannotDemoteLastBoss(t *testing.T) {
 	body, _ := json.Marshal(map[string]string{
 		"username": "sef",
 		"role":     models.RoleManager,
+		"fullName": "Šef Test",
 	})
 	req := httptest.NewRequest(http.MethodPut, "/users/"+itoa(boss.ID), bytes.NewReader(body))
 	req.Header.Set("Authorization", "Bearer "+token)

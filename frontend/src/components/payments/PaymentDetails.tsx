@@ -6,6 +6,7 @@ import { InvoiceDocumentActions } from "@/components/invoices/InvoiceDocumentAct
 import { InvoiceStatusBadge } from "@/components/invoices/InvoiceStatusBadge";
 import { formatMoney } from "@/lib/format";
 import { paymentCustomerLabel } from "@/lib/payments-api";
+import { userDisplayName } from "@/lib/user-display";
 import { Payment } from "@/types/payment";
 
 export function PaymentDetails({ payment }: { payment: Payment }) {
@@ -83,8 +84,9 @@ export function PaymentDetails({ payment }: { payment: Payment }) {
               Evidentirao
             </dt>
             <dd className="mt-1 text-sm text-stone-800">
-              {payment.createdByUser?.username ??
-                `Korisnik #${payment.createdByUserID}`}
+              {userDisplayName(payment.createdByUser) !== "—"
+                ? userDisplayName(payment.createdByUser)
+                : `Korisnik #${payment.createdByUserID}`}
             </dd>
           </div>
           <div>

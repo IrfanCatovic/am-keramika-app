@@ -8,6 +8,7 @@ export interface PaymentCustomer {
 export interface PaymentUser {
   id: number;
   username: string;
+  fullName?: string;
 }
 
 export interface PaymentAllocationInvoice {

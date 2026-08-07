@@ -9,6 +9,7 @@ type AuthUserResponse struct {
 	ID       uint   `json:"id"`
 	Username string `json:"username"`
 	Role     string `json:"role"`
+	FullName string `json:"fullName,omitempty"`
 	IsActive bool   `json:"isActive,omitempty"`
 }
 
@@ -21,13 +22,13 @@ type CreateUserRequest struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
 	Role     string `json:"role" binding:"required"`
-	FullName string `json:"fullName"`
+	FullName string `json:"fullName" binding:"required,min=2"`
 }
 
 type UpdateUserRequest struct {
 	Username string `json:"username" binding:"required"`
 	Role     string `json:"role" binding:"required"`
-	FullName string `json:"fullName"`
+	FullName string `json:"fullName" binding:"required,min=2"`
 }
 
 type UpdateUserPasswordRequest struct {
@@ -49,4 +50,5 @@ type UserResponse struct {
 type UserSummaryResponse struct {
 	ID       uint   `json:"id"`
 	Username string `json:"username"`
+	FullName string `json:"fullName"`
 }

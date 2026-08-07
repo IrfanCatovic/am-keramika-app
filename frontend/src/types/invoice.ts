@@ -17,6 +17,7 @@ export interface InvoiceCustomer {
 export interface InvoiceUserSummary {
   id: number;
   username: string;
+  fullName?: string;
 }
 
 export interface InvoiceListItem {

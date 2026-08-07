@@ -51,6 +51,9 @@ func TestEnsureInitialDeveloperCreatesHashedAccount(t *testing.T) {
 	if !CheckPassword(user.PasswordHash, "strongpass1") {
 		t.Fatal("password hash does not match")
 	}
+	if user.FullName != "Irfan Catovic" {
+		t.Fatalf("developer fullName want Irfan Catovic got %q", user.FullName)
+	}
 }
 
 func TestEnsureInitialDeveloperIdempotentDoesNotResetPassword(t *testing.T) {

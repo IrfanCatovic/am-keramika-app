@@ -66,6 +66,11 @@ export function EmployeeFormModal({
       setLocalError("Unesite korisničko ime.");
       return;
     }
+    const trimmedFullName = fullName.trim();
+    if (trimmedFullName.length < 2) {
+      setLocalError("Unesite ime i prezime zaposlenog.");
+      return;
+    }
     if (!isAssignableEmployeeRole(role)) {
       setLocalError("Izaberite validnu ulogu.");
       return;
@@ -86,7 +91,7 @@ export function EmployeeFormModal({
 
     await onSubmit({
       username: trimmedUsername,
-      fullName: fullName.trim(),
+      fullName: trimmedFullName,
       role,
       password: mode === "create" ? password : undefined,
     });
@@ -106,7 +111,7 @@ export function EmployeeFormModal({
       <form className="space-y-3" onSubmit={(event) => void handleSubmit(event)}>
         <label className="block">
           <span className="mb-1.5 block text-sm font-medium text-stone-700">
-            Ime i prezime (opciono)
+            Ime i prezime
           </span>
           <input
             value={fullName}
@@ -114,6 +119,7 @@ export function EmployeeFormModal({
             onChange={(event) => setFullName(event.target.value)}
             className="min-h-11 w-full rounded-xl border border-stone-200 bg-white px-3 text-sm text-stone-900 outline-none focus:border-stone-400 disabled:opacity-60"
             placeholder="npr. Marko Marković"
+            required
           />
         </label>
 

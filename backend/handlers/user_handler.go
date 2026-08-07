@@ -64,6 +64,11 @@ func CreateUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Nevalidna uloga"})
 		return
 	}
+	fullName := strings.TrimSpace(req.FullName)
+	if len(fullName) < 2 {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Ime i prezime je obavezno"})
+		return
+	}
 	if err := auth.ValidatePassword(req.Password); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
@@ -79,7 +84,7 @@ func CreateUser(c *gin.Context) {
 		Username:     req.Username,
 		PasswordHash: hash,
 		Role:         req.Role,
-		FullName:     strings.TrimSpace(req.FullName),
+		FullName:     fullName,
 		IsActive:     true,
 	}
 
@@ -128,6 +133,11 @@ func UpdateUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Nevalidna uloga"})
 		return
 	}
+	fullName := strings.TrimSpace(req.FullName)
+	if len(fullName) < 2 {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Ime i prezime je obavezno"})
+		return
+	}
 	if user.Role == models.RoleDeveloper {
 		c.JSON(http.StatusForbidden, gin.H{"message": "Developer nalog se ne smije mijenjati kroz ovaj endpoint"})
 		return
@@ -147,7 +157,7 @@ func UpdateUser(c *gin.Context) {
 
 	user.Username = req.Username
 	user.Role = req.Role
-	user.FullName = strings.TrimSpace(req.FullName)
+	user.FullName = fullName
 
 	err = repositories.UpdateUser(&user)
 	if err != nil {

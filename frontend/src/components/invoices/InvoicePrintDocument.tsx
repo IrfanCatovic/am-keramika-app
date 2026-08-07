@@ -11,6 +11,7 @@ import {
 } from "@/config/company";
 import { formatMoney, formatQuantity } from "@/lib/format";
 import { invoiceCustomerLabel } from "@/lib/invoices-api";
+import { userDisplayName } from "@/lib/user-display";
 import { InvoiceDetails } from "@/types/invoice";
 
 function printStatusLabel(status: string): string {
@@ -202,11 +203,11 @@ export function InvoicePrintDocument({
 
       <footer className="mt-10 grid grid-cols-2 gap-8 border-t border-stone-200 pt-6 text-xs text-stone-600">
         <div>
-          {invoice.createdByUser?.username ? (
+          {invoice.createdByUser ? (
             <p>
               Račun kreirao:{" "}
               <span className="font-medium text-stone-800">
-                {invoice.createdByUser.username}
+                {userDisplayName(invoice.createdByUser)}
               </span>
             </p>
           ) : null}

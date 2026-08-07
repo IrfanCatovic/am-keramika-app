@@ -70,6 +70,7 @@ export interface AdjustStockResponse {
 export interface InventoryMovementUser {
   id: number;
   username: string;
+  fullName?: string;
 }
 
 export interface InventoryMovement {

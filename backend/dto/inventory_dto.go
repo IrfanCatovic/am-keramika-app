@@ -63,6 +63,7 @@ type AdjustStockResponse struct {
 type InventoryMovementUserResponse struct {
 	ID       uint   `json:"id"`
 	Username string `json:"username"`
+	FullName string `json:"fullName"`
 }
 
 type InventoryMovementResponse struct {

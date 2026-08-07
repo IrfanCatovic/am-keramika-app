@@ -18,7 +18,7 @@ func TestMapInvoiceResponseWithCustomer(t *testing.T) {
 	invoice := models.Invoice{
 		Model:           gormModel(1, createdAt),
 		CreatedByUserID: 7,
-		CreatedByUser:   models.User{Model: gormModel(7, createdAt), Username: "sef"},
+		CreatedByUser:   models.User{Model: gormModel(7, createdAt), Username: "sef", FullName: "Šef Firma"},
 		CustomerID:      &customerID,
 		Customer:        &models.Customer{Model: gormModel(3, createdAt), Name: "Kupac", Phone: "061234567", IsActive: true},
 		TotalAmount:     100,
@@ -54,6 +54,9 @@ func TestMapInvoiceResponseWithCustomer(t *testing.T) {
 	}
 	if resp.CreatedByUser == nil || resp.CreatedByUser.Username != "sef" {
 		t.Fatal("expected createdByUser in response")
+	}
+	if resp.CreatedByUser.FullName != "Šef Firma" {
+		t.Fatalf("expected fullName, got %q", resp.CreatedByUser.FullName)
 	}
 	if len(resp.Items) != 1 || resp.Items[0].ProductName != "Pločica" || resp.Items[0].Unit != "m2" {
 		t.Fatalf("unexpected items: %+v", resp.Items)

@@ -76,6 +76,7 @@ func mapInventoryMovementResponse(movement models.InventoryMovement) dto.Invento
 		response.CreatedByUser = &dto.InventoryMovementUserResponse{
 			ID:       movement.CreatedByUser.ID,
 			Username: movement.CreatedByUser.Username,
+			FullName: strings.TrimSpace(movement.CreatedByUser.FullName),
 		}
 	}
 

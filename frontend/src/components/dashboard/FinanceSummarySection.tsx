@@ -82,7 +82,13 @@ function MetricsGrid({ summary }: { summary: SalesSummaryReport }) {
   );
 }
 
-export function FinanceSummarySection({ date }: { date: string }) {
+export function FinanceSummarySection({
+  date,
+  showReportsLink = true,
+}: {
+  date: string;
+  showReportsLink?: boolean;
+}) {
   const { data, error, status, retry } = useAsyncSection(
     () => fetchSalesSummary(date),
     "Nije moguće učitati današnji finansijski pregled.",
@@ -94,12 +100,14 @@ export function FinanceSummarySection({ date }: { date: string }) {
       title="Današnji pregled"
       description={`Finansijski sažetak za ${date}`}
       action={
-        <Link
-          href="/reports?range=today"
-          className="shrink-0 text-sm font-medium text-[#8a6a45] transition hover:text-stone-900"
-        >
-          Izvještaji
-        </Link>
+        showReportsLink ? (
+          <Link
+            href="/reports?range=today"
+            className="shrink-0 text-sm font-medium text-[#8a6a45] transition hover:text-stone-900"
+          >
+            Izvještaji
+          </Link>
+        ) : null
       }
     >
       <SectionBody

@@ -6,6 +6,7 @@ import { InvoiceDocumentActions } from "@/components/invoices/InvoiceDocumentAct
 import { InvoiceStatusBadge } from "@/components/invoices/InvoiceStatusBadge";
 import { formatMoney } from "@/lib/format";
 import { invoiceCustomerLabel } from "@/lib/invoices-api";
+import { userDisplayName } from "@/lib/user-display";
 import { InvoiceListItem } from "@/types/invoice";
 
 export function InvoiceCard({ invoice }: { invoice: InvoiceListItem }) {
@@ -35,9 +36,9 @@ export function InvoiceCard({ invoice }: { invoice: InvoiceListItem }) {
           Plaćeno {formatMoney(invoice.paidAmount)} · Preostalo{" "}
           {formatMoney(invoice.remainingAmount)}
         </p>
-        {invoice.createdByUser?.username ? (
+        {invoice.createdByUser ? (
           <p className="text-xs text-stone-400">
-            Kreirao: {invoice.createdByUser.username}
+            Kreirao: {userDisplayName(invoice.createdByUser)}
           </p>
         ) : null}
       </div>

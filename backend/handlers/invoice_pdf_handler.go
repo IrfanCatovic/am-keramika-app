@@ -61,7 +61,10 @@ func GetInvoicePDF(c *gin.Context) {
 		doc.CustomerPhone = mapped.Customer.Phone
 	}
 	if mapped.CreatedByUser != nil {
-		doc.CreatedBy = mapped.CreatedByUser.Username
+		doc.CreatedBy = userDisplayName(
+			mapped.CreatedByUser.FullName,
+			mapped.CreatedByUser.Username,
+		)
 	}
 
 	doc.Items = make([]invoicepdf.Item, 0, len(mapped.Items))

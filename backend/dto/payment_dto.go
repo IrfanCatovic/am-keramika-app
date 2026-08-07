@@ -21,6 +21,7 @@ type PaymentCustomerResponse struct {
 type PaymentUserResponse struct {
 	ID       uint   `json:"id"`
 	Username string `json:"username"`
+	FullName string `json:"fullName"`
 }
 
 type PaymentResponse struct {

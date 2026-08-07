@@ -15,13 +15,13 @@ export interface CreateEmployeePayload {
   username: string;
   password: string;
   role: AssignableEmployeeRole;
-  fullName?: string;
+  fullName: string;
 }
 
 export interface UpdateEmployeePayload {
   username: string;
   role: AssignableEmployeeRole;
-  fullName?: string;
+  fullName: string;
 }
 
 export interface UpdateEmployeePasswordPayload {

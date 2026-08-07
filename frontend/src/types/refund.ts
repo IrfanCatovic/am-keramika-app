@@ -9,6 +9,7 @@ export interface RefundListItem {
   createdByUser?: {
     id: number;
     username: string;
+    fullName?: string;
   } | null;
 }
 

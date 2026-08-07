@@ -10,6 +10,7 @@ import {
   fetchRefunds,
   getApiBusinessMessage,
 } from "@/lib/refunds-api";
+import { userDisplayName } from "@/lib/user-display";
 import {
   PaginatedRefunds,
   RefundListItem,
@@ -259,7 +260,7 @@ export function RefundsWorkspace() {
                       −{formatMoney(refund.amount)}
                     </td>
                     <td className="px-4 py-3 text-stone-600">
-                      {refund.createdByUser?.username ?? "—"}
+                      {userDisplayName(refund.createdByUser)}
                     </td>
                   </tr>
                 ))}
@@ -297,7 +298,7 @@ export function RefundsWorkspace() {
                   )}
                 </p>
                 <p className="mt-1 text-xs text-stone-500">
-                  {refund.createdByUser?.username ?? "—"}
+                  {userDisplayName(refund.createdByUser)}
                 </p>
               </li>
             ))}

@@ -37,6 +37,7 @@ func buildPaymentResponse(payment models.Payment) dto.PaymentResponse {
 		response.CreatedByUser = &dto.PaymentUserResponse{
 			ID:       payment.CreatedByUser.ID,
 			Username: payment.CreatedByUser.Username,
+			FullName: strings.TrimSpace(payment.CreatedByUser.FullName),
 		}
 	}
 

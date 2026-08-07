@@ -36,6 +36,7 @@ function normalizeUser(payload: AuthUser): AuthUser {
     id: payload.id,
     username: payload.username,
     role: payload.role as UserRole,
+    fullName: payload.fullName,
     isActive: payload.isActive,
   };
 }

@@ -75,10 +75,16 @@ func setupMVPSmokeRouter() *gin.Engine {
 			bossOnly.POST("/users", handlers.CreateUser)
 		}
 
+		dailyReports := authorized.Group("/reports")
+		dailyReports.Use(middleware.RequireRoles(models.RoleDeveloper, models.RoleBoss, models.RoleManager, models.RoleWorker))
+		{
+			dailyReports.GET("/daily", handlers.GetDailyReport)
+		}
+
 		reports := authorized.Group("/reports")
 		reports.Use(middleware.RequireRoles(models.RoleDeveloper, models.RoleBoss, models.RoleManager))
 		{
-			reports.GET("/daily", handlers.GetDailyReport)
+			reports.GET("/period", handlers.GetPeriodReport)
 		}
 
 		staff := authorized.Group("/")
@@ -436,19 +442,24 @@ func TestMVPSmokeHappyPath(t *testing.T) {
 		t.Fatalf("daily report as sef: %d %s", w.Code, w.Body.String())
 	}
 
-	// 15. Radnik → report 403
+	// 15. Radnik → dnevni pregled dozvoljen; detaljni period i dalje 403
 	w = smokeJSON(t, r, http.MethodPost, "/users", bossToken, map[string]string{
 		"username": "radnik1",
 		"password": "password123",
 		"role":     models.RoleWorker,
+		"fullName": "Radnik Jedan",
 	})
 	if w.Code != http.StatusCreated {
 		t.Fatalf("create worker: %d %s", w.Code, w.Body.String())
 	}
 	workerToken, _ := smokeLogin(t, r, "radnik1", "password123")
 	w = smokeJSON(t, r, http.MethodGet, "/reports/daily?date="+today, workerToken, nil)
+	if w.Code != http.StatusOK {
+		t.Fatalf("worker daily report want 200 got %d (%s)", w.Code, w.Body.String())
+	}
+	w = smokeJSON(t, r, http.MethodGet, "/reports/period?fromDate="+today+"&toDate="+today, workerToken, nil)
 	if w.Code != http.StatusForbidden {
-		t.Fatalf("worker report want 403 got %d (%s)", w.Code, w.Body.String())
+		t.Fatalf("worker period report want 403 got %d (%s)", w.Code, w.Body.String())
 	}
 
 	// 16. Storno računa

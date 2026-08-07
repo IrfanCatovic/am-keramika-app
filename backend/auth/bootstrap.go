@@ -12,15 +12,18 @@ import (
 	"gorm.io/gorm"
 )
 
+const defaultDeveloperFullName = "Irfan Catovic"
+
 // EnsureInitialDeveloper kreira početnog developer nalog ako nijedan ne postoji.
-// Idempotentno: ne kreira niti mijenja postojeći developer (uključujući soft-deleted).
+// Idempotentno: ne kreira niti mijenja postojeći developer (uključujući soft-deleted),
+// osim što dopunjava placeholder FullName za prikaz u auditu.
 func EnsureInitialDeveloper() error {
 	exists, err := developerExists()
 	if err != nil {
 		return err
 	}
 	if exists {
-		return nil
+		return syncDeveloperDisplayName()
 	}
 
 	if !isDeveloperBootstrapEnabled() {
@@ -46,7 +49,7 @@ func EnsureInitialDeveloper() error {
 		PasswordHash: hash,
 		Role:         models.RoleDeveloper,
 		IsActive:     true,
-		FullName:     "Developer",
+		FullName:     developerFullName(),
 	}
 
 	if err := database.DB.Create(&developer).Error; err != nil {
@@ -54,7 +57,7 @@ func EnsureInitialDeveloper() error {
 		if existsNow, checkErr := developerExists(); checkErr != nil {
 			return checkErr
 		} else if existsNow {
-			return nil
+			return syncDeveloperDisplayName()
 		}
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
 			return errors.New("ne može se kreirati developer: username već postoji bez role developer")
@@ -64,6 +67,23 @@ func EnsureInitialDeveloper() error {
 
 	log.Printf("Kreiran početni developer korisnik: %s", username)
 	return nil
+}
+
+func developerFullName() string {
+	name := strings.TrimSpace(os.Getenv("INITIAL_DEVELOPER_FULL_NAME"))
+	if name != "" {
+		return name
+	}
+	return defaultDeveloperFullName
+}
+
+// syncDeveloperDisplayName sets a real display name when the bootstrap placeholder remains.
+func syncDeveloperDisplayName() error {
+	desired := developerFullName()
+	return database.DB.Model(&models.User{}).
+		Where("role = ?", models.RoleDeveloper).
+		Where("full_name = ? OR full_name = ? OR full_name IS NULL", "Developer", "").
+		Update("full_name", desired).Error
 }
 
 func isDeveloperBootstrapEnabled() bool {

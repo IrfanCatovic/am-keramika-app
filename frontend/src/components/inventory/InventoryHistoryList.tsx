@@ -5,6 +5,7 @@ import {
   movementTypeLabel,
   signedMovementQuantity,
 } from "@/lib/inventory-status";
+import { userDisplayName } from "@/lib/user-display";
 import { InventoryMovement } from "@/types/inventory";
 
 function movementChangeClass(value: number): string {
@@ -78,7 +79,7 @@ export function InventoryHistoryList({
                     {movementTypeLabel(movement.type)}
                   </td>
                   <td className="px-4 py-3 text-stone-600">
-                    {movement.createdByUser?.username ?? "—"}
+                    {userDisplayName(movement.createdByUser)}
                   </td>
                 </tr>
               );
@@ -116,7 +117,7 @@ export function InventoryHistoryList({
                   {movementTypeLabel(movement.type)}
                 </span>
                 <span className="text-stone-500">
-                  {movement.createdByUser?.username ?? "—"}
+                  {userDisplayName(movement.createdByUser)}
                 </span>
               </div>
               {movement.note ? (

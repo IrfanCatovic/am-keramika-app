@@ -40,6 +40,7 @@ func Login(c *gin.Context) {
 			ID:       user.ID,
 			Username: user.Username,
 			Role:     user.Role,
+			FullName: user.FullName,
 		},
 	})
 }
@@ -61,6 +62,7 @@ func GetMe(c *gin.Context) {
 		ID:       user.ID,
 		Username: user.Username,
 		Role:     user.Role,
+		FullName: user.FullName,
 		IsActive: user.IsActive,
 	})
 }

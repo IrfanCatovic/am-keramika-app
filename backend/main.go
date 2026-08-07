@@ -88,12 +88,19 @@ func main() {
 			userAdmin.PUT("/users/:id/status", handlers.UpdateUserStatus)
 		}
 
+		// Dnevni pregled (dashboard) — svi zaposleni uključujući radnika.
+		dailyReports := authorized.Group("/reports")
+		dailyReports.Use(middleware.RequireRoles(models.RoleDeveloper, models.RoleBoss, models.RoleManager, models.RoleWorker))
+		{
+			dailyReports.GET("/daily", handlers.GetDailyReport)
+			dailyReports.GET("/sales-summary", handlers.GetSalesSummaryReport)
+		}
+
+		// Detaljni finansijski izvještaji — samo developer/šef/menadžer.
 		reports := authorized.Group("/reports")
 		reports.Use(middleware.RequireRoles(models.RoleDeveloper, models.RoleBoss, models.RoleManager))
 		{
-			reports.GET("/daily", handlers.GetDailyReport)
 			reports.GET("/period", handlers.GetPeriodReport)
-			reports.GET("/sales-summary", handlers.GetSalesSummaryReport)
 			reports.GET("/transactions", handlers.GetFinancialTransactionsReport)
 		}
 

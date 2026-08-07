@@ -23,10 +23,7 @@ func mapInvoiceResponse(invoice models.Invoice) dto.InvoiceResponse {
 	}
 
 	if invoice.CreatedByUser.ID != 0 {
-		response.CreatedByUser = &dto.UserSummaryResponse{
-			ID:       invoice.CreatedByUser.ID,
-			Username: invoice.CreatedByUser.Username,
-		}
+		response.CreatedByUser = mapUserSummary(invoice.CreatedByUser)
 	}
 
 	for _, item := range invoice.Items {
@@ -67,10 +64,7 @@ func mapInvoiceListResponse(invoice models.Invoice) dto.InvoiceListResponse {
 	}
 
 	if invoice.CreatedByUser.ID != 0 {
-		response.CreatedByUser = &dto.UserSummaryResponse{
-			ID:       invoice.CreatedByUser.ID,
-			Username: invoice.CreatedByUser.Username,
-		}
+		response.CreatedByUser = mapUserSummary(invoice.CreatedByUser)
 	}
 
 	return response

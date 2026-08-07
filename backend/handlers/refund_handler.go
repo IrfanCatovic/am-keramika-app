@@ -24,10 +24,7 @@ func mapRefundResponse(refund models.Refund) dto.RefundResponse {
 		CreatedAt: refund.CreatedAt.Format("2006-01-02 15:04"),
 	}
 	if refund.CreatedByUser.ID != 0 {
-		response.CreatedByUser = &dto.UserSummaryResponse{
-			ID:       refund.CreatedByUser.ID,
-			Username: refund.CreatedByUser.Username,
-		}
+		response.CreatedByUser = mapUserSummary(refund.CreatedByUser)
 	}
 	return response
 }
@@ -42,10 +39,7 @@ func mapInvoiceCancellationResponse(cancellation models.InvoiceCancellation) dto
 		CreatedAt:         cancellation.CreatedAt.Format("2006-01-02 15:04"),
 	}
 	if cancellation.CreatedByUser.ID != 0 {
-		response.CreatedByUser = &dto.UserSummaryResponse{
-			ID:       cancellation.CreatedByUser.ID,
-			Username: cancellation.CreatedByUser.Username,
-		}
+		response.CreatedByUser = mapUserSummary(cancellation.CreatedByUser)
 	}
 	return response
 }
@@ -59,10 +53,7 @@ func mapRefundListItem(refund models.Refund) dto.RefundListItemResponse {
 		CreatedAt: refund.CreatedAt.Format("2006-01-02 15:04"),
 	}
 	if refund.CreatedByUser.ID != 0 {
-		item.CreatedByUser = &dto.UserSummaryResponse{
-			ID:       refund.CreatedByUser.ID,
-			Username: refund.CreatedByUser.Username,
-		}
+		item.CreatedByUser = mapUserSummary(refund.CreatedByUser)
 	}
 	if refund.Invoice.CustomerID != nil {
 		item.CustomerID = refund.Invoice.CustomerID

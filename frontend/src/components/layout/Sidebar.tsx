@@ -6,6 +6,7 @@ import { useEffect, useId, useState } from "react";
 
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getNavItemsForRole } from "@/lib/navigation";
+import { userDisplayName } from "@/lib/user-display";
 import { roleLabel } from "@/types/auth";
 
 function BrandMark({ compact = false }: { compact?: boolean }) {
@@ -139,7 +140,9 @@ export function Sidebar() {
 
   const footer = (
     <div className="border-t border-stone-800 px-4 py-4">
-      <p className="truncate text-sm font-medium text-stone-100">{user.username}</p>
+      <p className="truncate text-sm font-medium text-stone-100">
+        {userDisplayName(user)}
+      </p>
       <p className="text-xs text-stone-400">{roleLabel(user.role)}</p>
       <button
         type="button"

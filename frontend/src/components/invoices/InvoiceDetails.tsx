@@ -14,6 +14,7 @@ import {
   getApiBusinessMessage,
   invoiceCustomerLabel,
 } from '@/lib/invoices-api';
+import { userDisplayName } from '@/lib/user-display';
 import { CancelInvoiceResponse, InvoiceDetails } from '@/types/invoice';
 
 export function InvoiceDetailsView({ invoiceId }: { invoiceId: number }) {
@@ -180,7 +181,7 @@ export function InvoiceDetailsView({ invoiceId }: { invoiceId: number }) {
               Kreirao
             </p>
             <p className="mt-1 text-base font-semibold text-stone-900">
-              {invoice.createdByUser?.username ?? '—'}
+              {userDisplayName(invoice.createdByUser)}
             </p>
           </div>
         </div>
@@ -239,13 +240,15 @@ export function InvoiceDetailsView({ invoiceId }: { invoiceId: number }) {
                 {formatMoney(invoice.paidAmount)}
               </p>
             </div>
-            {(invoice.cancellation?.createdByUser?.username ||
-              invoice.refund?.createdByUser?.username) && (
+            {(invoice.cancellation?.createdByUser ||
+              invoice.refund?.createdByUser) && (
               <div>
                 <p className="text-xs text-amber-800/80">Stornirao</p>
                 <p className="mt-0.5 font-medium text-amber-950">
-                  {invoice.cancellation?.createdByUser?.username ??
-                    invoice.refund?.createdByUser?.username}
+                  {userDisplayName(
+                    invoice.cancellation?.createdByUser ??
+                      invoice.refund?.createdByUser,
+                  )}
                 </p>
               </div>
             )}

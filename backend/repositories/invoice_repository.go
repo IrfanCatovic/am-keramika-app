@@ -487,6 +487,7 @@ func CancelInvoice(id uint, req dto.CancelInvoiceRequest, createdByUserID uint) 
 		CreatedByUser: &dto.UserSummaryResponse{
 			ID:       invoiceCancellation.CreatedByUser.ID,
 			Username: invoiceCancellation.CreatedByUser.Username,
+			FullName: strings.TrimSpace(invoiceCancellation.CreatedByUser.FullName),
 		},
 	}
 
@@ -505,6 +506,7 @@ func CancelInvoice(id uint, req dto.CancelInvoiceRequest, createdByUserID uint) 
 			CreatedByUser: &dto.UserSummaryResponse{
 				ID:       refund.CreatedByUser.ID,
 				Username: refund.CreatedByUser.Username,
+				FullName: strings.TrimSpace(refund.CreatedByUser.FullName),
 			},
 		}
 	}
