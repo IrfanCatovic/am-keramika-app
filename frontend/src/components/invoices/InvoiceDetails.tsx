@@ -1,23 +1,20 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import Link from 'next/link';
+import { useCallback, useEffect, useState } from 'react';
 
-import { CancelInvoiceDialog } from "@/components/invoices/CancelInvoiceDialog";
-import { InvoiceDocumentActions } from "@/components/invoices/InvoiceDocumentActions";
-import { InvoiceStatusBadge } from "@/components/invoices/InvoiceStatusBadge";
-import { InlineError, ListSkeleton } from "@/components/ui/EmptyState";
-import { formatMoney } from "@/lib/format";
+import { CancelInvoiceDialog } from '@/components/invoices/CancelInvoiceDialog';
+import { InvoiceDocumentActions } from '@/components/invoices/InvoiceDocumentActions';
+import { InvoiceStatusBadge } from '@/components/invoices/InvoiceStatusBadge';
+import { InlineError, ListSkeleton } from '@/components/ui/EmptyState';
+import { formatMoney } from '@/lib/format';
 import {
   cancelInvoice,
   fetchInvoice,
   getApiBusinessMessage,
   invoiceCustomerLabel,
-} from "@/lib/invoices-api";
-import {
-  CancelInvoiceResponse,
-  InvoiceDetails,
-} from "@/types/invoice";
+} from '@/lib/invoices-api';
+import { CancelInvoiceResponse, InvoiceDetails } from '@/types/invoice';
 
 export function InvoiceDetailsView({ invoiceId }: { invoiceId: number }) {
   const [invoice, setInvoice] = useState<InvoiceDetails | null>(null);
@@ -29,7 +26,7 @@ export function InvoiceDetailsView({ invoiceId }: { invoiceId: number }) {
   const [cancelLoading, setCancelLoading] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
   const [lastCancel, setLastCancel] = useState<CancelInvoiceResponse | null>(
-    null,
+    null
   );
 
   const loadInvoice = useCallback(async () => {
@@ -40,7 +37,7 @@ export function InvoiceDetailsView({ invoiceId }: { invoiceId: number }) {
       setInvoice(data);
     } catch (err) {
       setInvoice(null);
-      setError(getApiBusinessMessage(err, "Račun nije pronađen."));
+      setError(getApiBusinessMessage(err, 'Račun nije pronađen.'));
     } finally {
       setLoading(false);
     }
@@ -66,7 +63,7 @@ export function InvoiceDetailsView({ invoiceId }: { invoiceId: number }) {
       setReloadToken((value) => value + 1);
     } catch (err) {
       setCancelError(
-        getApiBusinessMessage(err, "Storniranje računa nije uspjelo."),
+        getApiBusinessMessage(err, 'Storniranje računa nije uspjelo.')
       );
     } finally {
       setCancelLoading(false);
@@ -86,7 +83,7 @@ export function InvoiceDetailsView({ invoiceId }: { invoiceId: number }) {
     return (
       <div className="space-y-4">
         <InlineError
-          message={error ?? "Račun nije pronađen."}
+          message={error ?? 'Račun nije pronađen.'}
           onRetry={() => setReloadToken((value) => value + 1)}
         />
         <Link href="/invoices" className="text-sm font-medium text-[#8a6a45]">
@@ -96,13 +93,13 @@ export function InvoiceDetailsView({ invoiceId }: { invoiceId: number }) {
     );
   }
 
-  const isCancelled = invoice.status === "cancelled";
+  const isCancelled = invoice.status === 'cancelled';
   const isCash = invoice.customerID == null && !invoice.customer;
   const canRecordPayment =
     !isCancelled &&
     !isCash &&
     invoice.remainingAmount > 0 &&
-    invoice.status !== "paid";
+    invoice.status !== 'paid';
 
   return (
     <div className="min-w-0 space-y-4 sm:space-y-5">
@@ -183,7 +180,7 @@ export function InvoiceDetailsView({ invoiceId }: { invoiceId: number }) {
               Kreirao
             </p>
             <p className="mt-1 text-base font-semibold text-stone-900">
-              {invoice.createdByUser?.username ?? "—"}
+              {invoice.createdByUser?.username ?? '—'}
             </p>
           </div>
         </div>
@@ -296,7 +293,7 @@ export function InvoiceDetailsView({ invoiceId }: { invoiceId: number }) {
                 </p>
                 <p className="mt-1 text-xs text-stone-500">
                   {item.quantity}
-                  {item.unit ? ` ${item.unit}` : ""} ×{" "}
+                  {item.unit ? ` ${item.unit}` : ''} ×{' '}
                   {formatMoney(item.unitPrice)}
                 </p>
               </div>

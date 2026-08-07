@@ -75,13 +75,7 @@ export default function EditCustomerPage() {
   return (
     <div className="mx-auto min-w-0 max-w-xl space-y-4">
       <header>
-        <Link
-          href={`/customers/${customer.id}`}
-          className="text-sm font-medium text-[#8a6a45] hover:text-stone-900"
-        >
-          ← Nazad na detalje
-        </Link>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-stone-900">
+        <h1 className="text-2xl font-semibold tracking-tight text-stone-900">
           Uredi kupca
         </h1>
       </header>
