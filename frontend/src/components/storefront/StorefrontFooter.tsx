@@ -101,7 +101,8 @@ export function StorefrontFooter({
       </div>
 
       <div className="relative border-t border-white/10 px-4 py-4 text-center text-xs text-stone-500 sm:px-6 lg:px-8">
-        © {year} {companyConfig.name}
+        <p>© {year} {companyConfig.name}</p>
+        <p className="mt-1.5 text-stone-600">Developer: Irfan Ćatović</p>
       </div>
     </footer>
   );

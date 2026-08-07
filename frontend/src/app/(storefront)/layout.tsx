@@ -2,6 +2,7 @@ import { Fraunces, Manrope } from "next/font/google";
 
 import { StorefrontFooter } from "@/components/storefront/StorefrontFooter";
 import { StorefrontHeader } from "@/components/storefront/StorefrontHeader";
+import { StorefrontProviders } from "@/components/storefront/StorefrontProviders";
 import { companyConfig } from "@/config/company";
 import { safeFetchPublicCategories } from "@/lib/public-catalog-api";
 
@@ -41,9 +42,11 @@ export default async function StorefrontLayout({
     <div
       className={`${display.variable} ${sans.variable} flex min-h-screen flex-col bg-[#f6f4f1] font-[family-name:var(--font-storefront-sans)] text-stone-900 antialiased`}
     >
-      <StorefrontHeader categories={categories} />
-      <main className="flex-1">{children}</main>
-      <StorefrontFooter categories={categories} />
+      <StorefrontProviders>
+        <StorefrontHeader categories={categories} />
+        <main className="flex-1">{children}</main>
+        <StorefrontFooter categories={categories} />
+      </StorefrontProviders>
     </div>
   );
 }

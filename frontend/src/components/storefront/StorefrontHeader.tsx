@@ -6,6 +6,7 @@ import { FormEvent, useEffect, useId, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
 import { STOREFRONT_LOGO_SRC, companyConfig } from "@/config/company";
+import { CartButton } from "@/components/storefront/cart/CartButton";
 import type { PublicCategory } from "@/types/public-catalog";
 
 export function StorefrontHeader({
@@ -118,7 +119,7 @@ export function StorefrontHeader({
 
         <form
           onSubmit={onSearch}
-          className="ml-auto hidden min-w-0 max-w-xs flex-1 md:block lg:max-w-sm"
+          className="hidden min-w-0 max-w-xs flex-1 md:block lg:max-w-sm"
         >
           <label className="sr-only" htmlFor="storefront-search">
             Pretraga proizvoda
@@ -132,27 +133,33 @@ export function StorefrontHeader({
           />
         </form>
 
-        <Link
-          href="/login"
-          className="ml-1 hidden items-center rounded-full border border-stone-800/80 px-4 py-2 text-[13px] font-medium tracking-[0.06em] text-stone-900 transition hover:bg-stone-900 hover:text-white lg:inline-flex"
-        >
-          Login
-        </Link>
-
-        <button
-          type="button"
-          className="ml-auto inline-flex h-10 w-10 items-center justify-center rounded-full border border-stone-300 bg-white text-stone-800 lg:hidden"
-          aria-expanded={open}
-          aria-controls={menuId}
-          onClick={() => setOpen((v) => !v)}
-        >
-          <span className="sr-only">Meni</span>
-          <span className="flex flex-col gap-1.5">
-            <span className="block h-px w-4 bg-current" />
-            <span className="block h-px w-4 bg-current" />
-            <span className="block h-px w-4 bg-current" />
-          </span>
-        </button>
+        <div className="ml-auto flex items-center gap-2">
+          <CartButton className="hidden lg:inline-flex" />
+          <Link
+            href="/login"
+            className="hidden items-center rounded-full border border-stone-800/80 px-4 py-2 text-[13px] font-medium tracking-[0.06em] text-stone-900 transition hover:bg-stone-900 hover:text-white lg:inline-flex"
+          >
+            Login
+          </Link>
+          <CartButton
+            className="lg:hidden"
+            onBeforeOpen={() => setOpen(false)}
+          />
+          <button
+            type="button"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-stone-300 bg-white text-stone-800 lg:hidden"
+            aria-expanded={open}
+            aria-controls={menuId}
+            onClick={() => setOpen((v) => !v)}
+          >
+            <span className="sr-only">Meni</span>
+            <span className="flex flex-col gap-1.5">
+              <span className="block h-px w-4 bg-current" />
+              <span className="block h-px w-4 bg-current" />
+              <span className="block h-px w-4 bg-current" />
+            </span>
+          </button>
+        </div>
       </div>
 
       <div className="border-t border-stone-200/50 px-4 py-2 md:hidden">
@@ -224,7 +231,14 @@ export function StorefrontHeader({
                   {category.name}
                 </Link>
               ))}
-              <div className="mt-auto border-t border-stone-200 pt-4">
+              <div className="mt-auto space-y-3 border-t border-stone-200 pt-4">
+                <Link
+                  href="/korpa"
+                  onClick={closeMenus}
+                  className="flex min-h-11 items-center justify-center rounded-full border border-stone-300 bg-white text-sm font-medium text-stone-800 transition hover:border-stone-400"
+                >
+                  Korpa
+                </Link>
                 <Link
                   href="/login"
                   onClick={closeMenus}

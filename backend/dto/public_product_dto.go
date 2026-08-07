@@ -37,3 +37,14 @@ type PaginatedPublicProductListResponse struct {
 	Products   []PublicProductResponse   `json:"products"`
 	Pagination ProductPaginationResponse `json:"pagination"`
 }
+
+// PublicAvailabilityCheckRequest is the body for POST /public/products/:id/check-availability.
+type PublicAvailabilityCheckRequest struct {
+	Quantity float64 `json:"quantity"`
+}
+
+// PublicAvailabilityCheckResponse never reveals stockQuantity or remaining units.
+type PublicAvailabilityCheckResponse struct {
+	Available bool   `json:"available"`
+	Reason    string `json:"reason,omitempty"`
+}

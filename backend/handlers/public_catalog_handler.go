@@ -232,6 +232,43 @@ func GetPublicProductBySlug(c *gin.Context) {
 	c.JSON(http.StatusOK, mapPublicProductResponse(*product, primaryPtr, true))
 }
 
+func CheckPublicProductAvailability(c *gin.Context) {
+	idParam := strings.TrimSpace(c.Param("id"))
+	id, err := strconv.ParseUint(idParam, 10, 64)
+	if err != nil || id == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Neispravan ID proizvoda"})
+		return
+	}
+
+	var body dto.PublicAvailabilityCheckRequest
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Neispravan zahtev"})
+		return
+	}
+	if body.Quantity <= 0 || math.IsNaN(body.Quantity) || math.IsInf(body.Quantity, 0) {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Količina mora biti veća od 0"})
+		return
+	}
+
+	product, err := repositories.GetPublicProductByID(uint(id))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"message": "Proizvod nije pronađen"})
+		return
+	}
+
+	if product.StockQuantity < body.Quantity {
+		c.JSON(http.StatusOK, dto.PublicAvailabilityCheckResponse{
+			Available: false,
+			Reason:    "insufficient_stock",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.PublicAvailabilityCheckResponse{
+		Available: true,
+	})
+}
+
 func GetPublicCategories(c *gin.Context) {
 	categories, err := repositories.GetCategories(false)
 	if err != nil {

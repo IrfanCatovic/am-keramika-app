@@ -274,6 +274,20 @@ func GetPublicProductBySlug(slug string) (*models.Product, error) {
 	return &product, nil
 }
 
+// GetPublicProductByID returns an active product in an active category (public catalog rules).
+func GetPublicProductByID(id uint) (*models.Product, error) {
+	var product models.Product
+	result := database.DB.Model(&models.Product{}).
+		Where("products.id = ? AND products.is_active = ?", id, true).
+		Joins("JOIN categories ON categories.id = products.category_id AND categories.deleted_at IS NULL AND categories.is_active = ?", true).
+		Preload("Category").
+		First(&product)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &product, nil
+}
+
 func CreateProduct(product *models.Product) error {
 	if err := validateCategoryActive(product.CategoryID); err != nil {
 		return err

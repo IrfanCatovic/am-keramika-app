@@ -24,6 +24,7 @@ func setupSaleRouter() *gin.Engine {
 	{
 		public.GET("/products", GetPublicProducts)
 		public.GET("/products/:slug", GetPublicProductBySlug)
+		public.POST("/products/:id/check-availability", CheckPublicProductAvailability)
 		public.GET("/categories", GetPublicCategories)
 		public.GET("/product-groups", GetPublicProductGroups)
 	}
