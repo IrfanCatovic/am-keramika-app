@@ -568,7 +568,7 @@ export function PaymentForm({
       </div>
 
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-stone-200 bg-white/95 px-4 py-3 backdrop-blur lg:hidden">
-        <div className="mx-auto flex max-w-6xl items-center gap-3">
+        <div className="flex w-full items-center gap-3">
           <div className="min-w-0 flex-1 text-sm">
             <p className="text-stone-500">
               Primljeno {formatMoney(totalAmount)}
@@ -587,7 +587,7 @@ export function PaymentForm({
           </button>
         </div>
         {(error || (validationError && totalAmount > 0)) && (
-          <p className="mx-auto mt-2 max-w-6xl break-words text-xs text-red-700">
+          <p className="mt-2 w-full break-words text-xs text-red-700">
             {error ?? validationError}
           </p>
         )}

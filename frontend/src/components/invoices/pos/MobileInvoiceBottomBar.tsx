@@ -17,7 +17,7 @@ export function MobileInvoiceBottomBar({
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-30 border-t border-stone-200 bg-white/95 px-4 py-3 backdrop-blur lg:hidden">
-      <div className="mx-auto flex max-w-6xl items-center gap-3">
+      <div className="flex w-full items-center gap-3">
         <div className="min-w-0 flex-1">
           <p className="text-xs text-stone-500">
             {itemCount} {itemCount === 1 ? "stavka" : "stavke"}
