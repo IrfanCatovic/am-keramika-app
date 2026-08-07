@@ -62,7 +62,6 @@ export function InvoiceSuccessPanel({
           <InvoiceDocumentActions
             invoiceId={invoice.id}
             variant="stack"
-            showShare={false}
             printLabel="Štampaj"
           />
           {extraActions ? <div className="mt-3 space-y-2">{extraActions}</div> : null}

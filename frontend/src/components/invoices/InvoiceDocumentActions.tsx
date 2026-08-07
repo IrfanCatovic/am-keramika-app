@@ -10,7 +10,6 @@ export function InvoiceDocumentActions({
   invoiceId,
   variant = "inline",
   showOpen = false,
-  showShare = true,
   openLabel = "Otvori",
   printLabel = "Štampaj",
   className = "",
@@ -18,24 +17,13 @@ export function InvoiceDocumentActions({
   invoiceId: number;
   variant?: Variant;
   showOpen?: boolean;
-  showShare?: boolean;
   openLabel?: string;
   printLabel?: string;
   className?: string;
 }) {
-  const {
-    download,
-    share,
-    downloadLoadingId,
-    shareLoadingId,
-    error,
-    info,
-    clearMessages,
-  } = useInvoicePdf();
+  const { download, downloadLoadingId, error, clearMessages } = useInvoicePdf();
 
   const downloading = downloadLoadingId === invoiceId;
-  const sharing = shareLoadingId === invoiceId;
-  const busy = downloading || sharing;
 
   const baseBtn =
     "inline-flex min-h-10 items-center justify-center rounded-xl border border-stone-200 bg-white px-3 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-50";
@@ -52,7 +40,7 @@ export function InvoiceDocumentActions({
       <div className={layout}>
         <button
           type="button"
-          disabled={busy}
+          disabled={downloading}
           onClick={() => {
             clearMessages();
             void download(invoiceId);
@@ -61,19 +49,6 @@ export function InvoiceDocumentActions({
         >
           {downloading ? "Preuzimanje…" : "Preuzmi PDF"}
         </button>
-        {showShare ? (
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => {
-              clearMessages();
-              void share(invoiceId);
-            }}
-            className={baseBtn}
-          >
-            {sharing ? "Dijeljenje…" : "Podijeli"}
-          </button>
-        ) : null}
         <a
           href={`/invoices/${invoiceId}/print?autoprint=1`}
           target="_blank"
@@ -90,9 +65,6 @@ export function InvoiceDocumentActions({
       </div>
       {error ? (
         <p className="mt-2 break-words text-xs text-red-700">{error}</p>
-      ) : null}
-      {info ? (
-        <p className="mt-2 break-words text-xs text-stone-600">{info}</p>
       ) : null}
     </div>
   );

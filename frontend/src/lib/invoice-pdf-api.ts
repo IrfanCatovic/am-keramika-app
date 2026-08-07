@@ -96,64 +96,6 @@ export function downloadBlobAsFile(blob: Blob, filename: string): void {
   }
 }
 
-export function isShareAbortError(err: unknown): boolean {
-  if (!err || typeof err !== "object") {
-    return false;
-  }
-  const name = "name" in err ? String((err as { name?: unknown }).name) : "";
-  return name === "AbortError" || name === "NotAllowedError";
-}
-
-export async function canSharePdfFile(file: File): Promise<boolean> {
-  if (typeof navigator === "undefined" || typeof navigator.share !== "function") {
-    return false;
-  }
-  const data = { files: [file] };
-  if (typeof navigator.canShare === "function") {
-    try {
-      return navigator.canShare(data);
-    } catch {
-      return false;
-    }
-  }
-  return true;
-}
-
-export type ShareInvoicePdfResult =
-  | { mode: "shared" }
-  | { mode: "downloaded"; message: string }
-  | { mode: "cancelled" };
-
-export async function shareOrDownloadInvoicePdf(
-  invoiceId: number,
-): Promise<ShareInvoicePdfResult> {
-  const blob = await fetchInvoicePdfBlob(invoiceId, { download: true });
-  const filename = invoicePdfFilename(invoiceId);
-  const file = new File([blob], filename, { type: "application/pdf" });
-
-  if (await canSharePdfFile(file)) {
-    try {
-      await navigator.share({
-        files: [file],
-        title: `Račun #${invoiceId}`,
-        text: `AM Keramika — račun #${invoiceId}`,
-      });
-      return { mode: "shared" };
-    } catch (err) {
-      if (isShareAbortError(err)) {
-        return { mode: "cancelled" };
-      }
-      // Fall through to download fallback.
-    }
-  }
-
-  downloadBlobAsFile(blob, filename);
-  return {
-    mode: "downloaded",
-    message: "PDF je preuzet. Možete ga poslati iz aplikacije po izboru.",
-  };
-}
-
 export async function downloadInvoicePdf(invoiceId: number): Promise<void> {
   const blob = await fetchInvoicePdfBlob(invoiceId, { download: true });
   downloadBlobAsFile(blob, invoicePdfFilename(invoiceId));
