@@ -14,7 +14,7 @@ function BrandMark({ compact = false }: { compact?: boolean }) {
   return (
     <div className={`flex items-center gap-3 ${compact ? "" : ""}`}>
       <div
-        className={`flex shrink-0 items-center justify-center rounded-xl bg-stone-900 text-[#d7b896] ring-1 ring-[#c4a484]/35 ${
+        className={`flex shrink-0 items-center justify-center rounded-xl bg-[#2a2420] text-[#d7b896] ring-1 ring-[#c4a484]/45 ${
           compact ? "h-9 w-9 text-xs font-semibold" : "h-11 w-11 text-sm font-semibold"
         }`}
         aria-hidden
@@ -23,7 +23,7 @@ function BrandMark({ compact = false }: { compact?: boolean }) {
       </div>
       <div className="min-w-0">
         <p
-          className={`truncate font-semibold tracking-tight text-stone-50 ${
+          className={`truncate font-semibold tracking-tight text-[#f3e6d4] ${
             compact ? "text-sm" : "text-base"
           }`}
         >
@@ -132,10 +132,10 @@ export function Sidebar() {
       {items.map((item) => {
         const active =
           pathname === item.href || pathname.startsWith(`${item.href}/`);
-        const className = `flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm transition ${
+        const className = `flex items-center gap-2 rounded-xl px-3 py-2.5 text-[15px] font-medium tracking-wide transition ${
           active
-            ? "bg-stone-800 text-white shadow-sm ring-1 ring-[#c4a484]/25"
-            : "text-stone-300 hover:bg-stone-900 hover:text-white"
+            ? "bg-[#2a2420] text-[#f3e6d4] shadow-sm ring-1 ring-[#c4a484]/40"
+            : "text-[#f0e8dc] hover:bg-[#2a2420]/80 hover:text-white"
         } ${!item.enabled ? "cursor-not-allowed opacity-50" : ""}`;
 
         const showPendingBadge =
@@ -158,7 +158,7 @@ export function Sidebar() {
           >
             <span className="min-w-0 truncate">{item.label}</span>
             {showPendingBadge ? (
-              <span className="ml-auto inline-flex min-w-[1.25rem] items-center justify-center rounded-md bg-[#2a2420] px-1.5 text-[10px] font-medium text-[#e8d4b8]">
+              <span className="ml-auto inline-flex min-w-[1.25rem] items-center justify-center rounded-md bg-[#3a3028] px-1.5 text-[10px] font-semibold text-[#e8d4b8] ring-1 ring-[#c4a484]/35">
                 {pendingOrdersCount > 99 ? "99+" : pendingOrdersCount}
               </span>
             ) : null}
@@ -169,20 +169,22 @@ export function Sidebar() {
   );
 
   const footer = (
-    <div className="border-t border-stone-800 px-4 py-4">
+    <div className="border-t border-[#c4a484]/25 bg-[#14110e] px-4 py-4">
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium text-stone-100">
+          <p className="truncate text-sm font-semibold text-[#f3e6d4]">
             {userDisplayName(user)}
           </p>
-          <p className="text-xs text-stone-400">{roleLabel(user.role)}</p>
+          <p className="text-xs font-medium text-[#d7b896]">
+            {roleLabel(user.role)}
+          </p>
         </div>
         <Link
           href="/settings"
           onClick={closeMenu}
           title="Podešavanja"
           aria-label="Podešavanja"
-          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-stone-700 text-stone-300 transition hover:bg-stone-900 hover:text-white"
+          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#c4a484]/35 bg-[#2a2420] text-[#e8d4b8] transition hover:border-[#c4a484]/60 hover:bg-[#3a3028] hover:text-white"
         >
           <SettingsIcon />
         </Link>
@@ -190,7 +192,7 @@ export function Sidebar() {
       <button
         type="button"
         onClick={handleLogout}
-        className="mt-3 w-full rounded-xl bg-stone-800 px-3 py-2.5 text-sm text-stone-100 transition hover:bg-stone-700"
+        className="mt-3 w-full rounded-xl border border-[#c4a484]/25 bg-[#2a2420] px-3 py-2.5 text-sm font-medium text-[#f3e6d4] transition hover:border-[#c4a484]/45 hover:bg-[#3a3028]"
       >
         Odjavi se
       </button>
@@ -199,10 +201,10 @@ export function Sidebar() {
 
   return (
     <>
-      <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-stone-200 bg-[#faf8f5]/95 px-4 py-3 backdrop-blur lg:hidden">
+      <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-stone-200 bg-[#faf8f5] px-4 py-3 lg:hidden">
         <div className="flex min-w-0 items-center gap-3">
           <div
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-stone-900 text-xs font-semibold text-[#d7b896]"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#1c1917] text-xs font-semibold text-[#d7b896] ring-1 ring-[#c4a484]/35"
             aria-hidden
           >
             AM
@@ -218,7 +220,7 @@ export function Sidebar() {
         </div>
         <button
           type="button"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-stone-300 bg-white text-stone-800 shadow-sm transition hover:bg-stone-50"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#1c1917] text-[#d7b896] shadow-sm ring-1 ring-[#c4a484]/40 transition hover:bg-[#2a2420] hover:text-[#e8d4b8]"
           aria-label={open ? "Zatvori meni" : "Otvori meni"}
           aria-expanded={open}
           aria-controls={panelId}
@@ -230,15 +232,15 @@ export function Sidebar() {
 
       <aside
         id={panelId}
-        className={`fixed inset-y-0 left-0 z-50 flex w-[min(18rem,88vw)] flex-col bg-stone-950 text-stone-100 shadow-2xl transition-transform duration-300 ease-out lg:static lg:z-auto lg:h-auto lg:w-72 lg:shrink-0 lg:translate-x-0 lg:shadow-none ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-[min(18rem,88vw)] flex-col bg-[#1c1917] text-[#f3e6d4] shadow-[8px_0_32px_rgba(28,25,23,0.45)] transition-transform duration-300 ease-out lg:static lg:z-auto lg:h-auto lg:w-72 lg:shrink-0 lg:translate-x-0 lg:shadow-none ${
           open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
-        <div className="flex items-center justify-between gap-3 border-b border-stone-800 px-4 py-4 lg:px-5 lg:py-5">
+        <div className="flex items-center justify-between gap-3 border-b border-[#c4a484]/25 bg-[#1c1917] px-4 py-4 lg:px-5 lg:py-5">
           <BrandMark />
           <button
             type="button"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-stone-700 text-stone-300 transition hover:bg-stone-900 hover:text-white lg:hidden"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#c4a484]/35 bg-[#2a2420] text-[#e8d4b8] transition hover:bg-[#3a3028] hover:text-white lg:hidden"
             aria-label="Zatvori meni"
             onClick={closeMenu}
           >
@@ -253,7 +255,7 @@ export function Sidebar() {
         <button
           type="button"
           aria-label="Zatvori meni"
-          className="fixed inset-0 z-40 bg-stone-950/45 backdrop-blur-[1px] lg:hidden"
+          className="fixed inset-0 z-40 bg-[#1c1917]/70 lg:hidden"
           onClick={closeMenu}
         />
       ) : null}
