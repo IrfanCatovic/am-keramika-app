@@ -143,16 +143,16 @@ export function StorefrontHeader({
           </Link>
           <button
             type="button"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-stone-300 bg-white text-stone-800 lg:hidden"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#1c1917] text-[#d7b896] shadow-sm ring-1 ring-[#c4a484]/40 transition hover:bg-[#2a2420] hover:text-[#e8d4b8] lg:hidden"
             aria-expanded={open}
             aria-controls={menuId}
+            aria-label={open ? "Zatvori meni" : "Otvori meni"}
             onClick={() => setOpen((v) => !v)}
           >
-            <span className="sr-only">Meni</span>
-            <span className="flex flex-col gap-1.5">
-              <span className="block h-px w-4 bg-current" />
-              <span className="block h-px w-4 bg-current" />
-              <span className="block h-px w-4 bg-current" />
+            <span className="flex flex-col gap-1.5" aria-hidden>
+              <span className="block h-0.5 w-4 rounded-full bg-current" />
+              <span className="block h-0.5 w-4 rounded-full bg-current" />
+              <span className="block h-0.5 w-4 rounded-full bg-current" />
             </span>
           </button>
         </div>
@@ -172,73 +172,94 @@ export function StorefrontHeader({
       {open ? (
         <div
           id={menuId}
-          className="fixed inset-0 z-50 lg:hidden"
+          className="fixed inset-0 z-[60] lg:hidden"
           role="dialog"
           aria-modal="true"
         >
           <button
             type="button"
-            className="absolute inset-0 bg-stone-950/45"
+            className="absolute inset-0 bg-[#1c1917]/72"
             aria-label="Zatvori meni"
             onClick={() => setOpen(false)}
           />
-          <div className="absolute inset-y-0 right-0 flex w-[min(100%,20rem)] flex-col border-l border-stone-200 bg-[#f6f4f1] shadow-2xl">
-            <div className="flex items-center justify-between border-b border-stone-200 px-4 py-3">
-              <Image
-                src={STOREFRONT_LOGO_SRC}
-                alt={companyConfig.name}
-                width={120}
-                height={40}
-                className="h-9 w-auto object-contain"
-              />
+          <div className="absolute inset-y-0 right-0 flex w-[min(100%,20rem)] flex-col bg-[#1c1917] text-[#f3e6d4] shadow-[-12px_0_40px_rgba(28,25,23,0.55)]">
+            <div className="flex items-center justify-between gap-3 border-b border-[#c4a484]/25 bg-[#14110e] px-4 py-3.5">
+              <div className="rounded-lg bg-[#f6f4f1] px-2.5 py-1.5">
+                <Image
+                  src={STOREFRONT_LOGO_SRC}
+                  alt={companyConfig.name}
+                  width={120}
+                  height={40}
+                  className="h-8 w-auto object-contain"
+                />
+              </div>
               <button
                 type="button"
-                className="rounded-full border border-stone-300 bg-white px-3 py-1.5 text-sm"
+                className="inline-flex h-9 items-center justify-center rounded-full border border-[#c4a484]/40 bg-[#2a2420] px-3.5 text-sm font-medium text-[#e8d4b8] transition hover:border-[#c4a484]/65 hover:bg-[#3a3028] hover:text-white"
                 onClick={() => setOpen(false)}
               >
                 Zatvori
               </button>
             </div>
-            <nav className="flex flex-1 flex-col gap-1 p-4">
+
+            <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-4">
               <Link
                 href="/"
                 onClick={closeMenus}
-                className="rounded-lg px-3 py-3 text-base text-stone-800 hover:bg-white"
+                className={`rounded-xl px-3 py-3 text-base font-medium tracking-wide transition ${
+                  pathname === "/"
+                    ? "bg-[#2a2420] text-[#f3e6d4] ring-1 ring-[#c4a484]/40"
+                    : "text-[#f0e8dc] hover:bg-[#2a2420]/90 hover:text-white"
+                }`}
               >
                 Početna
               </Link>
               <Link
                 href="/proizvodi"
                 onClick={closeMenus}
-                className="rounded-lg px-3 py-3 text-base text-stone-800 hover:bg-white"
+                className={`rounded-xl px-3 py-3 text-base font-medium tracking-wide transition ${
+                  pathname.startsWith("/proizvodi")
+                    ? "bg-[#2a2420] text-[#f3e6d4] ring-1 ring-[#c4a484]/40"
+                    : "text-[#f0e8dc] hover:bg-[#2a2420]/90 hover:text-white"
+                }`}
               >
                 Proizvodi
               </Link>
-              <p className="mt-4 px-3 text-[11px] uppercase tracking-[0.18em] text-stone-400">
+
+              <p className="mt-5 px-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#d7b896]">
                 Kategorije
               </p>
-              {categories.map((category) => (
-                <Link
-                  key={category.id}
-                  href={`/kategorije/${category.slug}`}
-                  onClick={closeMenus}
-                  className="rounded-lg px-3 py-2.5 text-sm text-stone-700 hover:bg-white"
-                >
-                  {category.name}
-                </Link>
-              ))}
-              <div className="mt-auto space-y-3 border-t border-stone-200 pt-4">
+              {categories.map((category) => {
+                const href = `/kategorije/${category.slug}`;
+                const active = pathname === href;
+                return (
+                  <Link
+                    key={category.id}
+                    href={href}
+                    onClick={closeMenus}
+                    className={`rounded-xl px-3 py-2.5 text-[15px] font-medium transition ${
+                      active
+                        ? "bg-[#2a2420] text-[#f3e6d4] ring-1 ring-[#c4a484]/35"
+                        : "text-[#e8dfd2] hover:bg-[#2a2420]/90 hover:text-white"
+                    }`}
+                  >
+                    {category.name}
+                  </Link>
+                );
+              })}
+
+              <div className="mt-auto space-y-3 border-t border-[#c4a484]/25 pt-4">
                 <Link
                   href="/korpa"
                   onClick={closeMenus}
-                  className="flex min-h-11 items-center justify-center rounded-full border border-stone-300 bg-white text-sm font-medium text-stone-800 transition hover:border-stone-400"
+                  className="flex min-h-11 items-center justify-center rounded-full border border-[#c4a484]/35 bg-[#2a2420] text-sm font-medium text-[#f3e6d4] transition hover:border-[#c4a484]/60 hover:bg-[#3a3028]"
                 >
                   Korpa
                 </Link>
                 <Link
                   href="/login"
                   onClick={closeMenus}
-                  className="flex min-h-11 items-center justify-center rounded-full border border-stone-800 text-sm font-medium tracking-[0.06em] text-stone-900 transition hover:bg-stone-900 hover:text-white"
+                  className="flex min-h-11 items-center justify-center rounded-full bg-[#d7b896] text-sm font-semibold tracking-[0.06em] text-[#1c1917] transition hover:bg-[#e8d4b8]"
                 >
                   Login
                 </Link>
