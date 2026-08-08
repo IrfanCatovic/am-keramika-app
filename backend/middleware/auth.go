@@ -39,6 +39,10 @@ func AuthRequired() gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Korisnički nalog je deaktiviran"})
 			return
 		}
+		if claims.TokenVersion != user.TokenVersion {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Nevalidan ili istekao token"})
+			return
+		}
 
 		// Uloga uvijek iz baze, ne iz (moguće zastarjelog) JWT-a.
 		auth.SetAuthContext(c, user.ID, user.Username, user.Role)

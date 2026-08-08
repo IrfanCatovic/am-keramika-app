@@ -92,6 +92,7 @@ func main() {
 	authorized.Use(middleware.AuthRequired())
 	{
 		authorized.GET("/auth/me", handlers.GetMe)
+		authorized.PUT("/auth/change-password", handlers.ChangePassword)
 
 		userAdmin := authorized.Group("/")
 		userAdmin.Use(middleware.RequireRoles(models.RoleDeveloper, models.RoleBoss))

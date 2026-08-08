@@ -33,7 +33,7 @@ func TestGenerateAndParseToken(t *testing.T) {
 	os.Setenv("JWT_SECRET", "test-secret-for-jwt")
 	defer os.Unsetenv("JWT_SECRET")
 
-	token, err := GenerateToken(1, "sef", models.RoleBoss)
+	token, err := GenerateToken(1, "sef", models.RoleBoss, 3)
 	if err != nil {
 		t.Fatalf("generate: %v", err)
 	}
@@ -42,7 +42,7 @@ func TestGenerateAndParseToken(t *testing.T) {
 	if err != nil {
 		t.Fatalf("parse: %v", err)
 	}
-	if claims.UserID != 1 || claims.Username != "sef" || claims.Role != models.RoleBoss {
+	if claims.UserID != 1 || claims.Username != "sef" || claims.Role != models.RoleBoss || claims.TokenVersion != 3 {
 		t.Fatalf("unexpected claims: %+v", claims)
 	}
 }

@@ -10,4 +10,5 @@ type User struct {
 	PasswordHash string `gorm:"column:password;not null" json:"-"`
 	Role         string `gorm:"not null;default:'radnik'" json:"role"`
 	IsActive     bool   `gorm:"default:true" json:"isActive"`
+	TokenVersion int    `gorm:"not null;default:0" json:"-"`
 }

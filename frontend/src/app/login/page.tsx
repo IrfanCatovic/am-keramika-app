@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -59,9 +60,12 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-100 via-slate-50 to-stone-100 px-4">
       <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
         <div className="mb-8">
-          <p className="text-sm font-medium uppercase tracking-[0.16em] text-slate-500">
+          <Link
+            href="/"
+            className="text-sm font-medium uppercase tracking-[0.16em] text-slate-500 transition hover:text-slate-800"
+          >
             AM Keramika
-          </p>
+          </Link>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">
             Prijava
           </h1>

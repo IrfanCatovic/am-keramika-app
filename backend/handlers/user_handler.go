@@ -221,6 +221,7 @@ func UpdateUserPassword(c *gin.Context) {
 	}
 
 	user.PasswordHash = hash
+	user.TokenVersion++
 	if err := repositories.UpdateUser(&user); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Neuspela promena lozinke"})
 		return

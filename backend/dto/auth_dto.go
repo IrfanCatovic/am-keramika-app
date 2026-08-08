@@ -35,6 +35,11 @@ type UpdateUserPasswordRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
+type ChangePasswordRequest struct {
+	CurrentPassword string `json:"currentPassword" binding:"required"`
+	NewPassword     string `json:"newPassword" binding:"required"`
+}
+
 type UpdateUserStatusRequest struct {
 	IsActive bool `json:"isActive"`
 }

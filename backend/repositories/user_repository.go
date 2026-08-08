@@ -122,7 +122,7 @@ func UpdateUser(user *models.User) error {
 	}
 
 	return database.DB.Model(user).
-		Select("Username", "Role", "FullName", "IsActive", "PasswordHash").
+		Select("Username", "Role", "FullName", "IsActive", "PasswordHash", "TokenVersion").
 		Updates(user).Error
 }
 

@@ -82,6 +82,7 @@ func setupRouter() *gin.Engine {
 	authorized.Use(middleware.AuthRequired())
 	{
 		authorized.GET("/auth/me", handlers.GetMe)
+		authorized.PUT("/auth/change-password", handlers.ChangePassword)
 
 		boss := authorized.Group("/")
 		boss.Use(middleware.RequireRoles(models.RoleDeveloper, models.RoleBoss))
@@ -461,6 +462,151 @@ func TestNoHardcodedUserIDLiteralsInHandlers(t *testing.T) {
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
 		t.Fatalf("expected 200, got %d", w.Code)
+	}
+}
+
+func changePasswordRequest(t *testing.T, r *gin.Engine, token, current, newPassword string) *httptest.ResponseRecorder {
+	t.Helper()
+	body, _ := json.Marshal(map[string]string{
+		"currentPassword": current,
+		"newPassword":     newPassword,
+	})
+	req := httptest.NewRequest(http.MethodPut, "/auth/change-password", bytes.NewReader(body))
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	return w
+}
+
+func TestChangePasswordSuccess(t *testing.T) {
+	setupAuthTestDB(t)
+	user := createUser(t, "radnik1", "password123", models.RoleWorker, true)
+	r := setupRouter()
+	oldToken := loginToken(t, r, "radnik1", "password123")
+
+	w := changePasswordRequest(t, r, oldToken, "password123", "newpass99")
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d (%s)", w.Code, w.Body.String())
+	}
+
+	updated, err := repositories.GetUserByID(user.ID)
+	if err != nil {
+		t.Fatalf("reload user: %v", err)
+	}
+	if auth.CheckPassword(updated.PasswordHash, "password123") {
+		t.Fatal("old password should no longer match")
+	}
+	if !auth.CheckPassword(updated.PasswordHash, "newpass99") {
+		t.Fatal("new password should match")
+	}
+	if updated.TokenVersion != 1 {
+		t.Fatalf("expected TokenVersion=1, got %d", updated.TokenVersion)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/auth/me", nil)
+	req.Header.Set("Authorization", "Bearer "+oldToken)
+	me := httptest.NewRecorder()
+	r.ServeHTTP(me, req)
+	if me.Code != http.StatusUnauthorized {
+		t.Fatalf("old JWT expected 401, got %d", me.Code)
+	}
+
+	loginBody, _ := json.Marshal(map[string]string{"username": "radnik1", "password": "password123"})
+	loginReq := httptest.NewRequest(http.MethodPost, "/auth/login", bytes.NewReader(loginBody))
+	loginReq.Header.Set("Content-Type", "application/json")
+	oldLogin := httptest.NewRecorder()
+	r.ServeHTTP(oldLogin, loginReq)
+	if oldLogin.Code != http.StatusUnauthorized {
+		t.Fatalf("old password login expected 401, got %d", oldLogin.Code)
+	}
+
+	newToken := loginToken(t, r, "radnik1", "newpass99")
+	req = httptest.NewRequest(http.MethodGet, "/auth/me", nil)
+	req.Header.Set("Authorization", "Bearer "+newToken)
+	me = httptest.NewRecorder()
+	r.ServeHTTP(me, req)
+	if me.Code != http.StatusOK {
+		t.Fatalf("new login token expected 200, got %d (%s)", me.Code, me.Body.String())
+	}
+}
+
+func TestChangePasswordWrongCurrent(t *testing.T) {
+	setupAuthTestDB(t)
+	createUser(t, "radnik1", "password123", models.RoleWorker, true)
+	r := setupRouter()
+	token := loginToken(t, r, "radnik1", "password123")
+
+	w := changePasswordRequest(t, r, token, "wrongpass", "newpass99")
+	if w.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d (%s)", w.Code, w.Body.String())
+	}
+	if !bytes.Contains(w.Body.Bytes(), []byte("Trenutna lozinka nije tačna")) {
+		t.Fatalf("unexpected message: %s", w.Body.String())
+	}
+}
+
+func TestChangePasswordTooShort(t *testing.T) {
+	setupAuthTestDB(t)
+	createUser(t, "radnik1", "password123", models.RoleWorker, true)
+	r := setupRouter()
+	token := loginToken(t, r, "radnik1", "password123")
+
+	w := changePasswordRequest(t, r, token, "password123", "short")
+	if w.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d (%s)", w.Code, w.Body.String())
+	}
+	if !bytes.Contains(w.Body.Bytes(), []byte("najmanje 8 karaktera")) {
+		t.Fatalf("unexpected message: %s", w.Body.String())
+	}
+}
+
+func TestAdminPasswordResetStillWorksAndInvalidatesToken(t *testing.T) {
+	setupAuthTestDB(t)
+	createUser(t, "sef", "password123", models.RoleBoss, true)
+	target := createUser(t, "radnik1", "password123", models.RoleWorker, true)
+	r := setupRouter()
+
+	workerToken := loginToken(t, r, "radnik1", "password123")
+	bossToken := loginToken(t, r, "sef", "password123")
+
+	body, _ := json.Marshal(map[string]string{"password": "adminset9"})
+	req := httptest.NewRequest(http.MethodPut, "/users/"+itoa(target.ID)+"/password", bytes.NewReader(body))
+	req.Header.Set("Authorization", "Bearer "+bossToken)
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		t.Fatalf("admin reset expected 200, got %d (%s)", w.Code, w.Body.String())
+	}
+
+	updated, err := repositories.GetUserByID(target.ID)
+	if err != nil {
+		t.Fatalf("reload: %v", err)
+	}
+	if updated.TokenVersion != 1 {
+		t.Fatalf("expected TokenVersion=1, got %d", updated.TokenVersion)
+	}
+	if !auth.CheckPassword(updated.PasswordHash, "adminset9") {
+		t.Fatal("admin-set password should match")
+	}
+
+	meReq := httptest.NewRequest(http.MethodGet, "/auth/me", nil)
+	meReq.Header.Set("Authorization", "Bearer "+workerToken)
+	me := httptest.NewRecorder()
+	r.ServeHTTP(me, meReq)
+	if me.Code != http.StatusUnauthorized {
+		t.Fatalf("stale worker JWT expected 401, got %d", me.Code)
+	}
+
+	// Role guards still hold: worker cannot reset passwords.
+	workerCannot := httptest.NewRequest(http.MethodPut, "/users/"+itoa(target.ID)+"/password", bytes.NewReader(body))
+	workerCannot.Header.Set("Authorization", "Bearer "+loginToken(t, r, "radnik1", "adminset9"))
+	workerCannot.Header.Set("Content-Type", "application/json")
+	denied := httptest.NewRecorder()
+	r.ServeHTTP(denied, workerCannot)
+	if denied.Code != http.StatusForbidden {
+		t.Fatalf("worker admin reset expected 403, got %d", denied.Code)
 	}
 }
 

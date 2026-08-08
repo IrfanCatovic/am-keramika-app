@@ -62,6 +62,26 @@ function MenuIcon({ open }: { open: boolean }) {
   );
 }
 
+function SettingsIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden>
+      <path
+        d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.7"
+      />
+      <path
+        d="M19.4 13.1a1.6 1.6 0 0 0 .3 1.8l.1.1a1.9 1.9 0 1 1-2.7 2.7l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V19a1.9 1.9 0 1 1-3.8 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a1.9 1.9 0 1 1-2.7-2.7l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H5a1.9 1.9 0 1 1 0-3.8h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a1.9 1.9 0 1 1 2.7-2.7l.1.1a1.6 1.6 0 0 0 1.8.3h.1a1.6 1.6 0 0 0 1-1.5V5a1.9 1.9 0 1 1 3.8 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a1.9 1.9 0 1 1 2.7 2.7l-.1.1a1.6 1.6 0 0 0-.3 1.8v.1a1.6 1.6 0 0 0 1.5 1H19a1.9 1.9 0 1 1 0 3.8h-.1a1.6 1.6 0 0 0-1.5 1Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export function Sidebar() {
   const { user, logout } = useAuth();
   const pathname = usePathname();
@@ -150,10 +170,23 @@ export function Sidebar() {
 
   const footer = (
     <div className="border-t border-stone-800 px-4 py-4">
-      <p className="truncate text-sm font-medium text-stone-100">
-        {userDisplayName(user)}
-      </p>
-      <p className="text-xs text-stone-400">{roleLabel(user.role)}</p>
+      <div className="flex items-start gap-2">
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium text-stone-100">
+            {userDisplayName(user)}
+          </p>
+          <p className="text-xs text-stone-400">{roleLabel(user.role)}</p>
+        </div>
+        <Link
+          href="/settings"
+          onClick={closeMenu}
+          title="Podešavanja"
+          aria-label="Podešavanja"
+          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-stone-700 text-stone-300 transition hover:bg-stone-900 hover:text-white"
+        >
+          <SettingsIcon />
+        </Link>
+      </div>
       <button
         type="button"
         onClick={handleLogout}

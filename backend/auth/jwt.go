@@ -11,9 +11,10 @@ import (
 const TokenTTL = 10 * time.Hour
 
 type Claims struct {
-	UserID   uint   `json:"userID"`
-	Username string `json:"username"`
-	Role     string `json:"role"`
+	UserID       uint   `json:"userID"`
+	Username     string `json:"username"`
+	Role         string `json:"role"`
+	TokenVersion int    `json:"tokenVersion"`
 	jwt.RegisteredClaims
 }
 
@@ -25,7 +26,7 @@ func jwtSecret() ([]byte, error) {
 	return []byte(secret), nil
 }
 
-func GenerateToken(userID uint, username, role string) (string, error) {
+func GenerateToken(userID uint, username, role string, tokenVersion int) (string, error) {
 	secret, err := jwtSecret()
 	if err != nil {
 		return "", err
@@ -33,9 +34,10 @@ func GenerateToken(userID uint, username, role string) (string, error) {
 
 	now := time.Now()
 	claims := Claims{
-		UserID:   userID,
-		Username: username,
-		Role:     role,
+		UserID:       userID,
+		Username:     username,
+		Role:         role,
+		TokenVersion: tokenVersion,
 		RegisteredClaims: jwt.RegisteredClaims{
 			IssuedAt:  jwt.NewNumericDate(now),
 			ExpiresAt: jwt.NewNumericDate(now.Add(TokenTTL)),
