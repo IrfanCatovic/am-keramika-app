@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { COMPANY_LOGO_SRC } from "@/config/company";
@@ -36,6 +37,7 @@ export default function RootLayout({
     >
       <body className="min-h-full bg-slate-100 text-slate-900">
         <AuthProvider>{children}</AuthProvider>
+        <Analytics />
       </body>
     </html>
   );

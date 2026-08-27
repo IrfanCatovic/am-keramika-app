@@ -1,0 +1,56 @@
+# Vercel Web Analytics Installation
+
+## Summary
+Successfully installed and configured Vercel Web Analytics for the AM Keramika Next.js application following the latest official Vercel documentation.
+
+## Changes Made
+
+### 1. Package Installation
+- **Added dependency**: `@vercel/analytics` version `^2.0.1`
+- **Package manager**: npm (detected from existing package-lock.json)
+- **Files modified**: 
+  - `package.json` - Added @vercel/analytics to dependencies
+  - `package-lock.json` - Updated with new package and its dependencies
+
+### 2. Analytics Integration
+- **File modified**: `src/app/layout.tsx`
+- **Changes**:
+  1. Added import statement: `import { Analytics } from "@vercel/analytics/next";`
+  2. Added `<Analytics />` component at the end of the body element (after AuthProvider)
+
+## Implementation Details
+
+The implementation follows the official Vercel Analytics Quickstart guide for Next.js App Router:
+- Fetched latest documentation from: https://vercel.com/docs/analytics/quickstart
+- Applied framework-specific instructions for Next.js with App Router
+- Placed the Analytics component in the root layout to track all pages
+- Component positioned before closing `</body>` tag as recommended
+
+## Build Verification
+
+✅ **Build Status**: Successful
+- Ran `npm run build` - completed without errors
+- Next.js compiled successfully (Turbopack)
+- TypeScript type checking passed
+- All 19 routes generated successfully
+
+✅ **Linter**: No new errors introduced
+- Ran `npm run lint`
+- 2 pre-existing errors in `StorefrontHeader.tsx` (unrelated to this change)
+- No errors related to the Analytics integration
+
+## Next Steps for Deployment
+
+After deployment to Vercel, the analytics will:
+1. Automatically collect page view data
+2. Be accessible via the Vercel project dashboard under "Analytics"
+3. Create routes at `/_vercel/insights/*` and `/<unique-path>/*`
+
+To verify functionality after deployment:
+- Check browser Network tab for Fetch/XHR requests to `/<unique-path>/view` on page visits
+- Access analytics dashboard in Vercel project settings
+
+## Files Changed
+- `frontend/package.json` (added dependency)
+- `frontend/package-lock.json` (updated lockfile)
+- `frontend/src/app/layout.tsx` (added Analytics component)
