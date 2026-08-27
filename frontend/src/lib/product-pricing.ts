@@ -106,3 +106,42 @@ export function resolveProductUnitPrice(product: {
     product.discountPercent ?? 0,
   );
 }
+
+/** Računanje cene jednog celog paketa (effectiveSalePrice × packageQuantity). */
+export function calculatePackagePrice(
+  effectiveSalePrice: number,
+  packageQuantity: number,
+): number {
+  if (
+    !Number.isFinite(effectiveSalePrice) ||
+    !Number.isFinite(packageQuantity) ||
+    effectiveSalePrice <= 0 ||
+    packageQuantity <= 0
+  ) {
+    return 0;
+  }
+  return Math.round(effectiveSalePrice * packageQuantity * 100) / 100;
+}
+
+/** Računanje broja paketa i stvarne količine. */
+export function calculatePackagedQuantity(
+  requestedQuantity: number,
+  packageQuantity: number,
+): { packageCount: number; actualQuantity: number } {
+  if (
+    !Number.isFinite(requestedQuantity) ||
+    !Number.isFinite(packageQuantity) ||
+    requestedQuantity <= 0 ||
+    packageQuantity <= 0
+  ) {
+    return { packageCount: 0, actualQuantity: 0 };
+  }
+  const ratio = requestedQuantity / packageQuantity;
+  const nearestInt = Math.round(ratio);
+  const effectiveRatio =
+    Math.abs(ratio - nearestInt) < 1e-9 ? nearestInt : ratio;
+  const packageCount = Math.max(0, Math.ceil(effectiveRatio));
+  const actualQuantity = Math.round(packageCount * packageQuantity * 10000) / 10000;
+  return { packageCount, actualQuantity };
+}
+

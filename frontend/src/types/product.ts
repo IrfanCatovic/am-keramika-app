@@ -40,6 +40,9 @@ export interface Product {
   isOnSale: boolean;
   discountPercent: number;
   showOnHomepage: boolean;
+  saleByPackage: boolean;
+  packageQuantity: number;
+  packagePrice?: number | null;
   pricingMode: PricingMode;
   purchasePrice?: number;
   marginPercent?: number;
@@ -86,6 +89,8 @@ export interface CreateProductPayload {
   isOnSale?: boolean;
   discountPercent?: number;
   showOnHomepage?: boolean;
+  saleByPackage?: boolean;
+  packageQuantity?: number;
 }
 
 export interface UpdateProductPayload {
@@ -104,6 +109,8 @@ export interface UpdateProductPayload {
   isOnSale?: boolean;
   discountPercent?: number;
   showOnHomepage?: boolean;
+  saleByPackage?: boolean;
+  packageQuantity?: number | null;
 }
 
 export interface MessageResponse {

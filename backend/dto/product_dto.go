@@ -15,6 +15,8 @@ type CreateProductRequest struct {
 	IsOnSale         bool     `json:"isOnSale"`
 	DiscountPercent  *float64 `json:"discountPercent"`
 	ShowOnHomepage   bool     `json:"showOnHomepage"`
+	SaleByPackage    bool     `json:"saleByPackage"`
+	PackageQuantity  *float64 `json:"packageQuantity"`
 }
 
 type UpdateProductRequest struct {
@@ -33,6 +35,8 @@ type UpdateProductRequest struct {
 	IsOnSale         *bool        `json:"isOnSale"`
 	DiscountPercent  *float64     `json:"discountPercent"`
 	ShowOnHomepage   *bool        `json:"showOnHomepage"`
+	SaleByPackage    *bool        `json:"saleByPackage"`
+	PackageQuantity  *float64     `json:"packageQuantity"`
 }
 
 type ProductGroupSummaryResponse struct {
@@ -65,6 +69,9 @@ type ProductResponse struct {
 	IsOnSale           bool                            `json:"isOnSale"`
 	DiscountPercent    float64                         `json:"discountPercent"`
 	ShowOnHomepage     bool                            `json:"showOnHomepage"`
+	SaleByPackage      bool                            `json:"saleByPackage"`
+	PackageQuantity    float64                         `json:"packageQuantity"`
+	PackagePrice       *float64                        `json:"packagePrice,omitempty"`
 	PricingMode        string                          `json:"pricingMode"`
 	PurchasePrice      *float64                        `json:"purchasePrice,omitempty"`
 	MarginPercent      *float64                        `json:"marginPercent,omitempty"`

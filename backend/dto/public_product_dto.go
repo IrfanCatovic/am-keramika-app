@@ -16,6 +16,9 @@ type PublicProductResponse struct {
 	DiscountPercent    float64                         `json:"discountPercent"`
 	InStock            bool                            `json:"inStock"`
 	ShowOnHomepage     bool                            `json:"showOnHomepage"`
+	SaleByPackage      bool                            `json:"saleByPackage"`
+	PackageQuantity    float64                         `json:"packageQuantity"`
+	PackagePrice       *float64                        `json:"packagePrice,omitempty"`
 	Images             []ProductImageResponse          `json:"images,omitempty"`
 	PrimaryImage       *ProductImageResponse           `json:"primaryImage"`
 }

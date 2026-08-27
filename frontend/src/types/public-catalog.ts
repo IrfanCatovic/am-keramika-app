@@ -34,6 +34,9 @@ export interface PublicProduct {
   discountPercent: number;
   inStock: boolean;
   showOnHomepage: boolean;
+  saleByPackage?: boolean;
+  packageQuantity?: number;
+  packagePrice?: number | null;
   images?: PublicProductImage[];
   primaryImage: PublicProductImage | null;
 }

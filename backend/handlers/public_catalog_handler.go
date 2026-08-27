@@ -15,6 +15,13 @@ import (
 )
 
 func mapPublicProductResponse(product models.Product, primary *models.ProductImage, includeImages bool) dto.PublicProductResponse {
+	effectiveSalePrice := pricing.GetEffectiveSalePrice(product.SalePrice, product.IsOnSale, product.DiscountPercent)
+	var packagePrice *float64
+	if product.SaleByPackage && product.PackageQuantity > 0 {
+		pp := pricing.CalculatePackagePrice(effectiveSalePrice, product.PackageQuantity)
+		packagePrice = &pp
+	}
+
 	response := dto.PublicProductResponse{
 		ID:                 product.ID,
 		Name:               product.Name,
@@ -22,11 +29,14 @@ func mapPublicProductResponse(product models.Product, primary *models.ProductIma
 		Description:        product.Description,
 		Unit:               product.Unit,
 		SalePrice:          product.SalePrice,
-		EffectiveSalePrice: pricing.GetEffectiveSalePrice(product.SalePrice, product.IsOnSale, product.DiscountPercent),
+		EffectiveSalePrice: effectiveSalePrice,
 		IsOnSale:           product.IsOnSale,
 		DiscountPercent:    product.DiscountPercent,
 		InStock:            product.StockQuantity > 0,
 		ShowOnHomepage:     product.ShowOnHomepage,
+		SaleByPackage:      product.SaleByPackage,
+		PackageQuantity:    product.PackageQuantity,
+		PackagePrice:       packagePrice,
 		PrimaryImage:       nil,
 	}
 

@@ -53,21 +53,35 @@ export function StorefrontHeader({
   }
 
   useEffect(() => {
-    setPortalReady(true);
+    const timer = window.setTimeout(() => {
+      setPortalReady(true);
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   useEffect(() => {
     if (open) {
-      setMenuMounted(true);
-      const frame = window.requestAnimationFrame(() => {
-        window.requestAnimationFrame(() => setMenuVisible(true));
-      });
-      return () => window.cancelAnimationFrame(frame);
+      let frame = 0;
+      const timer = window.setTimeout(() => {
+        setMenuMounted(true);
+        frame = window.requestAnimationFrame(() => {
+          window.requestAnimationFrame(() => setMenuVisible(true));
+        });
+      }, 0);
+      return () => {
+        window.clearTimeout(timer);
+        if (frame) window.cancelAnimationFrame(frame);
+      };
     }
 
-    setMenuVisible(false);
+    const timer = window.setTimeout(() => {
+      setMenuVisible(false);
+    }, 0);
     const timeout = window.setTimeout(() => setMenuMounted(false), 300);
-    return () => window.clearTimeout(timeout);
+    return () => {
+      window.clearTimeout(timer);
+      window.clearTimeout(timeout);
+    };
   }, [open]);
 
   useEffect(() => {

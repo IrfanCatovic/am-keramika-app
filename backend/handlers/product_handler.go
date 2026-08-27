@@ -22,6 +22,13 @@ func mapProductResponse(product models.Product, role string) dto.ProductResponse
 }
 
 func mapProductListResponse(product models.Product, role string, primary *models.ProductImage) dto.ProductResponse {
+	effectiveSalePrice := pricing.GetEffectiveSalePrice(product.SalePrice, product.IsOnSale, product.DiscountPercent)
+	var packagePrice *float64
+	if product.SaleByPackage && product.PackageQuantity > 0 {
+		pp := pricing.CalculatePackagePrice(effectiveSalePrice, product.PackageQuantity)
+		packagePrice = &pp
+	}
+
 	response := dto.ProductResponse{
 		ID:                 product.ID,
 		Name:               product.Name,
@@ -31,13 +38,16 @@ func mapProductListResponse(product models.Product, role string, primary *models
 		GroupID:            product.GroupID,
 		Unit:               product.Unit,
 		SalePrice:          product.SalePrice,
-		EffectiveSalePrice: pricing.GetEffectiveSalePrice(product.SalePrice, product.IsOnSale, product.DiscountPercent),
+		EffectiveSalePrice: effectiveSalePrice,
 		StockQuantity:      product.StockQuantity,
 		MinStockQuantity:   product.MinStockQuantity,
 		IsActive:           product.IsActive,
 		IsOnSale:           product.IsOnSale,
 		DiscountPercent:    product.DiscountPercent,
 		ShowOnHomepage:     product.ShowOnHomepage,
+		SaleByPackage:      product.SaleByPackage,
+		PackageQuantity:    product.PackageQuantity,
+		PackagePrice:       packagePrice,
 		PricingMode:        pricing.DetectMode(product.PurchasePrice, product.MarginPercent, product.VatPercent),
 		PrimaryImage:       nil,
 	}
@@ -97,7 +107,9 @@ func isProductValidationError(err error) bool {
 		errors.Is(err, pricing.ErrNegativeVAT) ||
 		errors.Is(err, pricing.ErrNegativeDiscount) ||
 		errors.Is(err, pricing.ErrDiscountTooHigh) ||
-		errors.Is(err, pricing.ErrSaleRequiresDiscount)
+		errors.Is(err, pricing.ErrSaleRequiresDiscount) ||
+		errors.Is(err, pricing.ErrPackageQuantityRequired) ||
+		errors.Is(err, pricing.ErrInvalidPackageQuantity)
 }
 
 func rejectWorkerSensitiveProductFields(c *gin.Context, purchasePrice, marginPercent, vatPercent *float64) bool {
@@ -183,6 +195,18 @@ func CreateProduct(c *gin.Context) {
 		return
 	}
 
+	packageQty := 0.0
+	if req.PackageQuantity != nil {
+		packageQty = *req.PackageQuantity
+	}
+	if err := pricing.ValidatePackageContract(req.SaleByPackage, packageQty); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"message": err.Error(), "error": err.Error()})
+		return
+	}
+	if !req.SaleByPackage {
+		packageQty = 0
+	}
+
 	product := models.Product{
 		Name:             req.Name,
 		Slug:             slug,
@@ -196,6 +220,8 @@ func CreateProduct(c *gin.Context) {
 		IsOnSale:         req.IsOnSale,
 		DiscountPercent:  discountPercent,
 		ShowOnHomepage:   req.ShowOnHomepage,
+		SaleByPackage:    req.SaleByPackage,
+		PackageQuantity:  packageQty,
 	}
 	applyPricingResult(&product, priced)
 
@@ -447,6 +473,20 @@ func UpdateProduct(c *gin.Context) {
 	}
 	if req.ShowOnHomepage != nil {
 		product.ShowOnHomepage = *req.ShowOnHomepage
+	}
+	if req.SaleByPackage != nil {
+		product.SaleByPackage = *req.SaleByPackage
+	}
+	if req.PackageQuantity != nil {
+		product.PackageQuantity = *req.PackageQuantity
+	}
+	if !product.SaleByPackage {
+		product.PackageQuantity = 0
+	}
+
+	if err := pricing.ValidatePackageContract(product.SaleByPackage, product.PackageQuantity); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"message": err.Error(), "error": err.Error()})
+		return
 	}
 
 	if err := pricing.ValidateSaleDiscount(product.IsOnSale, product.DiscountPercent); err != nil {

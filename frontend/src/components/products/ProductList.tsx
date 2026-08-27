@@ -10,7 +10,7 @@ import {
   StatusBadge,
 } from "@/components/ui/EmptyState";
 import { ProductSalePrice } from "@/components/products/ProductSalePrice";
-import { formatQuantity } from "@/lib/format";
+import { formatMoney, formatQuantity } from "@/lib/format";
 import { Product, ProductPagination } from "@/types/product";
 
 function PricingModeBadge({ mode }: { mode: string }) {
@@ -84,6 +84,11 @@ function ProductCard({
               {formatQuantity(product.stockQuantity)} {product.unit}
             </span>
             <PricingModeBadge mode={product.pricingMode} />
+            {product.saleByPackage && product.packagePrice ? (
+              <span className="text-xs text-[#8a6a45]">
+                Paket: {product.packageQuantity} {product.unit} · {formatMoney(product.packagePrice)}
+              </span>
+            ) : null}
           </div>
         </div>
       </div>
@@ -235,6 +240,11 @@ export function ProductList({
                       </td>
                       <td className="border-b border-stone-50 px-3 py-3">
                         <ProductSalePrice product={product} />
+                        {product.saleByPackage && product.packagePrice ? (
+                          <div className="mt-0.5 text-xs text-stone-500">
+                            Paket: {product.packageQuantity} {product.unit} · {formatMoney(product.packagePrice)}
+                          </div>
+                        ) : null}
                       </td>
                       <td className="border-b border-stone-50 px-3 py-3 tabular-nums text-stone-700">
                         {formatQuantity(product.stockQuantity)}

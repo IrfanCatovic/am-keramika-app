@@ -23,9 +23,11 @@ import {
   fetchProductGroups,
 } from "@/lib/categories-api";
 import {
+  calculatePackagePrice,
   canViewSensitivePricing,
   getDiscountedRawSalePrice,
   getEffectiveSalePrice,
+  previewCalculatedSalePrice,
 } from "@/lib/product-pricing";
 import { formatMoney } from "@/lib/format";
 import {
@@ -75,6 +77,8 @@ type FormState = {
   isOnSale: boolean;
   discountPercent: string;
   showOnHomepage: boolean;
+  saleByPackage: boolean;
+  packageQuantity: string;
   pricing: PricingFieldValues;
 };
 
@@ -98,6 +102,8 @@ function emptyForm(): FormState {
     isOnSale: false,
     discountPercent: "",
     showOnHomepage: false,
+    saleByPackage: false,
+    packageQuantity: "",
     pricing: { ...emptyPricing },
   };
 }
@@ -118,6 +124,11 @@ function formFromProduct(product: Product): FormState {
         ? formatOptionalNumber(product.discountPercent)
         : "",
     showOnHomepage: product.showOnHomepage,
+    saleByPackage: product.saleByPackage ?? false,
+    packageQuantity:
+      product.packageQuantity > 0
+        ? formatOptionalNumber(product.packageQuantity)
+        : "",
     pricing: {
       purchasePrice: formatOptionalNumber(product.purchasePrice),
       marginPercent: formatOptionalNumber(product.marginPercent),
@@ -177,6 +188,60 @@ export function ProductForm({
     form.pricing.salePrice,
     privileged,
   ]);
+
+  const currentBasePrice = useMemo(() => {
+    if (privileged) {
+      const margin = parseOptionalNumber(form.pricing.marginPercent) ?? 0;
+      const vat = parseOptionalNumber(form.pricing.vatPercent) ?? 0;
+      const purchase = parseOptionalNumber(form.pricing.purchasePrice) ?? 0;
+      const isCalc = margin > 0 || vat > 0;
+      if (isCalc) {
+        const preview = previewCalculatedSalePrice(purchase, margin, vat);
+        return preview.finalSalePrice;
+      }
+      return parseOptionalNumber(form.pricing.salePrice) ?? 0;
+    }
+    if (product?.pricingMode === "calculated") {
+      return product.salePrice;
+    }
+    return parseOptionalNumber(form.pricing.salePrice) ?? 0;
+  }, [
+    privileged,
+    form.pricing.marginPercent,
+    form.pricing.vatPercent,
+    form.pricing.purchasePrice,
+    form.pricing.salePrice,
+    product,
+  ]);
+
+  const currentEffectivePrice = useMemo(() => {
+    if (currentBasePrice <= 0) return 0;
+    if (!form.isOnSale) return currentBasePrice;
+    const discount = privileged
+      ? (parseOptionalNumber(form.discountPercent) ?? 0)
+      : (product?.discountPercent ?? 0);
+    return getEffectiveSalePrice(currentBasePrice, true, discount);
+  }, [
+    currentBasePrice,
+    form.isOnSale,
+    privileged,
+    form.discountPercent,
+    product,
+  ]);
+
+  const packagePreview = useMemo(() => {
+    if (!form.saleByPackage) return null;
+    const pkgQty = parseOptionalNumber(form.packageQuantity);
+    if (pkgQty == null || pkgQty <= 0 || currentEffectivePrice <= 0) {
+      return null;
+    }
+    const pkgPrice = calculatePackagePrice(currentEffectivePrice, pkgQty);
+    return {
+      effectivePrice: currentEffectivePrice,
+      packageQuantity: pkgQty,
+      packagePrice: pkgPrice,
+    };
+  }, [form.saleByPackage, form.packageQuantity, currentEffectivePrice]);
 
   const categoryOptions = useMemo(() => {
     if (mode === "create") {
@@ -370,6 +435,13 @@ export function ProductForm({
       }
     }
 
+    if (form.saleByPackage) {
+      const pkgQty = parseOptionalNumber(form.packageQuantity);
+      if (pkgQty == null || pkgQty <= 0) {
+        return "Za prodaju po pakovanju količina u paketu je obavezna i mora biti veća od 0.";
+      }
+    }
+
     return null;
   }
 
@@ -383,6 +455,10 @@ export function ProductForm({
       description: form.description.trim(),
       isOnSale: form.isOnSale,
       showOnHomepage: form.showOnHomepage,
+      saleByPackage: form.saleByPackage,
+      packageQuantity: form.saleByPackage
+        ? (parseOptionalNumber(form.packageQuantity) ?? 0)
+        : 0,
     };
     if (form.groupID) {
       payload.groupID = Number(form.groupID);
@@ -427,6 +503,10 @@ export function ProductForm({
       isActive: form.isActive,
       isOnSale: form.isOnSale,
       showOnHomepage: form.showOnHomepage,
+      saleByPackage: form.saleByPackage,
+      packageQuantity: form.saleByPackage
+        ? (parseOptionalNumber(form.packageQuantity) ?? 0)
+        : 0,
     };
 
     if (privileged) {
@@ -1057,6 +1137,93 @@ export function ProductForm({
             ) : null}
           </section>
         ) : null}
+
+        <section className="space-y-4 rounded-2xl border border-stone-200 bg-white p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-stone-900">
+              Prodaja po pakovanju
+            </h2>
+            <p className="mt-1 text-xs text-stone-500">
+              Označite ako se proizvod prodaje isključivo po celim paketima (npr. pločice).
+            </p>
+          </div>
+
+          <label className="inline-flex min-h-10 cursor-pointer items-center gap-2 text-sm text-stone-700">
+            <input
+              type="checkbox"
+              checked={form.saleByPackage}
+              onChange={(event) =>
+                patchForm({ saleByPackage: event.target.checked })
+              }
+              disabled={saving}
+              className="h-4 w-4 rounded border-stone-300 text-stone-900 focus:ring-[#c4a484]"
+            />
+            Prodaje se po pakovanju
+          </label>
+
+          {form.saleByPackage ? (
+            <div className="space-y-4 border-t border-stone-100 pt-4">
+              <div>
+                <label
+                  htmlFor="package-quantity"
+                  className="mb-1.5 block text-sm font-medium text-stone-700"
+                >
+                  Količina u jednom paketu *
+                </label>
+                <div className="flex max-w-xs items-center gap-2">
+                  <input
+                    id="package-quantity"
+                    type="text"
+                    inputMode="decimal"
+                    value={form.packageQuantity}
+                    onChange={(event) =>
+                      patchForm({ packageQuantity: event.target.value })
+                    }
+                    disabled={saving}
+                    placeholder="npr. 2,70"
+                    className="w-full rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm text-stone-900 outline-none ring-[#c4a484]/40 transition focus:ring-2 disabled:opacity-60"
+                  />
+                  <span className="shrink-0 text-sm font-medium text-stone-500">
+                    {form.unit || "jedinica"}
+                  </span>
+                </div>
+                <p className="mt-1.5 text-xs text-stone-500">
+                  Unesite koliko {form.unit ? `${form.unit}, komada ili druge osnovne jedinice` : "osnovne jedinice"} sadrži jedno pakovanje.
+                </p>
+              </div>
+
+              {packagePreview ? (
+                <div className="rounded-xl border border-stone-200/80 bg-[#faf8f5] p-3.5">
+                  <p className="mb-2.5 text-xs font-semibold uppercase tracking-wider text-[#8a6a45]">
+                    Pregled cene paketa
+                  </p>
+                  <dl className="grid gap-3 text-sm text-stone-700 sm:grid-cols-3">
+                    <div>
+                      <dt className="text-xs text-stone-500">
+                        Cena po {form.unit || "m²"}
+                      </dt>
+                      <dd className="tabular-nums font-medium text-stone-900">
+                        {formatMoney(packagePreview.effectivePrice)}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-stone-500">Pakovanje</dt>
+                      <dd className="tabular-nums font-medium text-stone-900">
+                        {packagePreview.packageQuantity} {form.unit}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-stone-500">Cena po paketu</dt>
+                      <dd className="tabular-nums text-base font-semibold text-stone-900">
+                        {formatMoney(packagePreview.packagePrice)}
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+        </section>
 
         <ProductImagesField
           mode={mode}

@@ -35,5 +35,8 @@ type Product struct {
 	DiscountPercent  float64 `gorm:"default:0"`
 	ShowOnHomepage   bool    `gorm:"default:false"`
 
+	SaleByPackage   bool    `gorm:"default:false"`
+	PackageQuantity float64 `gorm:"default:0"`
+
 	Images []ProductImage `gorm:"foreignKey:ProductID"`
 }

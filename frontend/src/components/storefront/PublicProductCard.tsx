@@ -60,7 +60,11 @@ export function PublicProductCard({ product }: { product: PublicProduct }) {
           {product.name}
         </h3>
         <div className="mt-auto pt-2">
-          <PublicProductPrice product={product} size="sm" />
+          <PublicProductPrice
+            product={product}
+            size="sm"
+            showUnit={Boolean(product.saleByPackage)}
+          />
         </div>
       </div>
     </Link>

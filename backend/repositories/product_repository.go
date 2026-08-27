@@ -331,6 +331,7 @@ func UpdateProduct(product *models.Product) error {
 			"SalePrice", "StockQuantity", "MinStockQuantity",
 			"PurchasePrice", "MarginPercent", "VatPercent",
 			"IsActive", "IsOnSale", "DiscountPercent", "ShowOnHomepage",
+			"SaleByPackage", "PackageQuantity",
 		).
 		Updates(product).Error
 }
