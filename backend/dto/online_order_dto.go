@@ -3,14 +3,14 @@ package dto
 // --- Public create (existing) ---
 
 type PublicCreateOnlineOrderRequest struct {
-	FirstName string                              `json:"firstName"`
-	LastName  string                              `json:"lastName"`
-	Phone     string                              `json:"phone"`
-	City      string                              `json:"city"`
-	Address   string                              `json:"address"`
-	Email     string                              `json:"email"`
-	Note      string                              `json:"note"`
-	Website   string                              `json:"website"`
+	FirstName string                               `json:"firstName"`
+	LastName  string                               `json:"lastName"`
+	Phone     string                               `json:"phone"`
+	City      string                               `json:"city"`
+	Address   string                               `json:"address"`
+	Email     string                               `json:"email"`
+	Note      string                               `json:"note"`
+	Website   string                               `json:"website"`
 	Items     []PublicCreateOnlineOrderItemRequest `json:"items"`
 }
 
@@ -58,15 +58,19 @@ type OnlineOrderListResponse struct {
 }
 
 type OnlineOrderItemDetailResponse struct {
-	ProductID              uint    `json:"productID"`
-	ProductName            string  `json:"productName"`
-	ProductSlug            string  `json:"productSlug"`
-	Unit                   string  `json:"unit"`
-	Quantity               float64 `json:"quantity"`
-	UnitPrice              float64 `json:"unitPrice"`
-	TotalPrice             float64 `json:"totalPrice"`
-	CurrentProductActive   *bool   `json:"currentProductActive,omitempty"`
-	CurrentInStockEnough   *bool   `json:"currentInStockEnough,omitempty"`
+	ProductID            uint    `json:"productID"`
+	ProductName          string  `json:"productName"`
+	ProductSlug          string  `json:"productSlug"`
+	Unit                 string  `json:"unit"`
+	Quantity             float64 `json:"quantity"`
+	RequestedQuantity    float64 `json:"requestedQuantity"`
+	SaleByPackage        bool    `json:"saleByPackage"`
+	PackageQuantity      float64 `json:"packageQuantity"`
+	PackageCount         int     `json:"packageCount"`
+	UnitPrice            float64 `json:"unitPrice"`
+	TotalPrice           float64 `json:"totalPrice"`
+	CurrentProductActive *bool   `json:"currentProductActive,omitempty"`
+	CurrentInStockEnough *bool   `json:"currentInStockEnough,omitempty"`
 }
 
 type OnlineOrderDetailResponse struct {
@@ -97,8 +101,8 @@ type ConfirmOnlineOrderRequest struct {
 }
 
 type ConfirmOnlineOrderResponse struct {
-	OrderID   uint `json:"orderID"`
-	InvoiceID uint `json:"invoiceID"`
+	OrderID   uint   `json:"orderID"`
+	InvoiceID uint   `json:"invoiceID"`
 	Status    string `json:"status"`
 }
 

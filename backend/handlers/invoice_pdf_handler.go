@@ -70,11 +70,15 @@ func GetInvoicePDF(c *gin.Context) {
 	doc.Items = make([]invoicepdf.Item, 0, len(mapped.Items))
 	for _, item := range mapped.Items {
 		doc.Items = append(doc.Items, invoicepdf.Item{
-			ProductName: item.ProductName,
-			Quantity:    item.Quantity,
-			Unit:        item.Unit,
-			UnitPrice:   item.UnitPrice,
-			TotalPrice:  item.TotalPrice,
+			ProductName:       item.ProductName,
+			Quantity:          item.Quantity,
+			Unit:              item.Unit,
+			UnitPrice:         item.UnitPrice,
+			TotalPrice:        item.TotalPrice,
+			SaleByPackage:     item.SaleByPackage,
+			RequestedQuantity: item.RequestedQuantity,
+			PackageQuantity:   item.PackageQuantity,
+			PackageCount:      item.PackageCount,
 		})
 	}
 

@@ -266,16 +266,37 @@ func CheckPublicProductAvailability(c *gin.Context) {
 		return
 	}
 
-	if product.StockQuantity < body.Quantity {
+	actualQuantity := body.Quantity
+	packageCount := 0
+	if product.SaleByPackage {
+		if err := pricing.ValidatePackageContract(true, product.PackageQuantity); err != nil {
+			c.JSON(http.StatusUnprocessableEntity, gin.H{"message": "Proizvod nema validno podešeno pakovanje"})
+			return
+		}
+		packageCount, actualQuantity = pricing.CalculatePackagedQuantity(
+			body.Quantity,
+			product.PackageQuantity,
+		)
+	}
+	var actualQuantityPtr *float64
+	if product.SaleByPackage {
+		actualQuantityPtr = &actualQuantity
+	}
+
+	if product.StockQuantity < actualQuantity {
 		c.JSON(http.StatusOK, dto.PublicAvailabilityCheckResponse{
-			Available: false,
-			Reason:    "insufficient_stock",
+			Available:      false,
+			Reason:         "insufficient_stock",
+			PackageCount:   packageCount,
+			ActualQuantity: actualQuantityPtr,
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, dto.PublicAvailabilityCheckResponse{
-		Available: true,
+		Available:      true,
+		PackageCount:   packageCount,
+		ActualQuantity: actualQuantityPtr,
 	})
 }
 

@@ -154,6 +154,16 @@ export function InvoicePrintDocument({
                 </td>
                 <td className="py-2 pr-2 font-medium text-stone-900">
                   {item.productName || `Proizvod #${item.productID}`}
+                  {item.saleByPackage ? (
+                    <span className="block text-[10px] font-normal text-stone-600">
+                      {item.packageCount} paketa × {formatQuantity(item.packageQuantity)}{" "}
+                      {item.unit}
+                      <span className="block">
+                        Tražena količina: {formatQuantity(item.requestedQuantity)}{" "}
+                        {item.unit}
+                      </span>
+                    </span>
+                  ) : null}
                 </td>
                 <td className="py-2 pr-2 text-right tabular-nums">
                   {formatQuantity(item.quantity)}

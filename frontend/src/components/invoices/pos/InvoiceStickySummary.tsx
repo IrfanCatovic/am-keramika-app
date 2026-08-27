@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 
 import { formatMoney, formatQuantity } from "@/lib/format";
+import { getActualProductQuantity } from "@/lib/product-pricing";
 import { InvoiceFormLine } from "@/types/invoice";
 
 /** Sticky desni panel: lista stavki + summary + submit. */
@@ -33,13 +34,28 @@ export function InvoiceStickyCartPanel({
 }) {
   const itemCount = lines.length;
   const quantityTotal = lines.reduce(
-    (sum, line) => sum + (Number.isFinite(line.quantity) ? line.quantity : 0),
+    (sum, line) =>
+      sum +
+      (Number.isFinite(line.quantity)
+        ? getActualProductQuantity(
+            line.quantity,
+            line.saleByPackage,
+            line.packageQuantity,
+          ).actualQuantity
+        : 0),
     0,
   );
   const previewTotal = lines.reduce(
     (sum, line) =>
       sum +
-      (Number.isFinite(line.quantity) ? line.salePrice * line.quantity : 0),
+      (Number.isFinite(line.quantity)
+        ? line.salePrice *
+          getActualProductQuantity(
+            line.quantity,
+            line.saleByPackage,
+            line.packageQuantity,
+          ).actualQuantity
+        : 0),
     0,
   );
 

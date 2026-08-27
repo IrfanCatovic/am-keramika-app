@@ -37,6 +37,10 @@ export interface InvoiceItem {
   productID: number;
   productName: string;
   quantity: number;
+  requestedQuantity: number;
+  saleByPackage: boolean;
+  packageQuantity: number;
+  packageCount: number;
   unit?: string;
   unitPrice: number;
   totalPrice: number;
@@ -140,4 +144,6 @@ export interface InvoiceFormLine {
   stockQuantity: number;
   imageUrl: string | null;
   quantity: number;
+  saleByPackage?: boolean;
+  packageQuantity?: number;
 }

@@ -11,7 +11,13 @@ type InvoiceItem struct {
 	ProductID uint    `gorm:"not null"`
 	Product   Product `gorm:"foreignKey:ProductID"`
 
-	Quantity   float64 `gorm:"not null"`
-	UnitPrice  float64 `gorm:"not null"`
-	TotalPrice float64 `gorm:"not null"`
+	// Quantity is the actual billable/issued quantity. The remaining fields
+	// preserve the package contract that was active when the invoice was made.
+	Quantity          float64 `gorm:"not null"`
+	RequestedQuantity float64 `gorm:"not null;default:0"`
+	SaleByPackage     bool    `gorm:"not null;default:false"`
+	PackageQuantity   float64 `gorm:"not null;default:0"`
+	PackageCount      int     `gorm:"not null;default:0"`
+	UnitPrice         float64 `gorm:"not null"`
+	TotalPrice        float64 `gorm:"not null"`
 }

@@ -8,6 +8,7 @@ import { CheckoutSummary } from "@/components/storefront/checkout/CheckoutSummar
 import { useCart } from "@/components/storefront/cart/CartProvider";
 import { checkPublicProductAvailability } from "@/lib/public-availability-api";
 import { fetchPublicProductBySlug } from "@/lib/public-catalog-api";
+import { getActualProductQuantity } from "@/lib/product-pricing";
 import {
   clearCheckoutDraft,
   createPublicOrder,
@@ -117,6 +118,9 @@ export function CheckoutPageClient() {
               effectiveSalePrice: product.effectiveSalePrice,
               isOnSale: product.isOnSale,
               discountPercent: product.discountPercent,
+              saleByPackage: product.saleByPackage ?? false,
+              packageQuantity: product.packageQuantity ?? 0,
+              packagePrice: product.packagePrice,
               categoryName: product.category?.name,
               groupName: product.group?.name,
             };
@@ -176,7 +180,14 @@ export function CheckoutPageClient() {
   const subtotal = useMemo(
     () =>
       items.reduce(
-        (sum, item) => sum + item.effectiveSalePrice * item.quantity,
+        (sum, item) =>
+          sum +
+          item.effectiveSalePrice *
+            getActualProductQuantity(
+              item.quantity,
+              item.saleByPackage,
+              item.packageQuantity,
+            ).actualQuantity,
         0,
       ),
     [items],

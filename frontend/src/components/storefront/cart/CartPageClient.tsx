@@ -7,6 +7,7 @@ import { CartItemRow } from "@/components/storefront/cart/CartItem";
 import { useCart } from "@/components/storefront/cart/CartProvider";
 import { CartSummary } from "@/components/storefront/cart/CartSummary";
 import { fetchPublicProductBySlug } from "@/lib/public-catalog-api";
+import { getActualProductQuantity } from "@/lib/product-pricing";
 import type { CartItem } from "@/types/cart";
 
 type Meta = {
@@ -54,7 +55,10 @@ export function CartPageClient() {
               product.effectiveSalePrice !== item.effectiveSalePrice ||
               product.salePrice !== item.salePrice ||
               product.isOnSale !== item.isOnSale ||
-              product.discountPercent !== item.discountPercent;
+              product.discountPercent !== item.discountPercent ||
+              product.saleByPackage !== item.saleByPackage ||
+              product.packageQuantity !== item.packageQuantity ||
+              product.packagePrice !== item.packagePrice;
 
             const patch: Partial<CartItem> = {
               name: product.name,
@@ -65,6 +69,9 @@ export function CartPageClient() {
               effectiveSalePrice: product.effectiveSalePrice,
               isOnSale: product.isOnSale,
               discountPercent: product.discountPercent,
+              saleByPackage: product.saleByPackage ?? false,
+              packageQuantity: product.packageQuantity ?? 0,
+              packagePrice: product.packagePrice,
               categoryName: product.category?.name,
               groupName: product.group?.name,
             };
@@ -108,7 +115,14 @@ export function CartPageClient() {
   );
 
   const subtotal = availableItems.reduce(
-    (sum, item) => sum + item.effectiveSalePrice * item.quantity,
+    (sum, item) =>
+      sum +
+      item.effectiveSalePrice *
+        getActualProductQuantity(
+          item.quantity,
+          item.saleByPackage,
+          item.packageQuantity,
+        ).actualQuantity,
     0,
   );
 
@@ -118,8 +132,18 @@ export function CartPageClient() {
         sum +
         Math.max(
           0,
-          item.salePrice * item.quantity -
-            item.effectiveSalePrice * item.quantity,
+          item.salePrice *
+            getActualProductQuantity(
+              item.quantity,
+              item.saleByPackage,
+              item.packageQuantity,
+            ).actualQuantity -
+            item.effectiveSalePrice *
+              getActualProductQuantity(
+                item.quantity,
+                item.saleByPackage,
+                item.packageQuantity,
+              ).actualQuantity,
         )
       );
     }

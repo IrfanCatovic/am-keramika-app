@@ -1,6 +1,10 @@
 "use client";
 
 import { formatMoney, formatQuantity } from "@/lib/format";
+import {
+  calculatePackagePrice,
+  getActualProductQuantity,
+} from "@/lib/product-pricing";
 import { InvoiceFormLine } from "@/types/invoice";
 
 export function InvoiceCartItem({
@@ -16,7 +20,12 @@ export function InvoiceCartItem({
   onQuantityChange: (quantity: number) => void;
   onRemove: () => void;
 }) {
-  const previewTotal = line.salePrice * line.quantity;
+  const quantityDetails = getActualProductQuantity(
+    line.quantity,
+    line.saleByPackage,
+    line.packageQuantity,
+  );
+  const previewTotal = line.salePrice * quantityDetails.actualQuantity;
   /** Minus korak −1: na količini 1 ostaje disabled (uklanjanje ide preko kante). */
   const canDecrease = Math.round((line.quantity - 1) * 100) / 100 >= 0.01;
 
@@ -67,6 +76,22 @@ export function InvoiceCartItem({
               <p className="mt-0.5 text-[11px] text-stone-500">
                 {formatMoney(line.salePrice)} / {line.unit}
               </p>
+              {line.saleByPackage && line.packageQuantity ? (
+                <div className="mt-1 text-xs text-stone-600">
+                  <p>Potrebno: {formatQuantity(line.quantity)} {line.unit}</p>
+                  <p>
+                    {quantityDetails.packageCount} paketa ×{" "}
+                    {formatQuantity(line.packageQuantity)} {line.unit}
+                  </p>
+                  <p>Obračun: {formatQuantity(quantityDetails.actualQuantity)} {line.unit}</p>
+                  <p>
+                    {formatMoney(line.salePrice)} / {line.unit} ·{" "}
+                    {formatMoney(
+                      calculatePackagePrice(line.salePrice, line.packageQuantity),
+                    )} / paket
+                  </p>
+                </div>
+              ) : null}
             </div>
             <button
               type="button"

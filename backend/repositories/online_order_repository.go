@@ -101,13 +101,17 @@ func CreateOnlineOrder(req dto.PublicCreateOnlineOrderRequest) (*models.OnlineOr
 	}
 
 	type preparedItem struct {
-		productID   uint
-		quantity    float64
-		productName string
-		productSlug string
-		unit        string
-		unitPrice   float64
-		totalPrice  float64
+		productID         uint
+		requestedQuantity float64
+		quantity          float64
+		saleByPackage     bool
+		packageQuantity   float64
+		packageCount      int
+		productName       string
+		productSlug       string
+		unit              string
+		unitPrice         float64
+		totalPrice        float64
 	}
 
 	prepared := make([]preparedItem, 0, len(req.Items))
@@ -159,24 +163,49 @@ func CreateOnlineOrder(req dto.PublicCreateOnlineOrderRequest) (*models.OnlineOr
 			pid := productID
 			return nil, orderCreateErr(ErrOnlineOrderProductUnavailable, &pid, "unavailable")
 		}
-		if product.StockQuantity < quantity {
+		requestedQuantity := pricing.RoundQuantity(quantity)
+		actualQuantity := requestedQuantity
+		packageQuantity := 0.0
+		packageCount := 0
+		if product.SaleByPackage {
+			if err := pricing.ValidatePackageContract(true, product.PackageQuantity); err != nil {
+				tx.Rollback()
+				pid := productID
+				return nil, orderCreateErr(ErrOnlineOrderProductUnavailable, &pid, "unavailable")
+			}
+			packageQuantity = product.PackageQuantity
+			packageCount, actualQuantity = pricing.CalculatePackagedQuantity(
+				requestedQuantity,
+				packageQuantity,
+			)
+		}
+		if actualQuantity <= 0 || (product.SaleByPackage && packageCount <= 0) {
+			tx.Rollback()
+			pid := productID
+			return nil, orderCreateErr(ErrOnlineOrderInvalidQuantity, &pid, "invalid_quantity")
+		}
+		if product.StockQuantity < actualQuantity {
 			tx.Rollback()
 			pid := productID
 			return nil, orderCreateErr(ErrOnlineOrderInsufficientStock, &pid, "insufficient_stock")
 		}
 
 		unitPrice := pricing.GetEffectiveSalePrice(product.SalePrice, product.IsOnSale, product.DiscountPercent)
-		lineTotal := pricing.RoundToTwoDecimals(unitPrice * quantity)
+		lineTotal := pricing.RoundToTwoDecimals(unitPrice * actualQuantity)
 		totalAmount = pricing.RoundToTwoDecimals(totalAmount + lineTotal)
 
 		prepared = append(prepared, preparedItem{
-			productID:   product.ID,
-			quantity:    quantity,
-			productName: product.Name,
-			productSlug: product.Slug,
-			unit:        product.Unit,
-			unitPrice:   unitPrice,
-			totalPrice:  lineTotal,
+			productID:         product.ID,
+			requestedQuantity: requestedQuantity,
+			quantity:          actualQuantity,
+			saleByPackage:     product.SaleByPackage,
+			packageQuantity:   packageQuantity,
+			packageCount:      packageCount,
+			productName:       product.Name,
+			productSlug:       product.Slug,
+			unit:              product.Unit,
+			unitPrice:         unitPrice,
+			totalPrice:        lineTotal,
 		})
 	}
 
@@ -199,14 +228,18 @@ func CreateOnlineOrder(req dto.PublicCreateOnlineOrderRequest) (*models.OnlineOr
 
 	for _, item := range prepared {
 		row := models.OnlineOrderItem{
-			OnlineOrderID: order.ID,
-			ProductID:     item.productID,
-			ProductName:   item.productName,
-			ProductSlug:   item.productSlug,
-			Unit:          item.unit,
-			Quantity:      item.quantity,
-			UnitPrice:     item.unitPrice,
-			TotalPrice:    item.totalPrice,
+			OnlineOrderID:     order.ID,
+			ProductID:         item.productID,
+			ProductName:       item.productName,
+			ProductSlug:       item.productSlug,
+			Unit:              item.unit,
+			Quantity:          item.quantity,
+			RequestedQuantity: item.requestedQuantity,
+			SaleByPackage:     item.saleByPackage,
+			PackageQuantity:   item.packageQuantity,
+			PackageCount:      item.packageCount,
+			UnitPrice:         item.unitPrice,
+			TotalPrice:        item.totalPrice,
 		}
 		if err := tx.Create(&row).Error; err != nil {
 			tx.Rollback()
@@ -406,6 +439,31 @@ func ConfirmOnlineOrder(orderID uint, req dto.ConfirmOnlineOrderRequest, confirm
 			return nil, nil, orderCreateErr(ErrOnlineOrderConfirmStock, &pid, "insufficient_stock")
 		}
 
+		requestedQuantity := item.RequestedQuantity
+		if requestedQuantity <= 0 {
+			// Orders created before package snapshots use their actual
+			// quantity as the requested quantity.
+			requestedQuantity = item.Quantity
+		}
+		if item.Quantity <= 0 || math.IsNaN(item.Quantity) || math.IsInf(item.Quantity, 0) ||
+			requestedQuantity <= 0 || math.IsNaN(requestedQuantity) || math.IsInf(requestedQuantity, 0) {
+			tx.Rollback()
+			pid := item.ProductID
+			return nil, nil, orderCreateErr(ErrOnlineOrderInvalidQuantity, &pid, "invalid_quantity")
+		}
+		if item.SaleByPackage {
+			if err := pricing.ValidatePackageContract(true, item.PackageQuantity); err != nil {
+				tx.Rollback()
+				pid := item.ProductID
+				return nil, nil, orderCreateErr(ErrOnlineOrderConfirmUnavailable, &pid, "unavailable")
+			}
+			if item.PackageCount <= 0 {
+				tx.Rollback()
+				pid := item.ProductID
+				return nil, nil, orderCreateErr(ErrOnlineOrderConfirmUnavailable, &pid, "unavailable")
+			}
+		}
+
 		// Snapshot price — never current effectiveSalePrice.
 		unitPrice := item.UnitPrice
 		lineTotal := item.TotalPrice
@@ -415,11 +473,15 @@ func ConfirmOnlineOrder(orderID uint, req dto.ConfirmOnlineOrderRequest, confirm
 		totalAmount = pricing.RoundToTwoDecimals(totalAmount + lineTotal)
 
 		invoiceItem := models.InvoiceItem{
-			InvoiceID:  invoice.ID,
-			ProductID:  item.ProductID,
-			Quantity:   item.Quantity,
-			UnitPrice:  unitPrice,
-			TotalPrice: lineTotal,
+			InvoiceID:         invoice.ID,
+			ProductID:         item.ProductID,
+			Quantity:          item.Quantity,
+			RequestedQuantity: requestedQuantity,
+			SaleByPackage:     item.SaleByPackage,
+			PackageQuantity:   item.PackageQuantity,
+			PackageCount:      item.PackageCount,
+			UnitPrice:         unitPrice,
+			TotalPrice:        lineTotal,
 		}
 		if err := tx.Create(&invoiceItem).Error; err != nil {
 			tx.Rollback()

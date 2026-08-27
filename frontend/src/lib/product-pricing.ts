@@ -145,3 +145,19 @@ export function calculatePackagedQuantity(
   return { packageCount, actualQuantity };
 }
 
+export function getActualProductQuantity(
+  requestedQuantity: number,
+  saleByPackage = false,
+  packageQuantity = 0,
+): { packageCount: number; actualQuantity: number } {
+  if (!saleByPackage) {
+    return {
+      packageCount: 0,
+      actualQuantity: Number.isFinite(requestedQuantity)
+        ? Math.round(requestedQuantity * 10000) / 10000
+        : 0,
+    };
+  }
+  return calculatePackagedQuantity(requestedQuantity, packageQuantity);
+}
+

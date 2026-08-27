@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { PublicProductPrice } from "@/components/storefront/PublicPrice";
 import { formatMoney, formatQuantity } from "@/lib/format";
+import { getActualProductQuantity } from "@/lib/product-pricing";
 import type { CartItem } from "@/types/cart";
 
 export function CheckoutSummary({
@@ -47,9 +48,17 @@ export function CheckoutSummary({
                 {item.name}
               </p>
               <p className="mt-1 text-xs text-stone-500">
-                {formatQuantity(item.quantity)}
-                {item.unit ? ` ${item.unit}` : ""}
+                {item.saleByPackage
+                  ? `Potrebno: ${formatQuantity(item.quantity)} ${item.unit}`
+                  : `${formatQuantity(item.quantity)}${item.unit ? ` ${item.unit}` : ""}`}
               </p>
+              {item.saleByPackage ? (
+                <p className="mt-0.5 text-xs text-stone-500">
+                  {item.packageCount} paketa ×{" "}
+                  {formatQuantity(item.packageQuantity)} {item.unit} · za obračun{" "}
+                  {formatQuantity(item.actualQuantity)} {item.unit}
+                </p>
+              ) : null}
               <div className="mt-1.5 flex flex-wrap items-baseline justify-between gap-2">
                 <PublicProductPrice
                   product={{
@@ -57,11 +66,22 @@ export function CheckoutSummary({
                     effectiveSalePrice: item.effectiveSalePrice,
                     isOnSale: item.isOnSale,
                     discountPercent: item.discountPercent,
+                    unit: item.unit,
+                    saleByPackage: item.saleByPackage,
+                    packageQuantity: item.packageQuantity,
+                    packagePrice: item.packagePrice,
                   }}
                   size="sm"
                 />
                 <span className="text-sm tabular-nums text-stone-800">
-                  {formatMoney(item.effectiveSalePrice * item.quantity)}
+                  {formatMoney(
+                    item.effectiveSalePrice *
+                      getActualProductQuantity(
+                        item.quantity,
+                        item.saleByPackage,
+                        item.packageQuantity,
+                      ).actualQuantity,
+                  )}
                 </span>
               </div>
             </div>

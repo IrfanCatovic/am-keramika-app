@@ -6,7 +6,8 @@ import { CartQuantityControl } from "@/components/storefront/cart/CartQuantityCo
 import { useCart } from "@/components/storefront/cart/CartProvider";
 import { PublicProductPrice } from "@/components/storefront/PublicPrice";
 import { useAvailabilityCheck } from "@/hooks/useAvailabilityCheck";
-import { formatMoney } from "@/lib/format";
+import { formatMoney, formatQuantity } from "@/lib/format";
+import { getActualProductQuantity } from "@/lib/product-pricing";
 import type { CartItem as CartItemType } from "@/types/cart";
 
 export function CartItemRow({
@@ -22,6 +23,11 @@ export function CartItemRow({
   const { checking, error, clearError, checkNow } = useAvailabilityCheck();
 
   const meta = [item.categoryName, item.groupName].filter(Boolean).join(" · ");
+  const quantityDetails = getActualProductQuantity(
+    item.quantity,
+    item.saleByPackage,
+    item.packageQuantity,
+  );
 
   async function applyQuantity(next: number) {
     clearError();
@@ -82,6 +88,10 @@ export function CartItemRow({
               effectiveSalePrice: item.effectiveSalePrice,
               isOnSale: item.isOnSale,
               discountPercent: item.discountPercent,
+              unit: item.unit,
+              saleByPackage: item.saleByPackage,
+              packageQuantity: item.packageQuantity,
+              packagePrice: item.packagePrice,
             }}
             size="sm"
           />
@@ -91,6 +101,20 @@ export function CartItemRow({
           <p className="mt-3 text-sm text-stone-600" role="status">
             Proizvod trenutno nije dostupan.
           </p>
+        ) : null}
+
+        {item.saleByPackage ? (
+          <div className="mt-2 space-y-0.5 text-sm text-stone-600">
+            <p>Potrebno: {formatQuantity(item.quantity)} {item.unit}</p>
+            <p>
+              Pakovanje: {formatQuantity(item.packageQuantity)} {item.unit}
+            </p>
+            <p>Broj paketa: {quantityDetails.packageCount}</p>
+            <p>
+              Količina za obračun: {formatQuantity(quantityDetails.actualQuantity)}{" "}
+              {item.unit}
+            </p>
+          </div>
         ) : null}
         {priceUpdated && !unavailable ? (
           <p className="mt-2 text-xs text-stone-500">
@@ -108,7 +132,7 @@ export function CartItemRow({
             }}
           />
           <p className="text-sm tabular-nums text-stone-900">
-            {formatMoney(item.effectiveSalePrice * item.quantity)}
+            {formatMoney(item.effectiveSalePrice * quantityDetails.actualQuantity)}
           </p>
           <button
             type="button"

@@ -48,6 +48,8 @@ type PublicAvailabilityCheckRequest struct {
 
 // PublicAvailabilityCheckResponse never reveals stockQuantity or remaining units.
 type PublicAvailabilityCheckResponse struct {
-	Available bool   `json:"available"`
-	Reason    string `json:"reason,omitempty"`
+	Available      bool     `json:"available"`
+	Reason         string   `json:"reason,omitempty"`
+	PackageCount   int      `json:"packageCount,omitempty"`
+	ActualQuantity *float64 `json:"actualQuantity,omitempty"`
 }

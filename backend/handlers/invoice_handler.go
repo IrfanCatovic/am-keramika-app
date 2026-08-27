@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"math"
 	"net/http"
 	"strconv"
@@ -10,6 +11,7 @@ import (
 	"am-keramika-backend/auth"
 	"am-keramika-backend/dto"
 	"am-keramika-backend/models"
+	"am-keramika-backend/pricing"
 	"am-keramika-backend/repositories"
 
 	"github.com/gin-gonic/gin"
@@ -47,7 +49,11 @@ func CreateInvoice(c *gin.Context) {
 			strings.Contains(msg, "Plati sve"),
 			strings.Contains(msg, "bez uplate"),
 			strings.Contains(msg, "nepoznat način"),
-			strings.Contains(msg, "pozitivan ukupan"):
+			strings.Contains(msg, "pozitivan ukupan"),
+			errors.Is(err, pricing.ErrPackageQuantityRequired),
+			errors.Is(err, pricing.ErrInvalidPackageQuantity),
+			strings.Contains(msg, "količina nije validna za prodaju po pakovanju"),
+			strings.Contains(msg, "količina mora biti veća od 0"):
 			status = http.StatusBadRequest
 		}
 		c.JSON(status, gin.H{"error": err.Error()})

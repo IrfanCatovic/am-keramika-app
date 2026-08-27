@@ -5,6 +5,7 @@ import { useEffect } from "react";
 
 import { useCart } from "@/components/storefront/cart/CartProvider";
 import { formatMoney, formatQuantity } from "@/lib/format";
+import { getActualProductQuantity } from "@/lib/product-pricing";
 
 export function CartDrawer() {
   const { items, drawerOpen, closeDrawer, feedback, clearFeedback, hydrated, removeItem } =
@@ -26,7 +27,14 @@ export function CartDrawer() {
   if (!drawerOpen) return null;
 
   const subtotal = items.reduce(
-    (sum, item) => sum + item.effectiveSalePrice * item.quantity,
+    (sum, item) =>
+      sum +
+      item.effectiveSalePrice *
+        getActualProductQuantity(
+          item.quantity,
+          item.saleByPackage,
+          item.packageQuantity,
+        ).actualQuantity,
     0,
   );
 
@@ -130,8 +138,16 @@ export function CartDrawer() {
                       {formatQuantity(item.quantity)}
                       {item.unit ? ` ${item.unit}` : ""}
                     </p>
+                    {item.saleByPackage ? (
+                      <p className="mt-0.5 text-xs text-stone-500">
+                        {item.packageCount} paketa · obračun{" "}
+                        {formatQuantity(item.actualQuantity)} {item.unit}
+                      </p>
+                    ) : null}
                     <p className="mt-1 text-sm tabular-nums text-stone-800">
-                      {formatMoney(item.effectiveSalePrice * item.quantity)}
+                      {formatMoney(
+                        item.effectiveSalePrice * item.actualQuantity,
+                      )}
                     </p>
                   </div>
                 </li>

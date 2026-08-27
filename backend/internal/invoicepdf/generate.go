@@ -32,11 +32,15 @@ type Company struct {
 
 // Item is one invoice line for PDF rendering.
 type Item struct {
-	ProductName string
-	Quantity    float64
-	Unit        string
-	UnitPrice   float64
-	TotalPrice  float64
+	ProductName       string
+	Quantity          float64
+	Unit              string
+	UnitPrice         float64
+	TotalPrice        float64
+	SaleByPackage     bool
+	RequestedQuantity float64
+	PackageQuantity   float64
+	PackageCount      int
 }
 
 // Document is the invoice data needed to build an A4 PDF.
@@ -286,20 +290,32 @@ func drawItemsTable(pdf *fpdf.Fpdf, doc Document) {
 		if name == "" {
 			name = "Proizvod"
 		}
+		displayName := name
+		if item.SaleByPackage && item.PackageCount > 0 && item.PackageQuantity > 0 {
+			displayName = fmt.Sprintf(
+				"%s\n%d paketa × %s %s\nTražena količina: %s %s",
+				name,
+				item.PackageCount,
+				formatQuantity(item.PackageQuantity),
+				item.Unit,
+				formatQuantity(item.RequestedQuantity),
+				item.Unit,
+			)
+		}
 		unit := strings.TrimSpace(item.Unit)
 		if unit == "" {
 			unit = "—"
 		}
 		row := []string{
 			fmt.Sprintf("%d", i+1),
-			name,
+			displayName,
 			formatQuantity(item.Quantity),
 			unit,
 			formatMoney(item.UnitPrice),
 			formatMoney(item.TotalPrice),
 		}
 		// Wrap long product names by estimating height.
-		lines := pdf.SplitLines([]byte(name), widths[1]-1)
+		lines := pdf.SplitLines([]byte(displayName), widths[1]-1)
 		rowH := 6.0
 		if len(lines) > 1 {
 			rowH = float64(len(lines)) * 4.2

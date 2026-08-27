@@ -33,13 +33,23 @@ func mapInvoiceResponse(invoice models.Invoice) dto.InvoiceResponse {
 			productName = item.Product.Name
 			unit = item.Product.Unit
 		}
+		requestedQuantity := item.RequestedQuantity
+		if requestedQuantity <= 0 {
+			// Backward compatibility for InvoiceItems created before the
+			// package snapshot columns existed.
+			requestedQuantity = item.Quantity
+		}
 		response.Items = append(response.Items, dto.InvoiceItemResponse{
-			ProductID:   item.ProductID,
-			ProductName: productName,
-			Quantity:    item.Quantity,
-			Unit:        unit,
-			UnitPrice:   item.UnitPrice,
-			TotalPrice:  item.TotalPrice,
+			ProductID:         item.ProductID,
+			ProductName:       productName,
+			Quantity:          item.Quantity,
+			RequestedQuantity: requestedQuantity,
+			SaleByPackage:     item.SaleByPackage,
+			PackageQuantity:   item.PackageQuantity,
+			PackageCount:      item.PackageCount,
+			Unit:              unit,
+			UnitPrice:         item.UnitPrice,
+			TotalPrice:        item.TotalPrice,
 		})
 	}
 

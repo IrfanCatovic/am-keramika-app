@@ -11,6 +11,8 @@ export class PublicAvailabilityError extends Error {
 export interface PublicAvailabilityCheckResult {
   available: boolean;
   reason?: string;
+  packageCount?: number;
+  actualQuantity?: number;
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ?? "";
@@ -61,5 +63,7 @@ export async function checkPublicProductAvailability(
   return {
     available: Boolean(body.available),
     reason: body.reason,
+    packageCount: body.packageCount,
+    actualQuantity: body.actualQuantity,
   };
 }

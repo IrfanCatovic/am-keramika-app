@@ -50,12 +50,18 @@ type OnlineOrderItem struct {
 	Product   Product `gorm:"foreignKey:ProductID"`
 
 	// Snapshots of what the customer ordered (immutable after create).
-	ProductName string  `gorm:"size:255;not null"`
-	ProductSlug string  `gorm:"size:255"`
-	Unit        string  `gorm:"size:50;not null"`
-	Quantity    float64 `gorm:"not null"`
-	UnitPrice   float64 `gorm:"not null"`
-	TotalPrice  float64 `gorm:"not null"`
+	ProductName string `gorm:"size:255;not null"`
+	ProductSlug string `gorm:"size:255"`
+	Unit        string `gorm:"size:50;not null"`
+	// Quantity is the actual billable quantity. These fields are immutable
+	// snapshots so confirmation never depends on a later Product change.
+	Quantity          float64 `gorm:"not null"`
+	RequestedQuantity float64 `gorm:"not null;default:0"`
+	SaleByPackage     bool    `gorm:"not null;default:false"`
+	PackageQuantity   float64 `gorm:"not null;default:0"`
+	PackageCount      int     `gorm:"not null;default:0"`
+	UnitPrice         float64 `gorm:"not null"`
+	TotalPrice        float64 `gorm:"not null"`
 }
 
 func IsValidOnlineOrderStatus(status string) bool {

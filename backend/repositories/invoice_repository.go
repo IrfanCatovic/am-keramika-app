@@ -61,20 +61,49 @@ func CreateInvoice(req dto.CreateInvoiceRequest, createdByUserID uint) (*models.
 			return nil, errors.New("proizvod nije aktivan")
 		}
 
-		if product.StockQuantity < item.Quantity {
+		requestedQuantity := item.Quantity
+		if requestedQuantity <= 0 || math.IsNaN(requestedQuantity) || math.IsInf(requestedQuantity, 0) {
+			tx.Rollback()
+			return nil, errors.New("količina mora biti veća od 0")
+		}
+
+		actualQuantity := requestedQuantity
+		packageCount := 0
+		packageQuantity := 0.0
+		if product.SaleByPackage {
+			if err := pricing.ValidatePackageContract(true, product.PackageQuantity); err != nil {
+				tx.Rollback()
+				return nil, err
+			}
+			packageQuantity = product.PackageQuantity
+			packageCount, actualQuantity = pricing.CalculatePackagedQuantity(
+				requestedQuantity,
+				packageQuantity,
+			)
+		}
+
+		if packageCount == 0 && product.SaleByPackage {
+			tx.Rollback()
+			return nil, errors.New("količina nije validna za prodaju po pakovanju")
+		}
+		if product.StockQuantity < actualQuantity {
 			tx.Rollback()
 			return nil, errors.New("nema dovoljno stoka na skladištu")
 		}
 
 		unitPrice := pricing.GetEffectiveSalePrice(product.SalePrice, product.IsOnSale, product.DiscountPercent)
-		totalPrice := unitPrice * item.Quantity
+		totalPrice := pricing.RoundToTwoDecimals(unitPrice * actualQuantity)
 
 		invoiceItem := models.InvoiceItem{
-			InvoiceID:  invoice.ID,
-			ProductID:  product.ID,
-			Quantity:   item.Quantity,
-			UnitPrice:  unitPrice,
-			TotalPrice: totalPrice,
+			InvoiceID:         invoice.ID,
+			ProductID:         product.ID,
+			Quantity:          actualQuantity,
+			RequestedQuantity: requestedQuantity,
+			SaleByPackage:     product.SaleByPackage,
+			PackageQuantity:   packageQuantity,
+			PackageCount:      packageCount,
+			UnitPrice:         unitPrice,
+			TotalPrice:        totalPrice,
 		}
 
 		err = tx.Create(&invoiceItem).Error
@@ -83,7 +112,7 @@ func CreateInvoice(req dto.CreateInvoiceRequest, createdByUserID uint) (*models.
 			return nil, err
 		}
 
-		product.StockQuantity -= item.Quantity
+		product.StockQuantity -= actualQuantity
 
 		err = tx.Save(&product).Error
 		if err != nil {
@@ -100,7 +129,7 @@ func CreateInvoice(req dto.CreateInvoiceRequest, createdByUserID uint) (*models.
 			ProductID:       product.ID,
 			CreatedByUserID: createdByUserID,
 			MovementType:    "sale",
-			Quantity:        item.Quantity,
+			Quantity:        actualQuantity,
 			Note:            "Prodaja kroz racun",
 		}
 

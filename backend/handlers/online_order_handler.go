@@ -63,14 +63,21 @@ func mapOnlineOrderDetail(order models.OnlineOrder) dto.OnlineOrderDetailRespons
 	items := make([]dto.OnlineOrderItemDetailResponse, 0, len(order.Items))
 	for _, item := range order.Items {
 		row := dto.OnlineOrderItemDetailResponse{
-			ProductID:    item.ProductID,
-			ProductName:  item.ProductName,
-			ProductSlug:  item.ProductSlug,
-			Unit:         item.Unit,
-			Quantity:     item.Quantity,
-			UnitPrice:    item.UnitPrice,
-			TotalPrice:   item.TotalPrice,
+			ProductID:   item.ProductID,
+			ProductName: item.ProductName,
+			ProductSlug: item.ProductSlug,
+			Unit:        item.Unit,
+			Quantity:    item.Quantity,
+			UnitPrice:   item.UnitPrice,
+			TotalPrice:  item.TotalPrice,
 		}
+		row.RequestedQuantity = item.RequestedQuantity
+		if row.RequestedQuantity <= 0 {
+			row.RequestedQuantity = item.Quantity
+		}
+		row.SaleByPackage = item.SaleByPackage
+		row.PackageQuantity = item.PackageQuantity
+		row.PackageCount = item.PackageCount
 		if order.Status == models.OnlineOrderStatusPending {
 			var product models.Product
 			err := database.DB.Preload("Category").First(&product, item.ProductID).Error

@@ -5,6 +5,8 @@ import { useId, useState } from "react";
 import { CartQuantityControl } from "@/components/storefront/cart/CartQuantityControl";
 import { useCart } from "@/components/storefront/cart/CartProvider";
 import { useAvailabilityCheck } from "@/hooks/useAvailabilityCheck";
+import { formatMoney, formatQuantity } from "@/lib/format";
+import { getActualProductQuantity } from "@/lib/product-pricing";
 import type { PublicProduct } from "@/types/public-catalog";
 
 type AddToCartProduct = Pick<
@@ -21,6 +23,9 @@ type AddToCartProduct = Pick<
   | "primaryImage"
   | "category"
   | "group"
+  | "saleByPackage"
+  | "packageQuantity"
+  | "packagePrice"
 >;
 
 export function AddToCart({ product }: { product: AddToCartProduct }) {
@@ -30,6 +35,11 @@ export function AddToCart({ product }: { product: AddToCartProduct }) {
     useAvailabilityCheck();
   const [quantity, setQuantity] = useState(1);
   const [busy, setBusy] = useState(false);
+  const quantityDetails = getActualProductQuantity(
+    quantity,
+    product.saleByPackage,
+    product.packageQuantity ?? 0,
+  );
 
   const disabled = !product.inStock;
 
@@ -61,6 +71,9 @@ export function AddToCart({ product }: { product: AddToCartProduct }) {
         effectiveSalePrice: product.effectiveSalePrice,
         isOnSale: product.isOnSale,
         discountPercent: product.discountPercent,
+        saleByPackage: product.saleByPackage ?? false,
+        packageQuantity: product.packageQuantity ?? 0,
+        packagePrice: product.packagePrice,
         categoryName: product.category?.name,
         groupName: product.group?.name,
       });
@@ -80,8 +93,8 @@ export function AddToCart({ product }: { product: AddToCartProduct }) {
       </p>
 
       <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <label htmlFor={qtyId} className="sr-only">
-          Količina
+        <label htmlFor={qtyId} className="text-sm font-medium text-stone-700">
+          Potrebna količina
         </label>
         <CartQuantityControl
           id={qtyId}
@@ -101,6 +114,28 @@ export function AddToCart({ product }: { product: AddToCartProduct }) {
           {busy || checking ? "Provera…" : "Dodaj u korpu"}
         </button>
       </div>
+
+      {product.saleByPackage && product.packageQuantity ? (
+        <div className="mt-4 space-y-1 text-sm text-stone-600">
+          <p>
+            Potrebno: {formatQuantity(quantity)} {product.unit}
+          </p>
+          <p>
+            {quantityDetails.packageCount} paketa ×{" "}
+            {formatQuantity(product.packageQuantity)} {product.unit}
+          </p>
+          <p>
+            Za obračun: {formatQuantity(quantityDetails.actualQuantity)}{" "}
+            {product.unit}
+          </p>
+          <p className="font-medium text-stone-800">
+            Ukupno:{" "}
+            {formatMoney(
+              product.effectiveSalePrice * quantityDetails.actualQuantity,
+            )}
+          </p>
+        </div>
+      ) : null}
 
       {disabled ? (
         <p className="mt-3 text-sm text-stone-500">

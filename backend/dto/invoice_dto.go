@@ -20,12 +20,16 @@ type CreateInvoiceItemRequest struct {
 }
 
 type InvoiceItemResponse struct {
-	ProductID   uint    `json:"productID"`
-	ProductName string  `json:"productName"`
-	Quantity    float64 `json:"quantity"`
-	Unit        string  `json:"unit"`
-	UnitPrice   float64 `json:"unitPrice"`
-	TotalPrice  float64 `json:"totalPrice"`
+	ProductID         uint    `json:"productID"`
+	ProductName       string  `json:"productName"`
+	Quantity          float64 `json:"quantity"`
+	RequestedQuantity float64 `json:"requestedQuantity"`
+	SaleByPackage     bool    `json:"saleByPackage"`
+	PackageQuantity   float64 `json:"packageQuantity"`
+	PackageCount      int     `json:"packageCount"`
+	Unit              string  `json:"unit"`
+	UnitPrice         float64 `json:"unitPrice"`
+	TotalPrice        float64 `json:"totalPrice"`
 }
 
 type InvoiceResponse struct {

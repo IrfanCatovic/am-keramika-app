@@ -36,7 +36,10 @@ import {
   getApiBusinessMessage,
   invoiceCustomerLabel,
 } from "@/lib/invoices-api";
-import { resolveProductUnitPrice } from "@/lib/product-pricing";
+import {
+  getActualProductQuantity,
+  resolveProductUnitPrice,
+} from "@/lib/product-pricing";
 import { fetchProducts } from "@/lib/products-api";
 import { Category } from "@/types/category";
 import { CustomerListItem } from "@/types/customer";
@@ -57,6 +60,14 @@ function productImageUrl(product: Product): string | null {
 
 function roundQty(value: number): number {
   return Math.round(value * 100) / 100;
+}
+
+function lineQuantityDetails(line: InvoiceFormLine) {
+  return getActualProductQuantity(
+    line.quantity,
+    line.saleByPackage,
+    line.packageQuantity,
+  );
 }
 
 function markMatchingLines(
@@ -370,7 +381,12 @@ export function InvoiceForm({
         const existing = current.find((line) => line.productID === product.id);
         if (existing) {
           const nextQty = roundQty(existing.quantity + 1);
-          if (nextQty > product.stockQuantity) {
+          const nextDetails = getActualProductQuantity(
+            nextQty,
+            product.saleByPackage,
+            product.packageQuantity,
+          );
+          if (nextDetails.actualQuantity > product.stockQuantity) {
             setLineErrors((errors) => ({
               ...errors,
               [product.id]: `Maksimalna količina je ${product.stockQuantity}.`,
@@ -389,6 +405,8 @@ export function InvoiceForm({
                   quantity: nextQty,
                   stockQuantity: product.stockQuantity,
                   salePrice: resolveProductUnitPrice(product),
+                  saleByPackage: product.saleByPackage,
+                  packageQuantity: product.packageQuantity,
                 }
               : line,
           );
@@ -403,6 +421,8 @@ export function InvoiceForm({
             stockQuantity: product.stockQuantity,
             imageUrl: productImageUrl(product),
             quantity: 1,
+            saleByPackage: product.saleByPackage,
+            packageQuantity: product.packageQuantity,
           },
         ];
       });
@@ -454,11 +474,14 @@ export function InvoiceForm({
     }
     const nextErrors: Record<number, string> = {};
     for (const line of lines) {
+      const details = lineQuantityDetails(line);
       if (!Number.isFinite(line.quantity) || line.quantity <= 0) {
         nextErrors[line.productID] = "Količina mora biti veća od 0.";
-      } else if (line.quantity > line.stockQuantity) {
+      } else if (line.saleByPackage && details.actualQuantity <= 0) {
+        nextErrors[line.productID] = "Proizvod nema validno podešeno pakovanje.";
+      } else if (details.actualQuantity > line.stockQuantity) {
         nextErrors[line.productID] =
-          `Količina ne sme prelaziti lager (${line.stockQuantity}).`;
+          `Nema dovoljno robe na stanju za ${details.actualQuantity} ${line.unit}.`;
       }
     }
     setLineErrors(nextErrors);
@@ -499,7 +522,8 @@ export function InvoiceForm({
       (line) =>
         Number.isFinite(line.quantity) &&
         line.quantity > 0 &&
-        line.quantity <= line.stockQuantity,
+        lineQuantityDetails(line).actualQuantity <= line.stockQuantity &&
+        (!line.saleByPackage || lineQuantityDetails(line).actualQuantity > 0),
     ) &&
     Object.keys(lineErrors).length === 0 &&
     !(
@@ -515,7 +539,9 @@ export function InvoiceForm({
     const previewTotal = lines.reduce(
       (sum, line) =>
         sum +
-        (Number.isFinite(line.quantity) ? line.salePrice * line.quantity : 0),
+        (Number.isFinite(line.quantity)
+          ? line.salePrice * lineQuantityDetails(line).actualQuantity
+          : 0),
       0,
     );
     if (!validatePaymentPreview(previewTotal)) {
@@ -658,7 +684,9 @@ export function InvoiceForm({
   const previewTotal = lines.reduce(
     (sum, line) =>
       sum +
-      (Number.isFinite(line.quantity) ? line.salePrice * line.quantity : 0),
+      (Number.isFinite(line.quantity)
+        ? line.salePrice * lineQuantityDetails(line).actualQuantity
+        : 0),
     0,
   );
 

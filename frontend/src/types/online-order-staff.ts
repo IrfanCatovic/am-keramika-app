@@ -27,6 +27,10 @@ export interface OnlineOrderItemDetail {
   productSlug: string;
   unit: string;
   quantity: number;
+  requestedQuantity: number;
+  saleByPackage: boolean;
+  packageQuantity: number;
+  packageCount: number;
   unitPrice: number;
   totalPrice: number;
   currentProductActive?: boolean | null;

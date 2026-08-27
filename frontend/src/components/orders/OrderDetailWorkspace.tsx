@@ -311,6 +311,14 @@ export function OrderDetailWorkspace({ orderId }: { orderId: number }) {
                 className={`px-4 py-3 ${attention ? "bg-amber-50/70" : ""}`}
               >
                 <p className="font-medium text-stone-900">{item.productName}</p>
+                {item.saleByPackage ? (
+                  <p className="mt-1 text-xs text-stone-500">
+                    Kupac tražio: {formatQuantity(item.requestedQuantity)}{" "}
+                    {item.unit} · Pakovanje:{" "}
+                    {formatQuantity(item.packageQuantity)} {item.unit} ·{" "}
+                    {item.packageCount} paketa
+                  </p>
+                ) : null}
                 <p className="mt-1 text-sm text-stone-600">
                   {formatQuantity(item.quantity)} {item.unit} ·{" "}
                   {formatMoney(item.unitPrice)}
@@ -353,6 +361,14 @@ export function OrderDetailWorkspace({ orderId }: { orderId: number }) {
                       <p className="font-medium text-stone-900">
                         {item.productName}
                       </p>
+                      {item.saleByPackage ? (
+                        <p className="mt-1 text-xs text-stone-500">
+                          Traženo: {formatQuantity(item.requestedQuantity)}{" "}
+                          {item.unit} · {item.packageCount} paketa ×{" "}
+                          {formatQuantity(item.packageQuantity)} {item.unit} ·{" "}
+                          Obračun: {formatQuantity(item.quantity)} {item.unit}
+                        </p>
+                      ) : null}
                       {warning ? (
                         <p className="mt-1 text-xs font-medium text-amber-800">
                           {warning}

@@ -15,6 +15,7 @@ import {
   readCartFromStorage,
   writeCartToStorage,
 } from "@/lib/cart-storage";
+import { getActualProductQuantity } from "@/lib/product-pricing";
 import type { CartAddInput, CartItem } from "@/types/cart";
 
 type CartContextValue = {
@@ -39,7 +40,32 @@ type CartContextValue = {
 const CartContext = createContext<CartContextValue | null>(null);
 
 function roundQty(q: number): number {
-  return Math.round(q * 100) / 100;
+  return Math.round(q * 10000) / 10000;
+}
+
+function withQuantityDetails(
+  item: CartItem,
+  requestedQuantity: number,
+  packagePatch?: Pick<CartItem, "saleByPackage" | "packageQuantity">,
+): CartItem {
+  const saleByPackage = packagePatch?.saleByPackage ?? item.saleByPackage;
+  const packageQuantity =
+    packagePatch?.packageQuantity ?? item.packageQuantity;
+  const requested = roundQty(requestedQuantity);
+  const details = getActualProductQuantity(
+    requested,
+    saleByPackage,
+    packageQuantity,
+  );
+  return {
+    ...item,
+    quantity: requested,
+    requestedQuantity: requested,
+    actualQuantity: details.actualQuantity,
+    packageCount: details.packageCount,
+    saleByPackage,
+    packageQuantity,
+  };
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
@@ -93,6 +119,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
             imageUrl: input.imageUrl,
             unit: input.unit,
             quantity: qty,
+            requestedQuantity: qty,
+            actualQuantity: getActualProductQuantity(
+              qty,
+              input.saleByPackage,
+              input.packageQuantity,
+            ).actualQuantity,
+            packageCount: getActualProductQuantity(
+              qty,
+              input.saleByPackage,
+              input.packageQuantity,
+            ).packageCount,
+            saleByPackage: input.saleByPackage,
+            packageQuantity: input.packageQuantity,
+            packagePrice: input.packagePrice,
             salePrice: input.salePrice,
             effectiveSalePrice: input.effectiveSalePrice,
             isOnSale: input.isOnSale,
@@ -104,11 +144,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
       const next = [...prev];
       const existing = next[index];
-      next[index] = {
+      next[index] = withQuantityDetails({
         ...existing,
         ...input,
-        quantity: roundQty(existing.quantity + qty),
-      };
+      }, existing.quantity + qty, {
+        saleByPackage: input.saleByPackage,
+        packageQuantity: input.packageQuantity,
+      });
       return next;
     });
     setFeedback("Proizvod je dodat u korpu.");
@@ -122,7 +164,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
         return prev.filter((item) => item.productId !== productId);
       }
       return prev.map((item) =>
-        item.productId === productId ? { ...item, quantity: qty } : item,
+        item.productId === productId
+          ? withQuantityDetails(item, qty)
+          : item,
       );
     });
   }, []);
@@ -140,7 +184,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     (productId: number, patch: Partial<CartItem>) => {
       setItems((prev) =>
         prev.map((item) =>
-          item.productId === productId ? { ...item, ...patch } : item,
+          item.productId === productId
+            ? withQuantityDetails(
+                { ...item, ...patch },
+                patch.requestedQuantity ?? item.requestedQuantity ?? item.quantity,
+              )
+            : item,
         ),
       );
     },

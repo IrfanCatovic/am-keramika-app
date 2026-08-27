@@ -31,12 +31,14 @@ export function useAvailabilityCheck() {
     setError(null);
     try {
       const result = await checkPublicProductAvailability(productId, quantity);
-      if (id !== requestId.current) return { available: false, stale: true as const };
+      if (id !== requestId.current) {
+        return { available: false, stale: true as const };
+      }
       if (!result.available) {
         setError(INSUFFICIENT_MESSAGE);
-        return { available: false, stale: false as const };
+        return { ...result, stale: false as const };
       }
-      return { available: true, stale: false as const };
+      return { ...result, stale: false as const };
     } catch (err) {
       if (id !== requestId.current) return { available: false, stale: true as const };
       const message =

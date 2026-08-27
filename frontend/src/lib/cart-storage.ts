@@ -1,6 +1,8 @@
 import type { CartItem, CartPersistedState } from "@/types/cart";
+import { getActualProductQuantity } from "@/lib/product-pricing";
 
-export const CART_STORAGE_KEY = "am-keramika-cart-v1";
+export const CART_STORAGE_KEY = "am-keramika-cart-v2";
+const LEGACY_CART_STORAGE_KEY = "am-keramika-cart-v1";
 
 function isFinitePositive(n: unknown): n is number {
   return typeof n === "number" && Number.isFinite(n) && n > 0;
@@ -14,6 +16,10 @@ function normalizeItem(raw: unknown): CartItem | null {
   const salePrice = Number(item.salePrice);
   const effectiveSalePrice = Number(item.effectiveSalePrice);
   const discountPercent = Number(item.discountPercent ?? 0);
+  const saleByPackage = Boolean(item.saleByPackage);
+  const packageQuantity = Number(item.packageQuantity ?? 0);
+  const packagePrice =
+    item.packagePrice == null ? null : Number(item.packagePrice);
 
   if (!Number.isInteger(productId) || productId <= 0) return null;
   if (!isFinitePositive(quantity)) return null;
@@ -23,6 +29,16 @@ function normalizeItem(raw: unknown): CartItem | null {
   if (!Number.isFinite(salePrice) || salePrice < 0) return null;
   if (!Number.isFinite(effectiveSalePrice) || effectiveSalePrice < 0) return null;
   if (!Number.isFinite(discountPercent) || discountPercent < 0) return null;
+  if (
+    !Number.isFinite(packageQuantity) ||
+    packageQuantity < 0 ||
+    (saleByPackage && packageQuantity <= 0)
+  ) {
+    return null;
+  }
+  if (packagePrice != null && (!Number.isFinite(packagePrice) || packagePrice < 0)) {
+    return null;
+  }
 
   const imageUrl =
     item.imageUrl === null
@@ -31,13 +47,26 @@ function normalizeItem(raw: unknown): CartItem | null {
         ? item.imageUrl
         : null;
 
+  const requestedQuantity = Math.round(quantity * 10000) / 10000;
+  const details = getActualProductQuantity(
+    requestedQuantity,
+    saleByPackage,
+    packageQuantity,
+  );
+
   return {
     productId,
     slug: item.slug.trim(),
     name: item.name.trim(),
     imageUrl,
     unit: item.unit,
-    quantity: Math.round(quantity * 100) / 100,
+    quantity: requestedQuantity,
+    requestedQuantity,
+    actualQuantity: details.actualQuantity,
+    packageCount: details.packageCount,
+    packageQuantity,
+    saleByPackage,
+    packagePrice,
     salePrice,
     effectiveSalePrice,
     isOnSale: Boolean(item.isOnSale),
@@ -51,35 +80,56 @@ function normalizeItem(raw: unknown): CartItem | null {
 export function readCartFromStorage(): CartItem[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = window.localStorage.getItem(CART_STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as CartPersistedState | CartItem[];
-    const items = Array.isArray(parsed)
-      ? parsed
-      : Array.isArray(parsed?.items)
-        ? parsed.items
-        : null;
-    if (!items) {
-      window.localStorage.removeItem(CART_STORAGE_KEY);
-      return [];
-    }
-    const normalized = items
-      .map(normalizeItem)
-      .filter((item): item is CartItem => item != null);
-    // Dedupe by productId — keep first, sum quantities carefully not needed; keep last wins
-    const byId = new Map<number, CartItem>();
-    for (const item of normalized) {
-      const existing = byId.get(item.productId);
-      if (existing) {
-        byId.set(item.productId, {
-          ...item,
-          quantity: Math.round((existing.quantity + item.quantity) * 100) / 100,
-        });
-      } else {
-        byId.set(item.productId, item);
+    const rawValues = [
+      window.localStorage.getItem(CART_STORAGE_KEY),
+      window.localStorage.getItem(LEGACY_CART_STORAGE_KEY),
+    ].filter((value): value is string => value != null);
+
+    for (const raw of rawValues) {
+      try {
+        const parsed = JSON.parse(raw) as CartPersistedState | CartItem[];
+        const items = Array.isArray(parsed)
+          ? parsed
+          : Array.isArray(parsed?.items)
+            ? parsed.items
+            : null;
+        if (!items) continue;
+
+        const normalized = items
+          .map(normalizeItem)
+          .filter((item): item is CartItem => item != null);
+        const byId = new Map<number, CartItem>();
+        for (const item of normalized) {
+          const existing = byId.get(item.productId);
+          if (existing) {
+            const requestedQuantity =
+              Math.round(
+                (existing.requestedQuantity + item.requestedQuantity) * 10000,
+              ) / 10000;
+            const details = getActualProductQuantity(
+              requestedQuantity,
+              item.saleByPackage,
+              item.packageQuantity,
+            );
+            byId.set(item.productId, {
+              ...item,
+              quantity: requestedQuantity,
+              requestedQuantity,
+              actualQuantity: details.actualQuantity,
+              packageCount: details.packageCount,
+            });
+          } else {
+            byId.set(item.productId, item);
+          }
+        }
+        return Array.from(byId.values());
+      } catch {
+        // Try the legacy v1 payload if the current payload is malformed.
       }
     }
-    return Array.from(byId.values());
+    window.localStorage.removeItem(CART_STORAGE_KEY);
+    window.localStorage.removeItem(LEGACY_CART_STORAGE_KEY);
+    return [];
   } catch {
     try {
       window.localStorage.removeItem(CART_STORAGE_KEY);
@@ -93,8 +143,9 @@ export function readCartFromStorage(): CartItem[] {
 export function writeCartToStorage(items: CartItem[]): void {
   if (typeof window === "undefined") return;
   try {
-    const payload: CartPersistedState = { version: 1, items };
+    const payload: CartPersistedState = { version: 2, items };
     window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(payload));
+    window.localStorage.removeItem(LEGACY_CART_STORAGE_KEY);
   } catch {
     /* quota / private mode — ignore */
   }
@@ -104,6 +155,7 @@ export function clearCartStorage(): void {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.removeItem(CART_STORAGE_KEY);
+    window.localStorage.removeItem(LEGACY_CART_STORAGE_KEY);
   } catch {
     /* ignore */
   }

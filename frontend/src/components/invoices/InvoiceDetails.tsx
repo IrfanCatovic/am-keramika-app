@@ -7,7 +7,7 @@ import { CancelInvoiceDialog } from '@/components/invoices/CancelInvoiceDialog';
 import { InvoiceDocumentActions } from '@/components/invoices/InvoiceDocumentActions';
 import { InvoiceStatusBadge } from '@/components/invoices/InvoiceStatusBadge';
 import { InlineError, ListSkeleton } from '@/components/ui/EmptyState';
-import { formatMoney } from '@/lib/format';
+import { formatMoney, formatQuantity } from '@/lib/format';
 import {
   cancelInvoice,
   fetchInvoice,
@@ -294,8 +294,15 @@ export function InvoiceDetailsView({ invoiceId }: { invoiceId: number }) {
                 <p className="break-words font-medium text-stone-900">
                   {item.productName}
                 </p>
+                {item.saleByPackage ? (
+                  <p className="mt-1 text-xs text-stone-500">
+                    Traženo: {formatQuantity(item.requestedQuantity)} {item.unit} ·{" "}
+                    {item.packageCount} paketa × {formatQuantity(item.packageQuantity)}{" "}
+                    {item.unit}
+                  </p>
+                ) : null}
                 <p className="mt-1 text-xs text-stone-500">
-                  {item.quantity}
+                  {formatQuantity(item.quantity)}
                   {item.unit ? ` ${item.unit}` : ''} ×{' '}
                   {formatMoney(item.unitPrice)}
                 </p>
