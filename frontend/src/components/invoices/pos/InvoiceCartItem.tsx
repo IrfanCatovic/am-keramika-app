@@ -130,7 +130,7 @@ export function InvoiceCartItem({
                   const next = Number(event.target.value);
                   onQuantityChange(next);
                 }}
-                aria-label={`Količina ${line.name}`}
+                aria-label={`${line.saleByPackage ? "Potrebna količina" : "Količina"} ${line.name}`}
                 className="h-9 w-16 border-x border-stone-200 bg-white text-center text-sm tabular-nums outline-none"
               />
               <button
