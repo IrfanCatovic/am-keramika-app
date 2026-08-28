@@ -4,7 +4,10 @@ import { StorefrontFooter } from "@/components/storefront/StorefrontFooter";
 import { StorefrontHeader } from "@/components/storefront/StorefrontHeader";
 import { StorefrontProviders } from "@/components/storefront/StorefrontProviders";
 import { companyConfig } from "@/config/company";
-import { safeFetchPublicCategories } from "@/lib/public-catalog-api";
+import {
+  PUBLIC_CATALOG_REVALIDATE_SECONDS,
+  safeFetchPublicCategories,
+} from "@/lib/public-catalog-api";
 
 import type { Metadata } from "next";
 
@@ -29,14 +32,14 @@ export const metadata: Metadata = {
     "Keramika, sanitarije, grijanje i oprema za vaš dom. Pregledajte asortiman AM Keramika.",
 };
 
-export const dynamic = "force-dynamic";
-
 export default async function StorefrontLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const categories = await safeFetchPublicCategories();
+  const categories = await safeFetchPublicCategories({
+    revalidate: PUBLIC_CATALOG_REVALIDATE_SECONDS,
+  });
 
   return (
     <div

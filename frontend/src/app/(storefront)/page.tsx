@@ -6,18 +6,22 @@ import {
   StorefrontHero,
 } from "@/components/storefront/StorefrontSections";
 import {
+  PUBLIC_CATALOG_REVALIDATE_SECONDS,
   safeFetchPublicCategories,
   safeFetchPublicProducts,
 } from "@/lib/public-catalog-api";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function StorefrontHomePage() {
+  const cacheOptions = {
+    revalidate: PUBLIC_CATALOG_REVALIDATE_SECONDS,
+  };
   const [categories, featured, onSale, picks] = await Promise.all([
-    safeFetchPublicCategories(),
-    safeFetchPublicProducts({ homepage: true, limit: 8 }),
-    safeFetchPublicProducts({ onSale: true, limit: 8 }),
-    safeFetchPublicProducts({ random: true, limit: 8 }),
+    safeFetchPublicCategories(cacheOptions),
+    safeFetchPublicProducts({ homepage: true, limit: 8 }, cacheOptions),
+    safeFetchPublicProducts({ onSale: true, limit: 8 }, cacheOptions),
+    safeFetchPublicProducts({ random: true, limit: 8 }, cacheOptions),
   ]);
 
   return (

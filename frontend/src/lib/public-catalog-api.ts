@@ -7,6 +7,11 @@ import type {
 } from "@/types/public-catalog";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ?? "";
+export const PUBLIC_CATALOG_REVALIDATE_SECONDS = 60;
+
+type PublicFetchOptions = {
+  revalidate?: number;
+};
 
 export class PublicCatalogError extends Error {
   status: number;
@@ -41,18 +46,27 @@ function buildQuery(params: PublicProductListParams = {}): string {
   return qs ? `?${qs}` : "";
 }
 
-async function publicFetch<T>(path: string): Promise<T> {
+async function publicFetch<T>(
+  path: string,
+  options: PublicFetchOptions = {},
+): Promise<T> {
   if (!API_URL) {
     throw new PublicCatalogError("Kataloški servis trenutno nije dostupan.", 503);
   }
 
   let response: Response;
   try {
-    response = await fetch(`${API_URL}${path}`, {
+    const fetchOptions: RequestInit & { next?: { revalidate?: number } } = {
       method: "GET",
       headers: { Accept: "application/json" },
-      cache: "no-store",
-    });
+    };
+    if (options.revalidate != null) {
+      fetchOptions.cache = "force-cache";
+      fetchOptions.next = { revalidate: options.revalidate };
+    } else {
+      fetchOptions.cache = "no-store";
+    }
+    response = await fetch(`${API_URL}${path}`, fetchOptions);
   } catch {
     throw new PublicCatalogError("Kataloški servis trenutno nije dostupan.", 503);
   }
@@ -75,9 +89,11 @@ async function publicFetch<T>(path: string): Promise<T> {
 
 export async function fetchPublicProducts(
   params: PublicProductListParams = {},
+  options: PublicFetchOptions = {},
 ): Promise<PaginatedPublicProducts> {
   return publicFetch<PaginatedPublicProducts>(
     `/public/products${buildQuery(params)}`,
+    options,
   );
 }
 
@@ -89,8 +105,10 @@ export async function fetchPublicProductBySlug(
   );
 }
 
-export async function fetchPublicCategories(): Promise<PublicCategory[]> {
-  return publicFetch<PublicCategory[]>("/public/categories");
+export async function fetchPublicCategories(
+  options: PublicFetchOptions = {},
+): Promise<PublicCategory[]> {
+  return publicFetch<PublicCategory[]>("/public/categories", options);
 }
 
 export async function fetchPublicCategoryBySlug(
@@ -121,17 +139,20 @@ export async function fetchPublicProductGroups(params?: {
 /** Safe helpers for Server Components — never throw during empty/offline states. */
 export async function safeFetchPublicProducts(
   params: PublicProductListParams = {},
+  options: PublicFetchOptions = {},
 ): Promise<PaginatedPublicProducts | null> {
   try {
-    return await fetchPublicProducts(params);
+    return await fetchPublicProducts(params, options);
   } catch {
     return null;
   }
 }
 
-export async function safeFetchPublicCategories(): Promise<PublicCategory[]> {
+export async function safeFetchPublicCategories(
+  options: PublicFetchOptions = {},
+): Promise<PublicCategory[]> {
   try {
-    return await fetchPublicCategories();
+    return await fetchPublicCategories(options);
   } catch {
     return [];
   }
