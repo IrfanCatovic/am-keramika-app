@@ -177,6 +177,18 @@ export function PaymentForm({
     );
   }, [allocations]);
 
+  const totalOpenBalance = useMemo(
+    () =>
+      roundMoney(
+        openInvoices.reduce(
+          (sum, open) =>
+            sum + (Number.isFinite(open.remainingAmount) ? open.remainingAmount : 0),
+          0,
+        ),
+      ),
+    [openInvoices],
+  );
+  const remainingAfterPayment = Math.max(0, totalOpenBalance - totalAmount);
   const unallocated = roundMoney(totalAmount - allocatedSum);
   const coveredCount = Object.values(allocations).filter((v) => v > 0).length;
 
@@ -452,6 +464,26 @@ export function PaymentForm({
               {customer ? (
                 <>
                   <section className="rounded-2xl border border-stone-200 bg-white p-4 sm:p-5">
+                    <div className="mb-4 grid grid-cols-1 gap-3 rounded-xl border border-[#e5d5c2] bg-[#faf7f3] p-3 text-sm sm:grid-cols-3">
+                      <div>
+                        <p className="text-xs text-stone-500">Ukupno za uplatu</p>
+                        <p className="mt-1 font-semibold tabular-nums text-stone-900">
+                          {formatMoney(totalOpenBalance)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-stone-500">Uplatio</p>
+                        <p className="mt-1 font-semibold tabular-nums text-stone-900">
+                          {formatMoney(totalAmount)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-stone-500">Preostalo</p>
+                        <p className="mt-1 font-semibold tabular-nums text-stone-900">
+                          {formatMoney(remainingAfterPayment)}
+                        </p>
+                      </div>
+                    </div>
                     <div className="flex flex-wrap items-end justify-between gap-3">
                       <label className="block min-w-0 flex-1 text-sm">
                         <span className="mb-1.5 block font-medium text-stone-700">
@@ -552,6 +584,9 @@ export function PaymentForm({
         <aside className="hidden lg:block">
           <PaymentSummaryPanel
             totalAmount={totalAmount}
+            invoiceMode={mode === "invoice"}
+            totalOpenBalance={totalOpenBalance}
+            remainingAfterPayment={remainingAfterPayment}
             allocatedSum={allocatedSum}
             unallocated={unallocated}
             coveredCount={coveredCount}
@@ -570,12 +605,21 @@ export function PaymentForm({
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-stone-200 bg-white/95 px-4 py-3 backdrop-blur lg:hidden">
         <div className="flex w-full items-center gap-3">
           <div className="min-w-0 flex-1 text-sm">
-            <p className="text-stone-500">
-              Primljeno {formatMoney(totalAmount)}
-            </p>
-            <p className="font-semibold tabular-nums text-stone-900">
-              Raspoređeno {formatMoney(allocatedSum)}
-            </p>
+            {mode === "invoice" ? (
+              <p className="font-semibold tabular-nums text-stone-900">
+                Iznos uplate {formatMoney(totalAmount)}
+              </p>
+            ) : (
+              <>
+                <p className="text-stone-500">
+                  Ukupno {formatMoney(totalOpenBalance)}
+                </p>
+                <p className="font-semibold tabular-nums text-stone-900">
+                  Uplatio {formatMoney(totalAmount)} · Preostalo{" "}
+                  {formatMoney(remainingAfterPayment)}
+                </p>
+              </>
+            )}
           </div>
           <button
             type="button"
@@ -606,6 +650,9 @@ export function PaymentForm({
 
 function PaymentSummaryPanel({
   totalAmount,
+  invoiceMode,
+  totalOpenBalance,
+  remainingAfterPayment,
   allocatedSum,
   unallocated,
   coveredCount,
@@ -619,6 +666,9 @@ function PaymentSummaryPanel({
   onRefresh,
 }: {
   totalAmount: number;
+  invoiceMode: boolean;
+  totalOpenBalance: number;
+  remainingAfterPayment: number;
   allocatedSum: number;
   unallocated: number;
   coveredCount: number;
@@ -638,34 +688,57 @@ function PaymentSummaryPanel({
         {customerName ?? "Kupac nije izabran"}
       </p>
       <dl className="mt-4 space-y-2 text-sm">
-        <div className="flex justify-between gap-3">
-          <dt className="text-stone-500">Primljeno</dt>
-          <dd className="font-medium tabular-nums text-stone-900">
-            {formatMoney(totalAmount)}
-          </dd>
-        </div>
-        <div className="flex justify-between gap-3">
-          <dt className="text-stone-500">Raspoređeno</dt>
-          <dd className="font-medium tabular-nums text-stone-900">
-            {formatMoney(allocatedSum)}
-          </dd>
-        </div>
-        <div className="flex justify-between gap-3">
-          <dt className="text-stone-500">Neraspoređeno</dt>
-          <dd
-            className={`font-medium tabular-nums ${
-              Math.abs(unallocated) > 0.009
-                ? "text-amber-800"
-                : "text-stone-900"
-            }`}
-          >
-            {formatMoney(unallocated)}
-          </dd>
-        </div>
-        <div className="flex justify-between gap-3 border-t border-stone-100 pt-2">
-          <dt className="text-stone-500">Računi</dt>
-          <dd className="font-medium text-stone-900">{coveredCount}</dd>
-        </div>
+        {invoiceMode ? (
+          <div className="flex justify-between gap-3">
+            <dt className="text-stone-500">Iznos uplate</dt>
+            <dd className="font-medium tabular-nums text-stone-900">
+              {formatMoney(totalAmount)}
+            </dd>
+          </div>
+        ) : (
+          <>
+            <div className="flex justify-between gap-3">
+              <dt className="text-stone-500">Ukupno za uplatu</dt>
+              <dd className="font-medium tabular-nums text-stone-900">
+                {formatMoney(totalOpenBalance)}
+              </dd>
+            </div>
+            <div className="flex justify-between gap-3">
+              <dt className="text-stone-500">Uplatio</dt>
+              <dd className="font-medium tabular-nums text-stone-900">
+                {formatMoney(totalAmount)}
+              </dd>
+            </div>
+            <div className="flex justify-between gap-3">
+              <dt className="text-stone-500">Preostalo</dt>
+              <dd className="font-medium tabular-nums text-stone-900">
+                {formatMoney(remainingAfterPayment)}
+              </dd>
+            </div>
+            <div className="flex justify-between gap-3 border-t border-stone-100 pt-2">
+              <dt className="text-stone-500">Raspoređeno</dt>
+              <dd className="font-medium tabular-nums text-stone-900">
+                {formatMoney(allocatedSum)}
+              </dd>
+            </div>
+            <div className="flex justify-between gap-3">
+              <dt className="text-stone-500">Neraspoređeno</dt>
+              <dd
+                className={`font-medium tabular-nums ${
+                  Math.abs(unallocated) > 0.009
+                    ? "text-amber-800"
+                    : "text-stone-900"
+                }`}
+              >
+                {formatMoney(unallocated)}
+              </dd>
+            </div>
+            <div className="flex justify-between gap-3 border-t border-stone-100 pt-2">
+              <dt className="text-stone-500">Računi</dt>
+              <dd className="font-medium text-stone-900">{coveredCount}</dd>
+            </div>
+          </>
+        )}
       </dl>
 
       {error ? (
