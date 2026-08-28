@@ -9,7 +9,7 @@ import {
   companyContactLines,
   companyIdLines,
 } from "@/config/company";
-import { formatMoney, formatQuantity } from "@/lib/format";
+import { formatMoney, formatQuantity, formatUnit } from "@/lib/format";
 import { invoiceCustomerLabel } from "@/lib/invoices-api";
 import { userDisplayName } from "@/lib/user-display";
 import { InvoiceDetails } from "@/types/invoice";
@@ -157,10 +157,10 @@ export function InvoicePrintDocument({
                   {item.saleByPackage ? (
                     <span className="block text-[10px] font-normal text-stone-600">
                       {item.packageCount} paketa × {formatQuantity(item.packageQuantity)}{" "}
-                      {item.unit}
+                      {formatUnit(item.unit)}
                       <span className="block">
                         Tražena količina: {formatQuantity(item.requestedQuantity)}{" "}
-                        {item.unit}
+                        {formatUnit(item.unit)}
                       </span>
                     </span>
                   ) : null}
@@ -168,7 +168,9 @@ export function InvoicePrintDocument({
                 <td className="py-2 pr-2 text-right tabular-nums">
                   {formatQuantity(item.quantity)}
                 </td>
-                <td className="py-2 pr-2 text-stone-700">{item.unit || "—"}</td>
+                <td className="py-2 pr-2 text-stone-700">
+                  {formatUnit(item.unit) || "—"}
+                </td>
                 <td className="py-2 pr-2 text-right tabular-nums">
                   {formatMoney(item.unitPrice)}
                 </td>

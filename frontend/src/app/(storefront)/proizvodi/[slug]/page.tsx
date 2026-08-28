@@ -10,7 +10,7 @@ import {
   PublicProductPrice,
 } from "@/components/storefront/PublicPrice";
 import { StorefrontBreadcrumb } from "@/components/storefront/StorefrontSections";
-import { formatMoney } from "@/lib/format";
+import { formatMoney, formatUnit } from "@/lib/format";
 import {
   fetchPublicProductBySlug,
   safeFetchPublicProducts,
@@ -162,14 +162,16 @@ export default async function ProductDetailPage({
           {product.saleByPackage && product.packageQuantity && product.packagePrice ? (
             <div className="mt-4 rounded-xl border border-stone-200/90 bg-[#faf8f5] p-3.5 text-sm">
               <p className="font-medium text-stone-800">
-                Pakovanje: {product.packageQuantity} {product.unit}
+                Pakovanje: {product.packageQuantity} {formatUnit(product.unit)}
               </p>
               <p className="mt-0.5 text-base font-semibold text-stone-900">
                 {formatMoney(product.packagePrice)} / paket
               </p>
             </div>
           ) : product.unit ? (
-            <p className="mt-3 text-sm text-stone-500">Jedinica: {product.unit}</p>
+            <p className="mt-3 text-sm text-stone-500">
+              Jedinica: {formatUnit(product.unit)}
+            </p>
           ) : null}
 
           {product.description ? (

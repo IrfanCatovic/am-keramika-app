@@ -6,7 +6,7 @@ import { CartQuantityControl } from "@/components/storefront/cart/CartQuantityCo
 import { useCart } from "@/components/storefront/cart/CartProvider";
 import { PublicProductPrice } from "@/components/storefront/PublicPrice";
 import { useAvailabilityCheck } from "@/hooks/useAvailabilityCheck";
-import { formatMoney, formatQuantity } from "@/lib/format";
+import { formatMoney, formatQuantity, formatUnit } from "@/lib/format";
 import { getActualProductQuantity } from "@/lib/product-pricing";
 import type { CartItem as CartItemType } from "@/types/cart";
 
@@ -80,7 +80,9 @@ export function CartItemRow({
           {item.name}
         </Link>
         {item.unit ? (
-          <p className="mt-1 text-sm text-stone-500">Jedinica: {item.unit}</p>
+          <p className="mt-1 text-sm text-stone-500">
+            Jedinica: {formatUnit(item.unit)}
+          </p>
         ) : null}
 
         <div className="mt-3">
@@ -107,14 +109,14 @@ export function CartItemRow({
 
         {item.saleByPackage ? (
           <div className="mt-2 space-y-0.5 text-sm text-stone-600">
-            <p>Potrebno: {formatQuantity(item.quantity)} {item.unit}</p>
+            <p>Potrebno: {formatQuantity(item.quantity)} {formatUnit(item.unit)}</p>
             <p>
-              Pakovanje: {formatQuantity(item.packageQuantity)} {item.unit}
+              Pakovanje: {formatQuantity(item.packageQuantity)} {formatUnit(item.unit)}
             </p>
             <p>Broj paketa: {quantityDetails.packageCount}</p>
             <p>
               Količina za obračun: {formatQuantity(quantityDetails.actualQuantity)}{" "}
-              {item.unit}
+              {formatUnit(item.unit)}
             </p>
           </div>
         ) : null}
@@ -127,7 +129,7 @@ export function CartItemRow({
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <CartQuantityControl
             value={item.quantity}
-            unit={item.unit}
+            unit={formatUnit(item.unit)}
             disabled={unavailable || checking}
             onChange={(next) => {
               void applyQuantity(next);

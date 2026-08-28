@@ -1,6 +1,6 @@
 "use client";
 
-import { formatMoney, formatQuantity } from "@/lib/format";
+import { formatMoney, formatQuantity, formatUnit } from "@/lib/format";
 import {
   calculatePackagePrice,
   getActualProductQuantity,
@@ -74,18 +74,18 @@ export function InvoiceCartItem({
                 {line.name}
               </p>
               <p className="mt-0.5 text-[11px] text-stone-500">
-                {formatMoney(line.salePrice)} / {line.unit}
+                {formatMoney(line.salePrice)} / {formatUnit(line.unit)}
               </p>
               {line.saleByPackage && line.packageQuantity ? (
                 <div className="mt-1 text-xs text-stone-600">
-                  <p>Potrebno: {formatQuantity(line.quantity)} {line.unit}</p>
+                  <p>Potrebno: {formatQuantity(line.quantity)} {formatUnit(line.unit)}</p>
                   <p>
                     {quantityDetails.packageCount} paketa ×{" "}
-                    {formatQuantity(line.packageQuantity)} {line.unit}
+                    {formatQuantity(line.packageQuantity)} {formatUnit(line.unit)}
                   </p>
-                  <p>Obračun: {formatQuantity(quantityDetails.actualQuantity)} {line.unit}</p>
+              <p>Obračun: {formatQuantity(quantityDetails.actualQuantity)} {formatUnit(line.unit)}</p>
                   <p>
-                    {formatMoney(line.salePrice)} / {line.unit} ·{" "}
+                {formatMoney(line.salePrice)} / {formatUnit(line.unit)} ·{" "}
                     {formatMoney(
                       calculatePackagePrice(line.salePrice, line.packageQuantity),
                     )} / paket
@@ -149,7 +149,7 @@ export function InvoiceCartItem({
           </div>
 
           <p className="mt-1 text-[11px] text-stone-400">
-            Max {formatQuantity(line.stockQuantity)} {line.unit}
+            Max {formatQuantity(line.stockQuantity)} {formatUnit(line.unit)}
           </p>
 
           {error ? (

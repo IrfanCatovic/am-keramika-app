@@ -1,7 +1,7 @@
 "use client";
 
 import { InventoryProductThumb } from "@/components/inventory/InventoryProductThumb";
-import { formatQuantity } from "@/lib/format";
+import { formatQuantity, formatUnit } from "@/lib/format";
 import {
   getStockStatus,
   stockStatusClassName,
@@ -61,7 +61,7 @@ export function InventoryStockList({
                         <p className="truncate font-medium text-stone-900">
                           {product.name}
                         </p>
-                        <p className="text-xs text-stone-500">{product.unit}</p>
+                        <p className="text-xs text-stone-500">{formatUnit(product.unit)}</p>
                       </div>
                     </div>
                   </td>
@@ -72,10 +72,10 @@ export function InventoryStockList({
                     <span className="text-base font-semibold tabular-nums text-stone-900">
                       {formatQuantity(Math.max(0, product.stockQuantity))}
                     </span>
-                    <span className="ml-1 text-stone-500">{product.unit}</span>
+                    <span className="ml-1 text-stone-500">{formatUnit(product.unit)}</span>
                   </td>
                   <td className="px-4 py-3 tabular-nums text-stone-700">
-                    {formatQuantity(product.minStockQuantity)} {product.unit}
+                    {formatQuantity(product.minStockQuantity)} {formatUnit(product.unit)}
                   </td>
                   <td className="px-4 py-3">
                     <span
@@ -128,13 +128,13 @@ export function InventoryStockList({
                   <p className="text-xs text-stone-500">Stanje</p>
                   <p className="mt-1 text-lg font-semibold tabular-nums text-stone-900">
                     {formatQuantity(Math.max(0, product.stockQuantity))}{" "}
-                    {product.unit}
+                    {formatUnit(product.unit)}
                   </p>
                 </div>
                 <div>
                   <p className="text-xs text-stone-500">Minimum</p>
                   <p className="mt-1 font-medium tabular-nums text-stone-800">
-                    {formatQuantity(product.minStockQuantity)} {product.unit}
+                    {formatQuantity(product.minStockQuantity)} {formatUnit(product.unit)}
                   </p>
                 </div>
               </div>

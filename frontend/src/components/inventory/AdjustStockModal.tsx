@@ -7,7 +7,7 @@ import {
   adjustInventoryStock,
   getApiBusinessMessage,
 } from "@/lib/inventory-api";
-import { formatQuantity } from "@/lib/format";
+import { formatQuantity, formatUnit } from "@/lib/format";
 import { InventoryProductRow } from "@/types/inventory";
 
 function parseQuantityInput(value: string): number | null {
@@ -88,7 +88,7 @@ function AdjustStockForm({
         <p className="text-stone-600">
           Trenutno stanje:{" "}
           <span className="font-semibold text-stone-900">
-            {formatQuantity(product.stockQuantity)} {product.unit}
+            {formatQuantity(product.stockQuantity)} {formatUnit(product.unit)}
           </span>
         </p>
       </div>
@@ -109,7 +109,9 @@ function AdjustStockForm({
             onChange={(event) => setActualInput(event.target.value)}
             className="min-w-0 flex-1 rounded-xl border border-stone-200 px-3 py-2.5 text-sm outline-none ring-[#c4a484]/40 focus:ring-2 disabled:opacity-60"
           />
-          <span className="shrink-0 text-sm text-stone-500">{product.unit}</span>
+          <span className="shrink-0 text-sm text-stone-500">
+            {formatUnit(product.unit)}
+          </span>
         </div>
       </div>
 
@@ -118,13 +120,13 @@ function AdjustStockForm({
           <p>
             Trenutno:{" "}
             <span className="font-medium tabular-nums">
-              {formatQuantity(preview.current)} {product.unit}
+              {formatQuantity(preview.current)} {formatUnit(product.unit)}
             </span>
           </p>
           <p className="mt-1">
             Novo stanje:{" "}
             <span className="font-medium tabular-nums">
-              {formatQuantity(preview.next)} {product.unit}
+              {formatQuantity(preview.next)} {formatUnit(product.unit)}
             </span>
           </p>
           <p className="mt-1">
@@ -139,7 +141,7 @@ function AdjustStockForm({
               }`}
             >
               {preview.change != null && preview.change > 0 ? "+" : ""}
-              {formatQuantity(preview.change ?? 0)} {product.unit}
+              {formatQuantity(preview.change ?? 0)} {formatUnit(product.unit)}
             </span>
           </p>
         </div>

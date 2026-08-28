@@ -1,7 +1,7 @@
 "use client";
 
 import { ProductSalePrice } from "@/components/products/ProductSalePrice";
-import { formatQuantity } from "@/lib/format";
+import { formatQuantity, formatUnit } from "@/lib/format";
 import { Product } from "@/types/product";
 
 function productImageUrl(product: Product): string | null {
@@ -59,7 +59,7 @@ export function PosProductResultRow({
         <p className="mt-0.5 truncate text-xs text-stone-500">
           {product.category?.name ?? "—"}
           {product.group?.name ? ` · ${product.group.name}` : ""}
-          {` · ${product.unit}`}
+          {` · ${formatUnit(product.unit)}`}
         </p>
       </div>
       <div className="shrink-0 text-right">

@@ -308,14 +308,6 @@ export function InventoryWorkspace() {
             Pregled stanja, korekcije i istorije kretanja.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => openAdjust()}
-          disabled={tab !== "stock"}
-          className="inline-flex min-h-11 items-center rounded-xl bg-stone-900 px-4 text-sm font-semibold text-white hover:bg-stone-800 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          Korekcija lagera
-        </button>
       </div>
 
       {summary ? (

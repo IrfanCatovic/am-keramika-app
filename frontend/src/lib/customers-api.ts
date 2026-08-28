@@ -42,9 +42,10 @@ export async function fetchCustomers(
 export async function searchActiveCustomers(
   search: string,
   limit = 20,
+  page = 1,
 ): Promise<PaginatedCustomers> {
   return fetchCustomers({
-    page: 1,
+    page,
     limit,
     search,
     includeInactive: false,

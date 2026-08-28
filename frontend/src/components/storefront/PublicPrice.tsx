@@ -1,4 +1,4 @@
-import { formatMoney } from "@/lib/format";
+import { formatMoney, formatUnit } from "@/lib/format";
 
 export function PublicAvailability({
   inStock,
@@ -55,7 +55,7 @@ export function PublicProductPrice({
   const strikeClass =
     size === "lg" ? "text-sm" : size === "sm" ? "text-xs" : "text-sm";
   const unitSuffix =
-    showUnit && product.unit ? ` / ${product.unit}` : "";
+    showUnit && product.unit ? ` / ${formatUnit(product.unit)}` : "";
 
   return (
     <div>

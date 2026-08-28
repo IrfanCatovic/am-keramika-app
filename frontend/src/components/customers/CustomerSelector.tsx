@@ -21,7 +21,7 @@ export function CustomerSelector({
   label?: string;
 }) {
   const [query, setQuery] = useState(value?.name ?? "");
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const displayQuery = value ? value.name : query;
   const { results, loading, error } = useCustomerSearch(
     value ? value.name : query,
@@ -55,7 +55,7 @@ export function CustomerSelector({
       ) : null}
       {error ? <p className="mt-1 text-xs text-red-600">{error}</p> : null}
       {open && !disabled ? (
-        <ul className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-xl border border-stone-200 bg-white py-1 shadow-lg">
+        <ul className="absolute z-20 mt-1 max-h-[268px] w-full overflow-auto rounded-xl border border-stone-200 bg-white py-1 shadow-lg">
           {loading ? (
             <li className="px-3 py-2 text-sm text-stone-500">Pretraga...</li>
           ) : null}
@@ -66,7 +66,7 @@ export function CustomerSelector({
             <li key={customer.id}>
               <button
                 type="button"
-                className="flex w-full flex-col items-start px-3 py-2 text-left text-sm hover:bg-stone-50"
+                className="flex h-[52px] w-full flex-col items-start justify-center px-3 text-left text-sm hover:bg-stone-50"
                 onClick={() => {
                   onChange(customer);
                   setQuery(customer.name);

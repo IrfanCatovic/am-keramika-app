@@ -10,7 +10,7 @@ import {
   StatusBadge,
 } from "@/components/ui/EmptyState";
 import { ProductSalePrice } from "@/components/products/ProductSalePrice";
-import { formatMoney, formatQuantity } from "@/lib/format";
+import { formatMoney, formatQuantity, formatUnit } from "@/lib/format";
 import { Product, ProductPagination } from "@/types/product";
 
 function PricingModeBadge({ mode }: { mode: string }) {
@@ -81,12 +81,12 @@ function ProductCard({
           <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-sm text-stone-600">
             <ProductSalePrice product={product} />
             <span>
-              {formatQuantity(product.stockQuantity)} {product.unit}
+              {formatQuantity(product.stockQuantity)} {formatUnit(product.unit)}
             </span>
             <PricingModeBadge mode={product.pricingMode} />
             {product.saleByPackage && product.packagePrice ? (
               <span className="text-xs text-[#8a6a45]">
-                Paket: {product.packageQuantity} {product.unit} · {formatMoney(product.packagePrice)}
+                Paket: {product.packageQuantity} {formatUnit(product.unit)} · {formatMoney(product.packagePrice)}
               </span>
             ) : null}
           </div>
@@ -236,13 +236,13 @@ export function ProductList({
                         {product.group?.name ?? "—"}
                       </td>
                       <td className="border-b border-stone-50 px-3 py-3 text-stone-600">
-                        {product.unit}
+                        {formatUnit(product.unit)}
                       </td>
                       <td className="border-b border-stone-50 px-3 py-3">
                         <ProductSalePrice product={product} />
                         {product.saleByPackage && product.packagePrice ? (
                           <div className="mt-0.5 text-xs text-stone-500">
-                            Paket: {product.packageQuantity} {product.unit} · {formatMoney(product.packagePrice)}
+                            Paket: {product.packageQuantity} {formatUnit(product.unit)} · {formatMoney(product.packagePrice)}
                           </div>
                         ) : null}
                       </td>

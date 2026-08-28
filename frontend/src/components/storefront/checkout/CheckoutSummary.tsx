@@ -3,7 +3,7 @@
 import Link from "next/link";
 
 import { PublicProductPrice } from "@/components/storefront/PublicPrice";
-import { formatMoney, formatQuantity } from "@/lib/format";
+import { formatMoney, formatQuantity, formatUnit } from "@/lib/format";
 import { getActualProductQuantity } from "@/lib/product-pricing";
 import type { CartItem } from "@/types/cart";
 
@@ -49,14 +49,14 @@ export function CheckoutSummary({
               </p>
               <p className="mt-1 text-xs text-stone-500">
                 {item.saleByPackage
-                  ? `Potrebno: ${formatQuantity(item.quantity)} ${item.unit}`
-                  : `${formatQuantity(item.quantity)}${item.unit ? ` ${item.unit}` : ""}`}
+                  ? `Potrebno: ${formatQuantity(item.quantity)} ${formatUnit(item.unit)}`
+                  : `${formatQuantity(item.quantity)}${formatUnit(item.unit) ? ` ${formatUnit(item.unit)}` : ""}`}
               </p>
               {item.saleByPackage ? (
                 <p className="mt-0.5 text-xs text-stone-500">
                   {item.packageCount} paketa ×{" "}
-                  {formatQuantity(item.packageQuantity)} {item.unit} · za obračun{" "}
-                  {formatQuantity(item.actualQuantity)} {item.unit}
+                  {formatQuantity(item.packageQuantity)} {formatUnit(item.unit)} · za obračun{" "}
+                  {formatQuantity(item.actualQuantity)} {formatUnit(item.unit)}
                 </p>
               ) : null}
               <div className="mt-1.5 flex flex-wrap items-baseline justify-between gap-2">

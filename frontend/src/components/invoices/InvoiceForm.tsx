@@ -30,7 +30,7 @@ import { PosProductResults } from "@/components/invoices/pos/PosProductResults";
 import { PosQuickProducts } from "@/components/invoices/pos/PosQuickProducts";
 import { fetchCategories, fetchProductGroups } from "@/lib/categories-api";
 import { fetchCustomer } from "@/lib/customers-api";
-import { formatMoney } from "@/lib/format";
+import { formatMoney, formatUnit } from "@/lib/format";
 import {
   createInvoice,
   getApiBusinessMessage,
@@ -481,7 +481,7 @@ export function InvoiceForm({
         nextErrors[line.productID] = "Proizvod nema validno podešeno pakovanje.";
       } else if (details.actualQuantity > line.stockQuantity) {
         nextErrors[line.productID] =
-          `Nema dovoljno robe na stanju za ${details.actualQuantity} ${line.unit}.`;
+          `Nema dovoljno robe na stanju za ${details.actualQuantity} ${formatUnit(line.unit)}.`;
       }
     }
     setLineErrors(nextErrors);

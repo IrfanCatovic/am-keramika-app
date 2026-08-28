@@ -5,6 +5,7 @@ import {
   movementTypeLabel,
   signedMovementQuantity,
 } from "@/lib/inventory-status";
+import { formatUnit } from "@/lib/format";
 import { userDisplayName } from "@/lib/user-display";
 import { InventoryMovement } from "@/types/inventory";
 
@@ -72,7 +73,7 @@ export function InventoryHistoryList({
                     <span
                       className={`font-semibold tabular-nums ${movementChangeClass(signed)}`}
                     >
-                      {formatSignedQuantity(signed)} {movement.productUnit}
+                      {formatSignedQuantity(signed)} {formatUnit(movement.productUnit)}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-stone-700">
@@ -109,7 +110,7 @@ export function InventoryHistoryList({
                 <span
                   className={`shrink-0 text-sm font-semibold tabular-nums ${movementChangeClass(signed)}`}
                 >
-                  {formatSignedQuantity(signed)} {movement.productUnit}
+                  {formatSignedQuantity(signed)} {formatUnit(movement.productUnit)}
                 </span>
               </div>
               <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm">

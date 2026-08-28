@@ -29,7 +29,7 @@ import {
   getEffectiveSalePrice,
   previewCalculatedSalePrice,
 } from "@/lib/product-pricing";
-import { formatMoney } from "@/lib/format";
+import { formatMoney, formatUnit } from "@/lib/format";
 import {
   createProduct,
   deleteProductImage,
@@ -95,7 +95,7 @@ function emptyForm(): FormState {
     description: "",
     categoryID: "",
     groupID: "",
-    unit: "kom",
+    unit: "kv",
     stockQuantity: "0",
     minStockQuantity: "0",
     isActive: true,
@@ -892,7 +892,7 @@ export function ProductForm({
               onChange={(event) => patchForm({ unit: event.target.value })}
               disabled={saving}
               className="w-full rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm text-stone-900 outline-none ring-[#c4a484]/40 transition focus:ring-2 disabled:opacity-60"
-              placeholder="kom, m2, kut..."
+              placeholder="kv, kom, kut..."
             />
           </div>
 
@@ -1179,11 +1179,11 @@ export function ProductForm({
                     className="w-full rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm text-stone-900 outline-none ring-[#c4a484]/40 transition focus:ring-2 disabled:opacity-60"
                   />
                   <span className="shrink-0 text-sm font-medium text-stone-500">
-                    {form.unit || "jedinica"}
+                    {formatUnit(form.unit) || "jedinica"}
                   </span>
                 </div>
                 <p className="mt-1.5 text-xs text-stone-500">
-                  Unesite koliko {form.unit ? `${form.unit}, komada ili druge osnovne jedinice` : "osnovne jedinice"} sadrži jedno pakovanje.
+                  Unesite koliko {formatUnit(form.unit) ? `${formatUnit(form.unit)}, komada ili druge osnovne jedinice` : "osnovne jedinice"} sadrži jedno pakovanje.
                 </p>
               </div>
 
@@ -1204,7 +1204,7 @@ export function ProductForm({
                     <div>
                       <dt className="text-xs text-stone-500">Pakovanje</dt>
                       <dd className="tabular-nums font-medium text-stone-900">
-                        {packagePreview.packageQuantity} {form.unit}
+                        {packagePreview.packageQuantity} {formatUnit(form.unit)}
                       </dd>
                     </div>
                     <div>

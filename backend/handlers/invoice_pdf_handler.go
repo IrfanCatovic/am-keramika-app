@@ -72,7 +72,7 @@ func GetInvoicePDF(c *gin.Context) {
 		doc.Items = append(doc.Items, invoicepdf.Item{
 			ProductName:       item.ProductName,
 			Quantity:          item.Quantity,
-			Unit:              item.Unit,
+			Unit:              config.FormatBusinessUnit(item.Unit),
 			UnitPrice:         item.UnitPrice,
 			TotalPrice:        item.TotalPrice,
 			SaleByPackage:     item.SaleByPackage,

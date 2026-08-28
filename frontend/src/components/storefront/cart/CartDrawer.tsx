@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect } from "react";
 
 import { useCart } from "@/components/storefront/cart/CartProvider";
-import { formatMoney, formatQuantity } from "@/lib/format";
+import { formatMoney, formatQuantity, formatUnit } from "@/lib/format";
 import { getActualProductQuantity } from "@/lib/product-pricing";
 
 export function CartDrawer() {
@@ -137,12 +137,12 @@ export function CartDrawer() {
                     </div>
                     <p className="mt-1 text-xs text-stone-500">
                       {formatQuantity(item.quantity)}
-                      {item.unit ? ` ${item.unit}` : ""}
+                      {formatUnit(item.unit) ? ` ${formatUnit(item.unit)}` : ""}
                     </p>
                     {item.saleByPackage ? (
                       <p className="mt-0.5 text-xs text-stone-500">
                         {item.packageCount} paketa · obračun{" "}
-                        {formatQuantity(item.actualQuantity)} {item.unit}
+                        {formatQuantity(item.actualQuantity)} {formatUnit(item.unit)}
                       </p>
                     ) : null}
                     <p className="mt-1 text-sm tabular-nums text-stone-800">

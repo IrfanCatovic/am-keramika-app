@@ -5,7 +5,7 @@ import { useId, useState } from "react";
 import { CartQuantityControl } from "@/components/storefront/cart/CartQuantityControl";
 import { useCart } from "@/components/storefront/cart/CartProvider";
 import { useAvailabilityCheck } from "@/hooks/useAvailabilityCheck";
-import { formatMoney, formatQuantity } from "@/lib/format";
+import { formatMoney, formatQuantity, formatUnit } from "@/lib/format";
 import { getActualProductQuantity } from "@/lib/product-pricing";
 import type { PublicProduct } from "@/types/public-catalog";
 
@@ -99,7 +99,7 @@ export function AddToCart({ product }: { product: AddToCartProduct }) {
         <CartQuantityControl
           id={qtyId}
           value={quantity}
-          unit={product.unit}
+          unit={formatUnit(product.unit)}
           disabled={disabled || busy}
           onChange={(next) => {
             void handleQuantityChange(next);
@@ -118,15 +118,15 @@ export function AddToCart({ product }: { product: AddToCartProduct }) {
       {product.saleByPackage && product.packageQuantity ? (
         <div className="mt-4 space-y-1 text-sm text-stone-600">
           <p>
-            Potrebno: {formatQuantity(quantity)} {product.unit}
+            Potrebno: {formatQuantity(quantity)} {formatUnit(product.unit)}
           </p>
           <p>
             {quantityDetails.packageCount} paketa ×{" "}
-            {formatQuantity(product.packageQuantity)} {product.unit}
+            {formatQuantity(product.packageQuantity)} {formatUnit(product.unit)}
           </p>
           <p>
             Za obračun: {formatQuantity(quantityDetails.actualQuantity)}{" "}
-            {product.unit}
+            {formatUnit(product.unit)}
           </p>
           <p className="font-medium text-stone-800">
             Ukupno:{" "}

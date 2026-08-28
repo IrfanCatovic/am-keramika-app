@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ListSkeleton } from "@/components/ui/EmptyState";
 import { ProductSalePrice } from "@/components/products/ProductSalePrice";
 import { fetchCategories, fetchProductGroups } from "@/lib/categories-api";
+import { formatUnit } from "@/lib/format";
 import { fetchProducts, getApiBusinessMessage } from "@/lib/products-api";
 import { Category } from "@/types/category";
 import { Product } from "@/types/product";
@@ -276,7 +277,7 @@ export function ProductSelector({
                             .filter(Boolean)
                             .join(" · ") || "Bez grupe"}
                           {" · "}
-                          {product.unit}
+                          {formatUnit(product.unit)}
                         </p>
                         <p className="mt-1 text-sm text-stone-700">
                           <ProductSalePrice product={product} /> · Stanje{" "}

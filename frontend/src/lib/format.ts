@@ -37,6 +37,32 @@ export function formatQuantity(value: number): string {
   return quantityFormat.format(amount);
 }
 
+export function formatUnit(value: string | null | undefined): string {
+  const unit = value?.trim() ?? "";
+  const normalized = unit.toLowerCase().replace(/\s+/g, "");
+
+  if (
+    normalized === "m2" ||
+    normalized === "m²" ||
+    normalized === "m^2" ||
+    normalized === "kv" ||
+    normalized === "kvadrat" ||
+    normalized === "kvadrata"
+  ) {
+    return "kv";
+  }
+  if (
+    normalized === "kom" ||
+    normalized === "komad" ||
+    normalized === "komada" ||
+    normalized === "pcs" ||
+    normalized === "piece"
+  ) {
+    return "kom";
+  }
+  return unit;
+}
+
 export function formatCount(value: number): string {
   return rsdNumberFormatInteger.format(Number.isFinite(value) ? value : 0);
 }

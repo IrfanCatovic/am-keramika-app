@@ -8,7 +8,7 @@ import { CustomerSelector } from "@/components/customers/CustomerSelector";
 import { InvoiceDocumentActions } from "@/components/invoices/InvoiceDocumentActions";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { InlineError, ListSkeleton } from "@/components/ui/EmptyState";
-import { formatMoney, formatQuantity } from "@/lib/format";
+import { formatMoney, formatQuantity, formatUnit } from "@/lib/format";
 import {
   confirmOnlineOrder,
   deleteOnlineOrder,
@@ -314,13 +314,13 @@ export function OrderDetailWorkspace({ orderId }: { orderId: number }) {
                 {item.saleByPackage ? (
                   <p className="mt-1 text-xs text-stone-500">
                     Kupac tražio: {formatQuantity(item.requestedQuantity)}{" "}
-                    {item.unit} · Pakovanje:{" "}
-                    {formatQuantity(item.packageQuantity)} {item.unit} ·{" "}
+                    {formatUnit(item.unit)} · Pakovanje:{" "}
+                    {formatQuantity(item.packageQuantity)} {formatUnit(item.unit)} ·{" "}
                     {item.packageCount} paketa
                   </p>
                 ) : null}
                 <p className="mt-1 text-sm text-stone-600">
-                  {formatQuantity(item.quantity)} {item.unit} ·{" "}
+                  {formatQuantity(item.quantity)} {formatUnit(item.unit)} ·{" "}
                   {formatMoney(item.unitPrice)}
                 </p>
                 <p className="mt-1 font-medium tabular-nums text-stone-900">
@@ -364,9 +364,9 @@ export function OrderDetailWorkspace({ orderId }: { orderId: number }) {
                       {item.saleByPackage ? (
                         <p className="mt-1 text-xs text-stone-500">
                           Traženo: {formatQuantity(item.requestedQuantity)}{" "}
-                          {item.unit} · {item.packageCount} paketa ×{" "}
-                          {formatQuantity(item.packageQuantity)} {item.unit} ·{" "}
-                          Obračun: {formatQuantity(item.quantity)} {item.unit}
+                          {formatUnit(item.unit)} · {item.packageCount} paketa ×{" "}
+                          {formatQuantity(item.packageQuantity)} {formatUnit(item.unit)} ·{" "}
+                          Obračun: {formatQuantity(item.quantity)} {formatUnit(item.unit)}
                         </p>
                       ) : null}
                       {warning ? (
@@ -376,7 +376,7 @@ export function OrderDetailWorkspace({ orderId }: { orderId: number }) {
                       ) : null}
                     </td>
                     <td className="px-4 py-3 align-top text-right tabular-nums text-stone-700">
-                      {formatQuantity(item.quantity)} {item.unit}
+                      {formatQuantity(item.quantity)} {formatUnit(item.unit)}
                     </td>
                     <td className="px-4 py-3 align-top text-right tabular-nums text-stone-700">
                       {formatMoney(item.unitPrice)}

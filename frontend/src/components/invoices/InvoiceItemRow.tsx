@@ -1,6 +1,6 @@
 "use client";
 
-import { formatMoney } from "@/lib/format";
+import { formatMoney, formatUnit } from "@/lib/format";
 import { InvoiceFormLine } from "@/types/invoice";
 
 export function InvoiceItemRow({
@@ -46,7 +46,7 @@ export function InvoiceItemRow({
                 {line.name}
               </p>
               <p className="mt-0.5 text-xs text-stone-500">
-                {formatMoney(line.salePrice)} / {line.unit} · Dostupno{" "}
+                {formatMoney(line.salePrice)} / {formatUnit(line.unit)} · Dostupno{" "}
                 {line.stockQuantity}
               </p>
             </div>
@@ -62,7 +62,7 @@ export function InvoiceItemRow({
           <div className="mt-3 flex flex-wrap items-end gap-3">
             <div>
               <label className="mb-1 block text-xs font-medium text-stone-600">
-                Količina ({line.unit})
+                Količina ({formatUnit(line.unit)})
               </label>
               <input
                 type="number"

@@ -26,11 +26,27 @@ export function useCustomerSearch(query: string, enabled = true) {
     const timer = window.setTimeout(() => {
       void (async () => {
         try {
-          const response = await searchActiveCustomers(trimmed, 20);
+          const pageSize = 50;
+          const firstPage = await searchActiveCustomers(trimmed, pageSize, 1);
+          const customers = [...(firstPage.data ?? [])];
+          const totalPages = Math.max(1, firstPage.total_pages ?? 1);
+
+          for (let page = 2; page <= totalPages; page += 1) {
+            if (cancelled) {
+              return;
+            }
+            const response = await searchActiveCustomers(
+              trimmed,
+              pageSize,
+              page,
+            );
+            customers.push(...(response.data ?? []));
+          }
+
           if (cancelled) {
             return;
           }
-          setResults((response.data ?? []).filter((item) => item.isActive));
+          setResults(customers.filter((item) => item.isActive));
           setError(null);
         } catch (err) {
           if (cancelled) {
