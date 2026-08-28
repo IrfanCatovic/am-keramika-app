@@ -553,21 +553,16 @@ export function ProductForm({
   }
 
   function resetForNext() {
-    setForm((prev) => ({
-      ...emptyForm(),
-      categoryID: prev.categoryID,
-      groupID: prev.groupID,
-      unit: prev.unit,
-      pricing: {
-        ...emptyPricing,
-        vatPercent: prev.pricing.vatPercent,
-      },
-    }));
+    setForm(emptyForm());
+    setGroups([]);
+    setProduct(null);
+    setExistingImages([]);
     for (const item of pendingImages) {
       URL.revokeObjectURL(item.previewUrl);
     }
     setPendingImages([]);
     setFormError(null);
+    setUploadWarning(null);
   }
 
   async function submitForm(intent: "save" | "save-and-next") {
