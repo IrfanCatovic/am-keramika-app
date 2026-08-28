@@ -40,7 +40,7 @@ func TestMapInvoiceResponseWithCustomer(t *testing.T) {
 	if resp.PaidAmount != 40 || resp.RemainingAmount != 60 {
 		t.Fatalf("expected paid 40 remaining 60, got paid=%v remaining=%v", resp.PaidAmount, resp.RemainingAmount)
 	}
-	if resp.CreatedAt != "2026-08-06 10:30" {
+	if resp.CreatedAt != "2026-08-06 12:30" {
 		t.Fatalf("unexpected createdAt: %q", resp.CreatedAt)
 	}
 	if resp.CustomerID == nil || *resp.CustomerID != 3 {

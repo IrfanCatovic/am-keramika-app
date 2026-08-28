@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"am-keramika-backend/config"
 	"am-keramika-backend/dto"
 	"am-keramika-backend/models"
 	"am-keramika-backend/repositories"
@@ -124,7 +125,7 @@ func GetCustomerByID(c *gin.Context) {
 			ID:          invoice.ID,
 			TotalAmount: invoice.TotalAmount,
 			Status:      string(invoice.Status),
-			CreatedAt:   invoice.CreatedAt.Format("2006-01-02 15:04"),
+			CreatedAt:   config.FormatBusinessDateTime(invoice.CreatedAt),
 		})
 	}
 	c.JSON(http.StatusOK, response)

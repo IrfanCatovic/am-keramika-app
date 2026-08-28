@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"am-keramika-backend/config"
 	"am-keramika-backend/dto"
 	"am-keramika-backend/models"
 )
@@ -13,7 +14,7 @@ func mapInvoiceResponse(invoice models.Invoice) dto.InvoiceResponse {
 		PaidAmount:      invoice.PaidAmount,
 		RemainingAmount: invoice.TotalAmount - invoice.PaidAmount,
 		Status:          string(invoice.Status),
-		CreatedAt:       invoice.CreatedAt.Format("2006-01-02 15:04"),
+		CreatedAt:       config.FormatBusinessDateTime(invoice.CreatedAt),
 		Items:           make([]dto.InvoiceItemResponse, 0, len(invoice.Items)),
 	}
 
@@ -64,7 +65,7 @@ func mapInvoiceListResponse(invoice models.Invoice) dto.InvoiceListResponse {
 		PaidAmount:      invoice.PaidAmount,
 		RemainingAmount: invoice.TotalAmount - invoice.PaidAmount,
 		Status:          string(invoice.Status),
-		CreatedAt:       invoice.CreatedAt.Format("2006-01-02 15:04"),
+		CreatedAt:       config.FormatBusinessDateTime(invoice.CreatedAt),
 	}
 
 	if invoice.Customer != nil {

@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"am-keramika-backend/config"
 	"am-keramika-backend/dto"
 	"am-keramika-backend/models"
 	"am-keramika-backend/repositories"
@@ -20,7 +21,7 @@ func mapCategoryResponse(category models.Category) dto.CategoryResponse {
 		Name:      category.Name,
 		Slug:      category.Slug,
 		IsActive:  category.IsActive,
-		CreatedAt: category.CreatedAt.Format("2006-01-02 15:04"),
+		CreatedAt: config.FormatBusinessDateTime(category.CreatedAt),
 	}
 }
 

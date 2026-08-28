@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"am-keramika-backend/auth"
+	"am-keramika-backend/config"
 	"am-keramika-backend/dto"
 	"am-keramika-backend/models"
 	"am-keramika-backend/repositories"
@@ -21,7 +22,7 @@ func buildPaymentResponse(payment models.Payment) dto.PaymentResponse {
 		CustomerID:      payment.CustomerID,
 		CreatedByUserID: payment.CreatedByUserID,
 		TotalAmount:     payment.TotalAmount,
-		CreatedAt:       payment.CreatedAt.Format("2006-01-02 15:04"),
+		CreatedAt:       config.FormatBusinessDateTime(payment.CreatedAt),
 		Allocations:     []dto.PaymentAllocationResponse{},
 	}
 

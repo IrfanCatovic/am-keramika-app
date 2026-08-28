@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"am-keramika-backend/config"
 	"am-keramika-backend/database"
 	"am-keramika-backend/models"
 	"errors"
@@ -24,21 +25,21 @@ type AdjustStockResult struct {
 }
 
 const (
-	DefaultLowStockPage       = 1
-	DefaultLowStockLimit      = 20
-	MaxLowStockLimit          = 100
-	DefaultMovementListPage   = 1
-	DefaultMovementListLimit  = 20
-	MaxMovementListLimit      = 100
+	DefaultLowStockPage      = 1
+	DefaultLowStockLimit     = 20
+	MaxLowStockLimit         = 100
+	DefaultMovementListPage  = 1
+	DefaultMovementListLimit = 20
+	MaxMovementListLimit     = 100
 )
 
 type LowStockQuery struct {
-	Page               int
-	Limit              int
-	Search             string
-	CategoryID         string
-	GroupID            string
-	ExcludeOutOfStock  bool
+	Page              int
+	Limit             int
+	Search            string
+	CategoryID        string
+	GroupID           string
+	ExcludeOutOfStock bool
 }
 
 type MovementListQuery struct {
@@ -126,12 +127,12 @@ func buildMovementListQuery(q MovementListQuery) *gorm.DB {
 		query = query.Where("inventory_movements.movement_type = ?", movementType)
 	}
 	if q.FromDate != "" {
-		if parsed, err := time.Parse("2006-01-02", q.FromDate); err == nil {
+		if parsed, err := time.ParseInLocation("2006-01-02", q.FromDate, config.BusinessLocation()); err == nil {
 			query = query.Where("inventory_movements.created_at >= ?", parsed)
 		}
 	}
 	if q.ToDate != "" {
-		if parsed, err := time.Parse("2006-01-02", q.ToDate); err == nil {
+		if parsed, err := time.ParseInLocation("2006-01-02", q.ToDate, config.BusinessLocation()); err == nil {
 			end := parsed.Add(24 * time.Hour)
 			query = query.Where("inventory_movements.created_at < ?", end)
 		}

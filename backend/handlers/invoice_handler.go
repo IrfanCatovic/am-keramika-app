@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"am-keramika-backend/auth"
+	"am-keramika-backend/config"
 	"am-keramika-backend/dto"
 	"am-keramika-backend/models"
 	"am-keramika-backend/pricing"
@@ -230,7 +231,7 @@ func GetCustomerOpenInvoices(c *gin.Context) {
 			PaidAmount:      invoice.PaidAmount,
 			RemainingAmount: remainingAmount,
 			Status:          string(invoice.Status),
-			CreatedAt:       invoice.CreatedAt.Format("2006-01-02 15:04"),
+			CreatedAt:       config.FormatBusinessDateTime(invoice.CreatedAt),
 		})
 	}
 	c.JSON(http.StatusOK, gin.H{

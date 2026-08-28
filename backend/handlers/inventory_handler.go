@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"am-keramika-backend/auth"
+	"am-keramika-backend/config"
 	"am-keramika-backend/dto"
 	"am-keramika-backend/models"
 	"am-keramika-backend/repositories"
@@ -69,7 +70,7 @@ func mapInventoryMovementResponse(movement models.InventoryMovement) dto.Invento
 		MovementType: movement.MovementType,
 		Quantity:     movement.Quantity,
 		Note:         movement.Note,
-		CreatedAt:    movement.CreatedAt.Format("2006-01-02 15:04"),
+		CreatedAt:    config.FormatBusinessDateTime(movement.CreatedAt),
 	}
 
 	if movement.CreatedByUser.ID != 0 {
@@ -207,7 +208,7 @@ func GetInventorySummary(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"lowStockCount":  lowCount,
+		"lowStockCount":   lowCount,
 		"outOfStockCount": outCount,
 	})
 }

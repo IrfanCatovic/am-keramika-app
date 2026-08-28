@@ -120,6 +120,7 @@ export function formatOrderDateTime(iso: string): string {
     return iso;
   }
   return date.toLocaleString("sr-RS", {
+    timeZone: "Europe/Belgrade",
     day: "2-digit",
     month: "2-digit",
     year: "numeric",

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"am-keramika-backend/auth"
+	"am-keramika-backend/config"
 	"am-keramika-backend/database"
 	"am-keramika-backend/dto"
 	"am-keramika-backend/mailer"
@@ -133,7 +134,7 @@ func GetOnlineOrders(c *gin.Context) {
 
 	var fromDate, toDate *time.Time
 	if v := strings.TrimSpace(c.Query("fromDate")); v != "" {
-		t, err := time.ParseInLocation("2006-01-02", v, time.Local)
+		t, err := time.ParseInLocation("2006-01-02", v, config.BusinessLocation())
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"message": "fromDate mora biti u formatu YYYY-MM-DD"})
 			return
@@ -141,7 +142,7 @@ func GetOnlineOrders(c *gin.Context) {
 		fromDate = &t
 	}
 	if v := strings.TrimSpace(c.Query("toDate")); v != "" {
-		t, err := time.ParseInLocation("2006-01-02", v, time.Local)
+		t, err := time.ParseInLocation("2006-01-02", v, config.BusinessLocation())
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"message": "toDate mora biti u formatu YYYY-MM-DD"})
 			return

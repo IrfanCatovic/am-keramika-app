@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"am-keramika-backend/auth"
+	"am-keramika-backend/config"
 	"am-keramika-backend/dto"
 	"am-keramika-backend/models"
 	"am-keramika-backend/repositories"
@@ -21,7 +22,7 @@ func mapRefundResponse(refund models.Refund) dto.RefundResponse {
 		InvoiceID: refund.InvoiceID,
 		Amount:    refund.Amount,
 		Reason:    refund.Reason,
-		CreatedAt: refund.CreatedAt.Format("2006-01-02 15:04"),
+		CreatedAt: config.FormatBusinessDateTime(refund.CreatedAt),
 	}
 	if refund.CreatedByUser.ID != 0 {
 		response.CreatedByUser = mapUserSummary(refund.CreatedByUser)
@@ -36,7 +37,7 @@ func mapInvoiceCancellationResponse(cancellation models.InvoiceCancellation) dto
 		Reason:            cancellation.Reason,
 		DebtReducedAmount: cancellation.DebtReducedAmount,
 		RefundedAmount:    cancellation.RefundedAmount,
-		CreatedAt:         cancellation.CreatedAt.Format("2006-01-02 15:04"),
+		CreatedAt:         config.FormatBusinessDateTime(cancellation.CreatedAt),
 	}
 	if cancellation.CreatedByUser.ID != 0 {
 		response.CreatedByUser = mapUserSummary(cancellation.CreatedByUser)
@@ -50,7 +51,7 @@ func mapRefundListItem(refund models.Refund) dto.RefundListItemResponse {
 		InvoiceID: refund.InvoiceID,
 		Amount:    refund.Amount,
 		Reason:    refund.Reason,
-		CreatedAt: refund.CreatedAt.Format("2006-01-02 15:04"),
+		CreatedAt: config.FormatBusinessDateTime(refund.CreatedAt),
 	}
 	if refund.CreatedByUser.ID != 0 {
 		item.CreatedByUser = mapUserSummary(refund.CreatedByUser)

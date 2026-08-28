@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"am-keramika-backend/config"
 	"am-keramika-backend/database"
 	"am-keramika-backend/dto"
 	"am-keramika-backend/models"
@@ -532,7 +533,7 @@ func CancelInvoice(id uint, req dto.CancelInvoiceRequest, createdByUserID uint) 
 			InvoiceID: refund.InvoiceID,
 			Amount:    refund.Amount,
 			Reason:    refund.Reason,
-			CreatedAt: refund.CreatedAt.Format("2006-01-02 15:04"),
+			CreatedAt: config.FormatBusinessDateTime(refund.CreatedAt),
 			CreatedByUser: &dto.UserSummaryResponse{
 				ID:       refund.CreatedByUser.ID,
 				Username: refund.CreatedByUser.Username,
