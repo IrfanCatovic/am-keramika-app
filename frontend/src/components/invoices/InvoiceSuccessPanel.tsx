@@ -83,6 +83,12 @@ export function InvoiceSuccessPanel({
               {newSaleLabel}
             </button>
           ) : null}
+          <Link
+            href="/invoices"
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-stone-200 bg-white px-4 text-sm font-medium text-stone-700 hover:bg-stone-50"
+          >
+            Zatvori
+          </Link>
         </div>
       </div>
     </div>
