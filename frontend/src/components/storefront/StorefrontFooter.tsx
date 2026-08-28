@@ -77,6 +77,7 @@ export function StorefrontFooter({
               <li key={category.id}>
                 <Link
                   href={`/kategorije/${category.slug}`}
+                  prefetch={false}
                   className="transition hover:text-white"
                 >
                   {category.name}

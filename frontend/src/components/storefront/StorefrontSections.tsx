@@ -95,6 +95,7 @@ export function CategoryShowcase({
             <Link
               key={category.id}
               href={`/kategorije/${category.slug}`}
+              prefetch={false}
               className="group relative overflow-hidden rounded-xl border border-stone-300/70 bg-white px-6 py-7 transition duration-300 hover:-translate-y-0.5 hover:border-stone-400 hover:shadow-[0_18px_40px_rgba(28,25,23,0.07)] sm:py-8"
             >
               <div

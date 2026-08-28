@@ -49,6 +49,7 @@ export function CartItemRow({
     >
       <Link
         href={`/proizvodi/${item.slug}`}
+        prefetch={false}
         className="relative aspect-square overflow-hidden rounded-xl border border-stone-200 bg-white"
       >
         {item.imageUrl ? (
@@ -73,6 +74,7 @@ export function CartItemRow({
         ) : null}
         <Link
           href={`/proizvodi/${item.slug}`}
+          prefetch={false}
           className="mt-1 block font-medium text-stone-900 transition hover:text-[#5c4630]"
         >
           {item.name}

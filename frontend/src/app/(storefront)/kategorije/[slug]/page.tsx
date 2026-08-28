@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 import type { Metadata } from "next";
 
 import {
@@ -30,6 +31,8 @@ function first(value: string | string[] | undefined): string {
   return value ?? "";
 }
 
+const getCategory = cache((slug: string) => fetchPublicCategoryBySlug(slug));
+
 export async function generateMetadata({
   params,
 }: {
@@ -37,7 +40,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   try {
-    const category = await fetchPublicCategoryBySlug(slug);
+    const category = await getCategory(slug);
     return {
       title: category.name,
       description: `Proizvodi iz kategorije ${category.name} — AM Keramika.`,
@@ -63,9 +66,24 @@ export default async function CategoryPage({
   const sort = (first(sp.sort) || "recommended") as PublicProductSort;
   const page = Math.max(1, Number(first(sp.page)) || 1);
 
+  const categoryPromise = getCategory(slug);
+  const groupsPromise = fetchPublicProductGroups({ categorySlug: slug }).catch(
+    () => [],
+  );
+  const productsPromise = safeFetchPublicProducts({
+    page,
+    limit: 20,
+    categorySlug: slug,
+    groupSlug: group || undefined,
+    search: search || undefined,
+    onSale: onSale || undefined,
+    inStock: inStock || undefined,
+    sort,
+  });
+
   let category;
   try {
-    category = await fetchPublicCategoryBySlug(slug);
+    category = await categoryPromise;
   } catch (err) {
     if (err instanceof PublicCatalogError && err.status === 404) {
       notFound();
@@ -86,19 +104,7 @@ export default async function CategoryPage({
     );
   }
 
-  const [groups, result] = await Promise.all([
-    fetchPublicProductGroups({ categorySlug: slug }).catch(() => []),
-    safeFetchPublicProducts({
-      page,
-      limit: 20,
-      categorySlug: slug,
-      groupSlug: group || undefined,
-      search: search || undefined,
-      onSale: onSale || undefined,
-      inStock: inStock || undefined,
-      sort,
-    }),
-  ]);
+  const [groups, result] = await Promise.all([groupsPromise, productsPromise]);
 
   const products = result?.products ?? [];
   const basePath = `/kategorije/${slug}`;
@@ -133,6 +139,7 @@ export default async function CategoryPage({
         <div className="mb-8 flex gap-2 overflow-x-auto pb-1">
           <Link
             href={basePath}
+              prefetch={false}
             className={`shrink-0 rounded-full border px-4 py-2 text-sm transition ${
               !group
                 ? "border-stone-900 bg-stone-900 text-white"
@@ -145,6 +152,7 @@ export default async function CategoryPage({
             <Link
               key={item.id}
               href={`${basePath}?group=${encodeURIComponent(item.slug)}`}
+              prefetch={false}
               className={`shrink-0 rounded-full border px-4 py-2 text-sm transition ${
                 group === item.slug
                   ? "border-stone-900 bg-stone-900 text-white"

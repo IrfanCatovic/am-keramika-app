@@ -36,6 +36,7 @@ export function PublicProductCard({ product }: { product: PublicProduct }) {
   return (
     <Link
       href={`/proizvodi/${product.slug}`}
+      prefetch={false}
       className="group flex h-full flex-col overflow-hidden rounded-xl border border-stone-200/90 bg-white transition duration-300 hover:-translate-y-0.5 hover:border-stone-300 hover:shadow-[0_14px_34px_rgba(28,25,23,0.07)]"
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-[#f7f5f2]">

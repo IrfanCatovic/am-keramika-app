@@ -188,6 +188,7 @@ export function StorefrontHeader({
                     <Link
                       key={category.id}
                       href={href}
+                      prefetch={false}
                       onClick={closeMenus}
                       className={`rounded-xl px-3 py-2.5 text-[15px] font-medium transition ${
                         active
@@ -275,6 +276,7 @@ export function StorefrontHeader({
                     <Link
                       key={category.id}
                       href={`/kategorije/${category.slug}`}
+                      prefetch={false}
                       onClick={closeMenus}
                       className="block rounded-lg px-3 py-2.5 text-sm text-stone-700 transition hover:bg-white hover:text-stone-900"
                     >
