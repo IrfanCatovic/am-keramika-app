@@ -69,8 +69,8 @@ export const PRODUCT_UNIT_OPTIONS: Array<{
   value: ProductUnit;
   label: string;
 }> = [
-  { value: "m²", label: "m² — metar kvadratni" },
-  { value: "kom", label: "kom — komad" },
+  { value: "m²", label: "m²" },
+  { value: "kom", label: "kom" },
 ];
 
 export function normalizeProductUnit(

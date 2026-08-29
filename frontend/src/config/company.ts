@@ -50,7 +50,7 @@ export function companyContactLines(
   config: CompanyConfig = companyConfig
 ): string[] {
   const lines: string[] = [];
-  if (config.phone) lines.push(`Tel: ${config.phone}`);
+  if (config.phone) lines.push(`Telefon: ${config.phone}`);
   if (config.email) lines.push(config.email);
   if (config.website) lines.push(config.website);
   return lines;
@@ -61,7 +61,9 @@ export function companyIdLines(
 ): string[] {
   const lines: string[] = [];
   if (config.taxId) lines.push(`PIB: ${config.taxId}`);
-  if (config.registrationNumber) lines.push(`MB: ${config.registrationNumber}`);
+  if (config.registrationNumber) {
+    lines.push(`Matični broj: ${config.registrationNumber}`);
+  }
   if (config.bankAccount) {
     lines.push(`Tekući račun: ${config.bankAccount}`);
     if (config.bankName) lines.push(`Banka: ${config.bankName}`);

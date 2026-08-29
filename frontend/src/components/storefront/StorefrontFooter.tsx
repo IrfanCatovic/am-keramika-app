@@ -46,9 +46,7 @@ export function StorefrontFooter({
           <div className="mt-5 space-y-1 text-sm text-stone-400">
             <p className="font-medium text-stone-300">{companyConfig.name}</p>
             <div className="mt-2 space-y-1">
-              {address.map((line) => (
-                <p key={line}>{line}</p>
-              ))}
+              {address.length > 0 ? <p>{address.join(", ")}</p> : null}
               {contact.map((line) => (
                 <p key={line}>{line}</p>
               ))}
@@ -113,7 +111,6 @@ export function StorefrontFooter({
 
       <div className="relative border-t border-white/10 px-4 py-4 text-center text-xs text-stone-500 sm:px-6 lg:px-8">
         <p>© {year} {companyConfig.name}</p>
-        <p className="mt-1.5 text-stone-600">Developer: Irfan Ćatović</p>
       </div>
     </footer>
   );
