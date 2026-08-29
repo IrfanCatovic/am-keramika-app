@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"am-keramika-backend/auth"
+	"am-keramika-backend/config"
 	"am-keramika-backend/dto"
 	"am-keramika-backend/models"
 	"am-keramika-backend/pricing"
@@ -155,6 +156,11 @@ func CreateProduct(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Neispravni podaci", "error": err.Error()})
 		return
 	}
+	unit := config.NormalizeProductUnit(req.Unit)
+	if err := config.ValidateProductUnit(unit); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"message": err.Error(), "error": err.Error()})
+		return
+	}
 
 	if rejectWorkerSensitiveProductFields(c, req.PurchasePrice, req.MarginPercent, req.VatPercent) {
 		return
@@ -212,7 +218,7 @@ func CreateProduct(c *gin.Context) {
 		Slug:             slug,
 		CategoryID:       req.CategoryID,
 		GroupID:          req.GroupID,
-		Unit:             req.Unit,
+		Unit:             unit,
 		StockQuantity:    req.StockQuantity,
 		MinStockQuantity: req.MinStockQuantity,
 		Description:      req.Description,
@@ -394,6 +400,11 @@ func UpdateProduct(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Neispravni podaci", "error": err.Error()})
 		return
 	}
+	unit := config.NormalizeProductUnit(req.Unit)
+	if err := config.ValidateProductUnit(unit); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"message": err.Error(), "error": err.Error()})
+		return
+	}
 
 	if rejectWorkerSensitiveProductFields(c, req.PurchasePrice, req.MarginPercent, req.VatPercent) {
 		return
@@ -452,7 +463,7 @@ func UpdateProduct(c *gin.Context) {
 	product.Name = req.Name
 	product.Slug = slug
 	product.CategoryID = req.CategoryID
-	product.Unit = req.Unit
+	product.Unit = unit
 	product.StockQuantity = req.StockQuantity
 	product.MinStockQuantity = req.MinStockQuantity
 	product.Description = req.Description

@@ -27,7 +27,7 @@ export function PublicAvailability({
 export function PublicProductPrice({
   product,
   size = "md",
-  showUnit = false,
+  showUnit = true,
   hidePackageLine = false,
 }: {
   product: {

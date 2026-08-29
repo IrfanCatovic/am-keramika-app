@@ -1,4 +1,4 @@
-import { formatMoney } from "@/lib/format";
+import { formatMoney, formatUnit } from "@/lib/format";
 import { resolveProductUnitPrice } from "@/lib/product-pricing";
 
 type ProductPriceFields = {
@@ -6,6 +6,7 @@ type ProductPriceFields = {
   effectiveSalePrice?: number;
   isOnSale?: boolean;
   discountPercent?: number;
+  unit?: string;
 };
 
 export function ProductSalePrice({
@@ -17,11 +18,13 @@ export function ProductSalePrice({
 }) {
   const effective = resolveProductUnitPrice(product);
   const onSale = Boolean(product.isOnSale) && (product.discountPercent ?? 0) > 0;
+  const unitSuffix = product.unit ? ` / ${formatUnit(product.unit)}` : "";
 
   if (!onSale) {
     return (
       <span className={`tabular-nums font-medium text-stone-900 ${className}`}>
         {formatMoney(effective)}
+        {unitSuffix}
       </span>
     );
   }
@@ -33,10 +36,12 @@ export function ProductSalePrice({
       {effective !== product.salePrice ? (
         <span className="tabular-nums text-stone-400 line-through">
           {formatMoney(product.salePrice)}
+          {unitSuffix}
         </span>
       ) : null}
       <span className="tabular-nums font-semibold text-stone-900">
         {formatMoney(effective)}
+          {unitSuffix}
       </span>
       <span className="rounded bg-rose-50 px-1.5 py-0.5 text-xs font-medium text-rose-700">
         -{discount}%

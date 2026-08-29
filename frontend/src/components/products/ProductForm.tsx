@@ -29,7 +29,13 @@ import {
   getEffectiveSalePrice,
   previewCalculatedSalePrice,
 } from "@/lib/product-pricing";
-import { formatMoney, formatUnit } from "@/lib/format";
+import {
+  formatMoney,
+  formatUnit,
+  normalizeProductUnit,
+  PRODUCT_UNIT_OPTIONS,
+  ProductUnit,
+} from "@/lib/format";
 import {
   createProduct,
   deleteProductImage,
@@ -70,7 +76,7 @@ type FormState = {
   description: string;
   categoryID: string;
   groupID: string;
-  unit: string;
+  unit: ProductUnit;
   stockQuantity: string;
   minStockQuantity: string;
   isActive: boolean;
@@ -95,7 +101,7 @@ function emptyForm(): FormState {
     description: "",
     categoryID: "",
     groupID: "",
-    unit: "kv",
+    unit: "m²",
     stockQuantity: "0",
     minStockQuantity: "0",
     isActive: true,
@@ -114,7 +120,7 @@ function formFromProduct(product: Product): FormState {
     description: product.description ?? "",
     categoryID: String(product.categoryID),
     groupID: product.groupID ? String(product.groupID) : "",
-    unit: product.unit,
+    unit: normalizeProductUnit(product.unit),
     stockQuantity: String(product.stockQuantity),
     minStockQuantity: String(product.minStockQuantity),
     isActive: product.isActive,
@@ -386,9 +392,6 @@ export function ProductForm({
     }
     if (!form.categoryID) {
       return "Kategorija je obavezna.";
-    }
-    if (!form.unit.trim()) {
-      return "Jedinica mjere je obavezna.";
     }
     const stock = parseOptionalNumber(form.stockQuantity);
     const minStock = parseOptionalNumber(form.minStockQuantity);
@@ -886,14 +889,21 @@ export function ProductForm({
             >
               Jedinica *
             </label>
-            <input
+            <select
               id="product-unit"
               value={form.unit}
-              onChange={(event) => patchForm({ unit: event.target.value })}
+              onChange={(event) =>
+                patchForm({ unit: event.target.value as ProductUnit })
+              }
               disabled={saving}
               className="w-full rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm text-stone-900 outline-none ring-[#c4a484]/40 transition focus:ring-2 disabled:opacity-60"
-              placeholder="kv, kom, kut..."
-            />
+            >
+              {PRODUCT_UNIT_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>

@@ -150,7 +150,6 @@ export default async function ProductDetailPage({
             <PublicProductPrice
               product={product}
               size="lg"
-              showUnit={Boolean(product.saleByPackage)}
               hidePackageLine={Boolean(product.saleByPackage)}
             />
             <PublicAvailability

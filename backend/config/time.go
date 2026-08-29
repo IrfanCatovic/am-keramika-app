@@ -1,7 +1,6 @@
 package config
 
 import (
-	"strings"
 	"time"
 
 	_ "time/tzdata"
@@ -30,15 +29,5 @@ func BusinessLocation() *time.Location {
 }
 
 func FormatBusinessUnit(value string) string {
-	unit := strings.TrimSpace(value)
-	normalized := strings.ToLower(strings.Join(strings.Fields(unit), ""))
-
-	switch normalized {
-	case "m2", "m²", "m^2", "kv", "kvadrat", "kvadrata":
-		return "kv"
-	case "kom", "komad", "komada", "pcs", "piece":
-		return "kom"
-	default:
-		return unit
-	}
+	return NormalizeProductUnit(value)
 }

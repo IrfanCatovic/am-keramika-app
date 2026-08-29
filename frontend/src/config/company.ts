@@ -17,13 +17,18 @@ export const STOREFRONT_HERO_SRC = '/logo-stampa-racuni/Amslika.webp';
 export const STOREFRONT_SALON_SRC = '/logo-stampa-racuni/slika1.webp';
 
 export const companyConfig = {
-  name: env('NEXT_PUBLIC_COMPANY_NAME') || 'AM Keramika',
-  address: env('NEXT_PUBLIC_COMPANY_ADDRESS'),
-  city: env('NEXT_PUBLIC_COMPANY_CITY'),
-  phone: env('NEXT_PUBLIC_COMPANY_PHONE'),
+  name: env('NEXT_PUBLIC_COMPANY_NAME') || 'AM HADŽIĆ KERAMIKA DOO TUTIN',
+  address:
+    env('NEXT_PUBLIC_COMPANY_ADDRESS') || 'Treće sandžačke brigade 1',
+  city: env('NEXT_PUBLIC_COMPANY_CITY') || 'Tutin',
+  postalCode: env('NEXT_PUBLIC_COMPANY_POSTAL_CODE') || '36320',
+  country: env('NEXT_PUBLIC_COMPANY_COUNTRY') || 'Srbija',
+  phone: env('NEXT_PUBLIC_COMPANY_PHONE') || '063 652 222',
   email: env('NEXT_PUBLIC_COMPANY_EMAIL'),
-  taxId: env('NEXT_PUBLIC_COMPANY_TAX_ID'),
-  registrationNumber: env('NEXT_PUBLIC_COMPANY_REGISTRATION_NUMBER'),
+  taxId: env('NEXT_PUBLIC_COMPANY_TAX_ID') || '113560128',
+  registrationNumber:
+    env('NEXT_PUBLIC_COMPANY_REGISTRATION_NUMBER') || '21890162',
+  bankName: env('NEXT_PUBLIC_COMPANY_BANK_NAME'),
   bankAccount: env('NEXT_PUBLIC_COMPANY_BANK_ACCOUNT'),
   website: env('NEXT_PUBLIC_COMPANY_WEBSITE'),
 } as const;
@@ -35,7 +40,9 @@ export function companyAddressLines(
 ): string[] {
   const lines: string[] = [];
   if (config.address) lines.push(config.address);
-  if (config.city) lines.push(config.city);
+  const locality = [config.postalCode, config.city].filter(Boolean).join(' ');
+  const location = [locality, config.country].filter(Boolean).join(', ');
+  if (location) lines.push(location);
   return lines;
 }
 
@@ -55,6 +62,9 @@ export function companyIdLines(
   const lines: string[] = [];
   if (config.taxId) lines.push(`PIB: ${config.taxId}`);
   if (config.registrationNumber) lines.push(`MB: ${config.registrationNumber}`);
-  if (config.bankAccount) lines.push(`Žiro račun: ${config.bankAccount}`);
+  if (config.bankAccount) {
+    lines.push(`Tekući račun: ${config.bankAccount}`);
+    if (config.bankName) lines.push(`Banka: ${config.bankName}`);
+  }
   return lines;
 }

@@ -10,10 +10,13 @@ type CompanyConfig struct {
 	Name               string
 	Address            string
 	City               string
+	PostalCode         string
+	Country            string
 	Phone              string
 	Email              string
 	TaxID              string
 	RegistrationNumber string
+	BankName           string
 	BankAccount        string
 	Website            string
 }
@@ -26,17 +29,27 @@ func envTrim(key string) string {
 func LoadCompanyConfig() CompanyConfig {
 	name := envTrim("COMPANY_NAME")
 	if name == "" {
-		name = "AM Keramika"
+		name = "AM HADŽIĆ KERAMIKA DOO TUTIN"
 	}
 	return CompanyConfig{
 		Name:               name,
-		Address:            envTrim("COMPANY_ADDRESS"),
-		City:               envTrim("COMPANY_CITY"),
-		Phone:              envTrim("COMPANY_PHONE"),
+		Address:            withDefault("COMPANY_ADDRESS", "Treće sandžačke brigade 1"),
+		City:               withDefault("COMPANY_CITY", "Tutin"),
+		PostalCode:         withDefault("COMPANY_POSTAL_CODE", "36320"),
+		Country:            withDefault("COMPANY_COUNTRY", "Srbija"),
+		Phone:              withDefault("COMPANY_PHONE", "063 652 222"),
 		Email:              envTrim("COMPANY_EMAIL"),
-		TaxID:              envTrim("COMPANY_TAX_ID"),
-		RegistrationNumber: envTrim("COMPANY_REGISTRATION_NUMBER"),
+		TaxID:              withDefault("COMPANY_TAX_ID", "113560128"),
+		RegistrationNumber: withDefault("COMPANY_REGISTRATION_NUMBER", "21890162"),
+		BankName:           envTrim("COMPANY_BANK_NAME"),
 		BankAccount:        envTrim("COMPANY_BANK_ACCOUNT"),
 		Website:            envTrim("COMPANY_WEBSITE"),
 	}
+}
+
+func withDefault(key string, fallback string) string {
+	if value := envTrim(key); value != "" {
+		return value
+	}
+	return fallback
 }

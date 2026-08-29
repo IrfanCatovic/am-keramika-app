@@ -49,7 +49,7 @@ export function formatUnit(value: string | null | undefined): string {
     normalized === "kvadrat" ||
     normalized === "kvadrata"
   ) {
-    return "kv";
+    return "m²";
   }
   if (
     normalized === "kom" ||
@@ -61,6 +61,22 @@ export function formatUnit(value: string | null | undefined): string {
     return "kom";
   }
   return unit;
+}
+
+export type ProductUnit = "m²" | "kom";
+
+export const PRODUCT_UNIT_OPTIONS: Array<{
+  value: ProductUnit;
+  label: string;
+}> = [
+  { value: "m²", label: "m² — metar kvadratni" },
+  { value: "kom", label: "kom — komad" },
+];
+
+export function normalizeProductUnit(
+  value: string | null | undefined,
+): ProductUnit {
+  return formatUnit(value) === "kom" ? "kom" : "m²";
 }
 
 export function formatCount(value: number): string {

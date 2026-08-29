@@ -22,10 +22,13 @@ type Company struct {
 	Name               string
 	Address            string
 	City               string
+	PostalCode         string
+	Country            string
 	Phone              string
 	Email              string
 	TaxID              string
 	RegistrationNumber string
+	BankName           string
 	BankAccount        string
 	Website            string
 }
@@ -64,6 +67,23 @@ func (c Company) displayName() string {
 		return "AM Keramika"
 	}
 	return strings.TrimSpace(c.Name)
+}
+
+func (c Company) locationLine() string {
+	locality := strings.TrimSpace(
+		strings.Join(
+			[]string{strings.TrimSpace(c.PostalCode), strings.TrimSpace(c.City)},
+			" ",
+		),
+	)
+	parts := make([]string, 0, 2)
+	if locality != "" {
+		parts = append(parts, locality)
+	}
+	if country := strings.TrimSpace(c.Country); country != "" {
+		parts = append(parts, country)
+	}
+	return strings.Join(parts, ", ")
 }
 
 func statusLabel(status string) string {
@@ -193,7 +213,7 @@ func drawHeader(pdf *fpdf.Fpdf, doc Document) {
 	pdf.SetFont("dejavu", "", 8)
 	pdf.SetTextColor(80, 80, 80)
 	writeOptionalLine(pdf, textX, company.Address)
-	writeOptionalLine(pdf, textX, company.City)
+	writeOptionalLine(pdf, textX, company.locationLine())
 	if phone := strings.TrimSpace(company.Phone); phone != "" {
 		writeOptionalLine(pdf, textX, "Tel: "+phone)
 	}
@@ -206,7 +226,10 @@ func drawHeader(pdf *fpdf.Fpdf, doc Document) {
 		writeOptionalLine(pdf, textX, "MB: "+mb)
 	}
 	if bank := strings.TrimSpace(company.BankAccount); bank != "" {
-		writeOptionalLine(pdf, textX, "Žiro račun: "+bank)
+		writeOptionalLine(pdf, textX, "Tekući račun: "+bank)
+		if bankName := strings.TrimSpace(company.BankName); bankName != "" {
+			writeOptionalLine(pdf, textX, "Banka: "+bankName)
+		}
 	}
 	pdf.SetTextColor(0, 0, 0)
 

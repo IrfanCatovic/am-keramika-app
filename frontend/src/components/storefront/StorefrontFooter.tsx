@@ -6,6 +6,7 @@ import {
   companyAddressLines,
   companyConfig,
   companyContactLines,
+  companyIdLines,
 } from "@/config/company";
 import type { PublicCategory } from "@/types/public-catalog";
 
@@ -16,6 +17,7 @@ export function StorefrontFooter({
 }) {
   const address = companyAddressLines();
   const contact = companyContactLines();
+  const legal = companyIdLines();
   const year = new Date().getFullYear();
 
   return (
@@ -41,8 +43,9 @@ export function StorefrontFooter({
           <p className="mt-5 max-w-sm text-sm leading-relaxed text-stone-400">
             Keramika, sanitarije, grijanje i oprema za vaš dom.
           </p>
-          {(address.length > 0 || contact.length > 0) && (
-            <div className="mt-5 space-y-1 text-sm text-stone-400">
+          <div className="mt-5 space-y-1 text-sm text-stone-400">
+            <p className="font-medium text-stone-300">{companyConfig.name}</p>
+            <div className="mt-2 space-y-1">
               {address.map((line) => (
                 <p key={line}>{line}</p>
               ))}
@@ -50,7 +53,14 @@ export function StorefrontFooter({
                 <p key={line}>{line}</p>
               ))}
             </div>
-          )}
+            {legal.length > 0 && (
+              <div className="mt-3 space-y-1 text-xs text-stone-500">
+                {legal.map((line) => (
+                  <p key={line}>{line}</p>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <div>
