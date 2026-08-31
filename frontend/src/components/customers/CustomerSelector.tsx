@@ -21,7 +21,7 @@ export function CustomerSelector({
   label?: string;
 }) {
   const [query, setQuery] = useState(value?.name ?? "");
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const displayQuery = value ? value.name : query;
   const { results, loading, error } = useCustomerSearch(
     value ? value.name : query,
