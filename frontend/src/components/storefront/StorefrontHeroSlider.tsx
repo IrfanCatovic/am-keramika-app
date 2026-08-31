@@ -21,36 +21,75 @@ const heroSlides = [
   },
 ] as const;
 
+const FIRST_SLIDE_POSITION = 1;
+const LAST_SLIDE_POSITION = heroSlides.length + 1;
+const SLIDE_DURATION_MS = 5000;
+
 export function StorefrontHeroSlider({ alt }: { alt: string }) {
   const slides = [
     heroSlides[heroSlides.length - 1],
     ...heroSlides,
     heroSlides[0],
   ];
-  const [position, setPosition] = useState(1);
+  const [position, setPosition] = useState(FIRST_SLIDE_POSITION);
   const [transitionEnabled, setTransitionEnabled] = useState(true);
+  const [visibilityRevision, setVisibilityRevision] = useState(0);
   const touchStartX = useRef<number | null>(null);
 
   useEffect(() => {
-    const interval = window.setInterval(() => {
-      setPosition((current) => current + 1);
-    }, 5000);
+    if (document.visibilityState !== 'visible') return;
 
-    return () => window.clearInterval(interval);
+    const timeout = window.setTimeout(() => {
+      if (position >= LAST_SLIDE_POSITION) {
+        setTransitionEnabled(false);
+        setPosition(FIRST_SLIDE_POSITION);
+        window.requestAnimationFrame(() => {
+          window.requestAnimationFrame(() => setTransitionEnabled(true));
+        });
+        return;
+      }
+
+      setPosition(position + 1);
+    }, SLIDE_DURATION_MS);
+
+    return () => window.clearTimeout(timeout);
+  }, [position, visibilityRevision]);
+
+  useEffect(() => {
+    function handleVisibilityChange() {
+      if (document.visibilityState !== 'visible') return;
+
+      // A hidden tab can pause CSS transitions and throttle timers. Normalize
+      // the loop before allowing the next automatic transition.
+      setTransitionEnabled(false);
+      setPosition((current) =>
+        current <= 0 || current >= LAST_SLIDE_POSITION
+          ? FIRST_SLIDE_POSITION
+          : current
+      );
+      setVisibilityRevision((current) => current + 1);
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => setTransitionEnabled(true));
+      });
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () =>
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
 
   const activeSlide = (position - 1 + heroSlides.length) % heroSlides.length;
 
   function moveTo(positionToShow: number) {
     setTransitionEnabled(true);
-    setPosition(positionToShow);
+    setPosition(Math.max(0, Math.min(LAST_SLIDE_POSITION, positionToShow)));
   }
 
   function handleTransitionEnd() {
-    if (position !== 0 && position !== slides.length - 1) return;
+    if (position !== 0 && position !== LAST_SLIDE_POSITION) return;
 
     setTransitionEnabled(false);
-    setPosition(position === 0 ? heroSlides.length : 1);
+    setPosition(position === 0 ? heroSlides.length : FIRST_SLIDE_POSITION);
     window.requestAnimationFrame(() => {
       window.requestAnimationFrame(() => setTransitionEnabled(true));
     });
