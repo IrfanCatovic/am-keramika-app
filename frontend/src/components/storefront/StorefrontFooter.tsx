@@ -43,6 +43,41 @@ export function StorefrontFooter({
           <p className="mt-5 max-w-sm text-sm leading-relaxed text-stone-400">
             Keramika, sanitarije, grejanje i oprema za vaš dom.
           </p>
+          <div className="mt-5 flex items-center gap-3">
+            <a
+              href="https://www.facebook.com/profile.php?id=100068140516753"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="AM Keramika na Facebooku"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-stone-400 transition hover:border-[#8a6a45] hover:text-white"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                className="h-5 w-5 fill-current"
+                aria-hidden="true"
+              >
+                <path d="M13.5 21v-8h2.75l.5-3h-3.25V8.05c0-.87.29-1.55 1.58-1.55H17V3.82c-.34-.05-1.2-.12-2.28-.12-2.26 0-3.8 1.38-3.8 3.92V10H8.5v3h2.42v8h2.58Z" />
+              </svg>
+            </a>
+            <a
+              href="https://www.instagram.com/amkeramika/"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="AM Keramika na Instagramu"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-stone-400 transition hover:border-[#8a6a45] hover:text-white"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                className="h-5 w-5 fill-none stroke-current"
+                strokeWidth="1.8"
+                aria-hidden="true"
+              >
+                <rect x="3.5" y="3.5" width="17" height="17" rx="4.5" />
+                <circle cx="12" cy="12" r="4" />
+                <circle cx="17.5" cy="6.5" r="1" className="fill-current stroke-none" />
+              </svg>
+            </a>
+          </div>
           <div className="mt-5 space-y-1 text-sm text-stone-400">
             <p className="font-medium text-stone-300">{companyConfig.name}</p>
             <div className="mt-2 space-y-1">
