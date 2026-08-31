@@ -4,6 +4,7 @@ import {
   ProductSection,
   SalonSection,
   StorefrontHero,
+  TrustSection,
 } from "@/components/storefront/StorefrontSections";
 import {
   PUBLIC_CATALOG_REVALIDATE_SECONDS,
@@ -73,6 +74,7 @@ export default async function StorefrontHomePage() {
         homepage
       />
       <SalonSection />
+      <TrustSection />
       <ProductSection
         eyebrow="Inspiracija"
         title="Pogledajte još"

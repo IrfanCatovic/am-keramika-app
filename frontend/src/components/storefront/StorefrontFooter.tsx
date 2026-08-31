@@ -41,7 +41,7 @@ export function StorefrontFooter({
             className="h-11 w-auto object-contain sm:h-12"
           />
           <p className="mt-5 max-w-sm text-sm leading-relaxed text-stone-400">
-            Keramika, sanitarije, grijanje i oprema za vaš dom.
+            Keramika, sanitarije, grejanje i oprema za vaš dom.
           </p>
           <div className="mt-5 space-y-1 text-sm text-stone-400">
             <p className="font-medium text-stone-300">{companyConfig.name}</p>

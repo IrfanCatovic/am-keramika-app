@@ -235,6 +235,60 @@ export function SalonSection() {
   );
 }
 
+export function TrustSection() {
+  const reasons = [
+    {
+      title: "Stvaran salon",
+      description: "Posetite nas u Tutinu.",
+    },
+    {
+      title: "Široka ponuda",
+      description: "Keramika, sanitarije, grejanje i oprema.",
+    },
+    {
+      title: "Pomoć pri izboru",
+      description: "Kontaktirajte naš tim za pomoć pri odabiru.",
+    },
+    {
+      title: "Dostava",
+      description:
+        "Način i cena transporta dogovaraju se prema lokaciji i količini.",
+    },
+  ];
+
+  return (
+    <section className="border-y border-stone-200 bg-[#f6f4f1] px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-7 sm:mb-8">
+          <p className="text-[11px] uppercase tracking-[0.2em] text-[#8a6a45]">
+            AM Keramika
+          </p>
+          <h2 className="mt-2 font-[family-name:var(--font-storefront-display)] text-3xl text-stone-900 sm:text-4xl">
+            Zašto AM Keramika
+          </h2>
+        </div>
+        <div className="grid gap-0 sm:grid-cols-2 lg:grid-cols-4">
+          {reasons.map((reason, index) => (
+            <div
+              key={reason.title}
+              className={`border-t border-stone-200 py-4 first:border-t-0 sm:border-t-0 sm:px-5 sm:py-1 ${
+                index > 0 ? "lg:border-l" : ""
+              }`}
+            >
+              <p className="font-[family-name:var(--font-storefront-display)] text-xl text-stone-900">
+                {reason.title}
+              </p>
+              <p className="mt-1.5 max-w-xs text-sm leading-relaxed text-stone-500">
+                {reason.description}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function ProductSection({
   title,
   eyebrow,
