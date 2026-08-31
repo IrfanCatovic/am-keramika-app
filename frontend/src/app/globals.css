@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 :root {
   --background: #f4f2ef;
@@ -57,7 +57,7 @@ body {
 
 @keyframes storefront-hero-progress {
   from {
-    opacity: 0.55;
+    opacity: 1;
     transform: scaleX(0.25);
   }
   to {
@@ -74,8 +74,16 @@ body {
 /* Samo diskretan detalj na tamnom headeru — ne koristiti iza tabela/teksta */
 .marble-veil {
   background-image:
-    radial-gradient(circle at 18% 20%, rgba(196, 164, 132, 0.18), transparent 42%),
-    radial-gradient(circle at 82% 0%, rgba(255, 255, 255, 0.06), transparent 34%);
+    radial-gradient(
+      circle at 18% 20%,
+      rgba(196, 164, 132, 0.18),
+      transparent 42%
+    ),
+    radial-gradient(
+      circle at 82% 0%,
+      rgba(255, 255, 255, 0.06),
+      transparent 34%
+    );
 }
 
 /* —— A4 invoice print —— */
