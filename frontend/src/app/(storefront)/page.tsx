@@ -20,10 +20,19 @@ export default async function StorefrontHomePage() {
   };
   const [categories, featured, onSale, picks] = await Promise.all([
     safeFetchPublicCategories(cacheOptions),
-    safeFetchPublicProducts({ homepage: true, limit: 8 }, cacheOptions),
-    safeFetchPublicProducts({ onSale: true, limit: 8 }, cacheOptions),
-    safeFetchPublicProducts({ random: true, limit: 8 }, cacheOptions),
+    safeFetchPublicProducts({ homepage: true, limit: 4 }, cacheOptions),
+    safeFetchPublicProducts({ onSale: true, limit: 4 }, cacheOptions),
+    safeFetchPublicProducts({ random: true, limit: 4 }, cacheOptions),
   ]);
+
+  const featuredProducts = featured?.products ?? [];
+  const saleProducts = onSale?.products ?? [];
+  const reservedProductIds = new Set(
+    [...featuredProducts, ...saleProducts].map((product) => product.id),
+  );
+  const additionalProducts = (picks?.products ?? []).filter(
+    (product) => !reservedProductIds.has(product.id),
+  );
 
   const categoryProducts = await Promise.all(
     categories.map((category) =>
@@ -49,25 +58,28 @@ export default async function StorefrontHomePage() {
       <CategoryShowcase categories={categoryShowcaseItems} />
       <ProductSection
         eyebrow="Odabrano"
-        title="Istaknuti proizvodi"
-        products={featured?.products ?? []}
+        title="Izdvojeno iz ponude"
+        products={featuredProducts}
         href="/proizvodi"
         tone="default"
+        homepage
       />
-      <SalonSection />
       <ProductSection
         eyebrow="Povoljno"
         title="Na akciji"
-        products={onSale?.products ?? []}
+        products={saleProducts}
         href="/proizvodi?onSale=true"
         tone="muted"
+        homepage
       />
+      <SalonSection />
       <ProductSection
         eyebrow="Inspiracija"
-        title="Izdvajamo za vas"
-        products={picks?.products ?? []}
+        title="Pogledajte još"
+        products={additionalProducts}
         href="/proizvodi"
         tone="default"
+        homepage
       />
       <FinalCtaSection />
     </>

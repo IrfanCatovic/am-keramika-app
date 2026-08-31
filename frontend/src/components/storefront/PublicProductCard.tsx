@@ -6,7 +6,13 @@ import {
 } from "@/components/storefront/PublicPrice";
 import type { PublicProduct } from "@/types/public-catalog";
 
-function ProductImage({ product }: { product: PublicProduct }) {
+function ProductImage({
+  product,
+  homepage = false,
+}: {
+  product: PublicProduct;
+  homepage?: boolean;
+}) {
   const url = product.primaryImage?.url;
   if (!url) {
     return (
@@ -22,13 +28,21 @@ function ProductImage({ product }: { product: PublicProduct }) {
     <img
       src={url}
       alt={product.name}
-      className="h-full w-full object-contain p-4 transition duration-500 ease-out group-hover:scale-[1.03]"
+      className={`h-full w-full object-contain transition duration-500 ease-out group-hover:scale-[1.03] ${
+        homepage ? "p-3" : "p-4"
+      }`}
       loading="lazy"
     />
   );
 }
 
-export function PublicProductCard({ product }: { product: PublicProduct }) {
+export function PublicProductCard({
+  product,
+  homepage = false,
+}: {
+  product: PublicProduct;
+  homepage?: boolean;
+}) {
   const meta = [product.category?.name, product.group?.name]
     .filter(Boolean)
     .join(" · ");
@@ -39,8 +53,12 @@ export function PublicProductCard({ product }: { product: PublicProduct }) {
       prefetch={false}
       className="group flex h-full flex-col overflow-hidden rounded-xl border border-stone-200/90 bg-white transition duration-300 hover:-translate-y-0.5 hover:border-stone-300 hover:shadow-[0_14px_34px_rgba(28,25,23,0.07)]"
     >
-      <div className="relative aspect-[4/3] overflow-hidden bg-[#f7f5f2]">
-        <ProductImage product={product} />
+      <div
+        className={`relative overflow-hidden bg-[#f7f5f2] ${
+          homepage ? "aspect-[7/6]" : "aspect-[4/3]"
+        }`}
+      >
+        <ProductImage product={product} homepage={homepage} />
         {product.isOnSale && product.discountPercent > 0 ? (
           <span className="absolute left-3 top-3 rounded-md bg-[#2a2420]/92 px-2 py-1 text-[11px] font-medium tracking-wide text-[#e8d5bc]">
             -{Math.round(product.discountPercent)}%
@@ -83,13 +101,15 @@ export function PublicProductCardSkeleton() {
 
 export function PublicProductGrid({
   products,
+  homepage = false,
 }: {
   products: PublicProduct[];
+  homepage?: boolean;
 }) {
   return (
     <div className="grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
       {products.map((product) => (
-        <PublicProductCard key={product.id} product={product} />
+        <PublicProductCard key={product.id} product={product} homepage={homepage} />
       ))}
     </div>
   );

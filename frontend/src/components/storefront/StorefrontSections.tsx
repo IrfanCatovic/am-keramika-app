@@ -46,10 +46,10 @@ export function StorefrontHero() {
           {companyConfig.name}
         </p>
         <h1 className="mt-4 max-w-3xl font-[family-name:var(--font-storefront-display)] text-4xl leading-[1.05] tracking-tight sm:text-5xl lg:text-[3.5rem]">
-          Sve za vaš dom na jednom mjestu.
+          Sve za vaš dom na jednom mestu.
         </h1>
         <p className="mt-5 max-w-xl text-base text-stone-200/90 sm:text-lg">
-          Keramika, sanitarije, grijanje i oprema.
+          Keramika, sanitarije, grejanje i oprema.
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link
@@ -62,7 +62,7 @@ export function StorefrontHero() {
             href="#salon"
             className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/30 px-7 text-sm font-medium text-white transition hover:border-[#d4b896]/70 hover:bg-white/5 sm:min-h-11"
           >
-            Posjetite salon
+            Posetite salon
           </Link>
         </div>
       </div>
@@ -210,7 +210,7 @@ export function SalonSection() {
             Pogledajte našu ponudu i pronađite rešenja za vaš prostor.
           </p>
           <p className="mt-4 text-sm leading-relaxed text-stone-300 sm:text-base">
-            Naš tim vam može pomoći pri izboru keramike, sanitarija, grijanja i
+            Naš tim vam može pomoći pri izboru keramike, sanitarija, grejanja i
             ostale opreme.
           </p>
           {(address.length > 0 || contact.length > 0) && (
@@ -241,12 +241,14 @@ export function ProductSection({
   products,
   href,
   tone = "default",
+  homepage = false,
 }: {
   title: string;
   eyebrow?: string;
   products: PublicProduct[];
   href?: string;
   tone?: "default" | "muted" | "dark";
+  homepage?: boolean;
 }) {
   if (products.length === 0) return null;
 
@@ -290,7 +292,7 @@ export function ProductSection({
             </Link>
           ) : null}
         </div>
-        <PublicProductGrid products={products} />
+        <PublicProductGrid products={products} homepage={homepage} />
         {href ? (
           <div className="mt-6 text-center sm:hidden">
             <Link
@@ -325,7 +327,7 @@ export function FinalCtaSection() {
           Pronađite rešenje za svoj prostor
         </h2>
         <p className="mt-4 text-sm leading-relaxed text-stone-400 sm:text-base">
-          Pregledajte asortiman keramike, sanitarija, grijanja i opreme.
+          Pregledajte asortiman keramike, sanitarija, grejanja i opreme.
         </p>
         <Link
           href="/proizvodi"
