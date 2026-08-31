@@ -3,7 +3,8 @@ export default function StorefrontLoading() {
     <div
       role="status"
       aria-label="Učitavanje"
-      className="flex min-h-[70vh] items-center justify-center bg-[#f6f4f1]"
+      aria-live="polite"
+      className="fixed inset-0 z-[100] flex h-dvh items-center justify-center bg-[#f6f4f1]"
     >
       <div className="flex flex-col items-center gap-4 text-stone-500">
         <span
