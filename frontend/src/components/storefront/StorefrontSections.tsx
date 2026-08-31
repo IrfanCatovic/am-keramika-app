@@ -36,15 +36,17 @@ export function StorefrontHero() {
       />
 
       <div className="relative mx-auto flex min-h-[72vh] max-w-7xl flex-col justify-end px-4 pb-14 pt-28 sm:min-h-[82vh] sm:px-6 lg:px-8 lg:pb-20">
-        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#e8d4b8] sm:text-sm">
+        <div className="absolute inset-x-4 top-8 sm:static sm:inset-auto">
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#e8d4b8] sm:text-sm">
           {companyConfig.name}
-        </p>
-        <h1 className="mt-4 max-w-3xl font-[family-name:var(--font-storefront-display)] text-4xl leading-[1.05] tracking-tight sm:text-5xl lg:text-[3.5rem]">
-          Sve za vaš dom na jednom mestu.
-        </h1>
-        <p className="mt-5 max-w-xl text-base text-stone-200/90 sm:text-lg">
-          Keramika, sanitarije, grejanje i oprema.
-        </p>
+          </p>
+          <h1 className="mt-4 max-w-3xl font-[family-name:var(--font-storefront-display)] text-4xl leading-[1.05] tracking-tight sm:text-5xl lg:text-[3.5rem]">
+            Sve za vaš dom na jednom mestu.
+          </h1>
+          <p className="mt-5 max-w-xl text-base text-stone-200/90 sm:text-lg">
+            Keramika, sanitarije, grejanje i oprema.
+          </p>
+        </div>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link
             href="/proizvodi"
