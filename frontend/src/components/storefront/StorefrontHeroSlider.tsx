@@ -102,7 +102,7 @@ export function StorefrontHeroSlider({ alt }: { alt: string }) {
                 src={slide.desktop}
                 alt={index === position ? alt : ''}
                 className="absolute inset-0 h-full w-full object-cover object-[center_34%] sm:object-[center_40%]"
-                loading={index === 1 ? 'eager' : 'lazy'}
+                loading="eager"
                 fetchPriority={index === 1 ? 'high' : undefined}
               />
             </picture>
