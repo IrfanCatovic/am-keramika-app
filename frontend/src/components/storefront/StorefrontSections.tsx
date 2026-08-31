@@ -1,8 +1,8 @@
 import Link from "next/link";
 
 import { PublicProductGrid } from "@/components/storefront/PublicProductCard";
+import { StorefrontHeroSlider } from "@/components/storefront/StorefrontHeroSlider";
 import {
-  STOREFRONT_HERO_SRC,
   STOREFRONT_SALON_SRC,
   companyAddressLines,
   companyConfig,
@@ -21,13 +21,7 @@ export type CategoryShowcaseItem = PublicCategory & {
 export function StorefrontHero() {
   return (
     <section className="relative isolate min-h-[72vh] overflow-hidden text-white sm:min-h-[82vh]">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={STOREFRONT_HERO_SRC}
-        alt={`${companyConfig.name} — poslovnica`}
-        className="absolute inset-0 h-full w-full object-cover object-[center_34%] sm:object-[center_40%]"
-        fetchPriority="high"
-      />
+      <StorefrontHeroSlider alt={`${companyConfig.name} — poslovnica`} />
       <div
         className="absolute inset-0 bg-gradient-to-t from-[#0c0b0a]/90 via-[#0c0b0a]/40 to-[#0c0b0a]/25"
         aria-hidden
