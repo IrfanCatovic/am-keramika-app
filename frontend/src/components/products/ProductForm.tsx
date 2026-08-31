@@ -568,7 +568,7 @@ export function ProductForm({
     setUploadWarning(null);
   }
 
-  async function submitForm(intent: "save" | "save-and-next") {
+  async function submitForm() {
     setFormError(null);
     setUploadWarning(null);
     const validationError = validate();
@@ -582,20 +582,10 @@ export function ProductForm({
       if (mode === "create") {
         const created = await createProduct(buildCreatePayload());
         const warning = await uploadPending(created.id);
-        if (intent === "save-and-next") {
-          resetForNext();
-          if (warning) {
-            setUploadWarning(warning);
-          }
-          return;
-        }
+        resetForNext();
         if (warning) {
-          router.push(
-            `/products/${created.id}/edit?uploadWarning=${encodeURIComponent(warning)}`,
-          );
-          return;
+          setUploadWarning(warning);
         }
-        router.push(`/products/${created.id}/edit`);
         return;
       }
 
@@ -623,7 +613,7 @@ export function ProductForm({
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    await submitForm("save");
+    await submitForm();
   }
 
   async function refreshImages() {
@@ -1267,24 +1257,28 @@ export function ProductForm({
           </Link>
           <div className="flex flex-col gap-2 sm:flex-row">
             {mode === "create" ? (
-              <>
-                <button
-                  type="button"
-                  disabled={saving}
-                  onClick={resetForNext}
-                  className="inline-flex min-h-11 items-center justify-center rounded-xl border border-stone-200 px-4 text-sm font-medium text-stone-800 transition hover:bg-stone-50 disabled:opacity-60"
+              <button
+                type="button"
+                aria-label="Očisti formu"
+                title="Očisti formu"
+                disabled={saving}
+                onClick={resetForNext}
+                className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-stone-200 text-stone-700 transition hover:bg-stone-50 disabled:opacity-60"
+              >
+                <svg
+                  aria-hidden="true"
+                  className="h-5 w-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 >
-                  Resetuj formu
-                </button>
-                <button
-                  type="button"
-                  disabled={saving}
-                  onClick={() => void submitForm("save-and-next")}
-                  className="inline-flex min-h-11 items-center justify-center rounded-xl border border-stone-200 px-4 text-sm font-medium text-stone-800 transition hover:bg-stone-50 disabled:opacity-60"
-                >
-                  {saving ? "Čuvanje..." : "Sačuvaj i dodaj sledeći"}
-                </button>
-              </>
+                  <path d="M20 11a8.1 8.1 0 0 0-15.5-3M4 4v4h4" />
+                  <path d="M4 13a8.1 8.1 0 0 0 15.5 3M20 20v-4h-4" />
+                </svg>
+              </button>
             ) : null}
             <button
               type="submit"
