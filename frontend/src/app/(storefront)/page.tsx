@@ -1,5 +1,4 @@
 import {
-  CategoryShowcase,
   FinalCtaSection,
   ProductSection,
   SalonSection,
@@ -8,10 +7,8 @@ import {
 } from "@/components/storefront/StorefrontSections";
 import {
   PUBLIC_CATALOG_REVALIDATE_SECONDS,
-  safeFetchPublicCategories,
   safeFetchPublicProducts,
 } from "@/lib/public-catalog-api";
-import type { CategoryShowcaseItem } from "@/components/storefront/StorefrontSections";
 
 export const revalidate = 60;
 
@@ -19,8 +16,7 @@ export default async function StorefrontHomePage() {
   const cacheOptions = {
     revalidate: PUBLIC_CATALOG_REVALIDATE_SECONDS,
   };
-  const [categories, featured, onSale, picks] = await Promise.all([
-    safeFetchPublicCategories(cacheOptions),
+  const [featured, onSale, picks] = await Promise.all([
     safeFetchPublicProducts({ homepage: true, limit: 4 }, cacheOptions),
     safeFetchPublicProducts({ onSale: true, limit: 4 }, cacheOptions),
     safeFetchPublicProducts({ random: true, limit: 4 }, cacheOptions),
@@ -35,28 +31,9 @@ export default async function StorefrontHomePage() {
     (product) => !reservedProductIds.has(product.id),
   );
 
-  const categoryProducts = await Promise.all(
-    categories.map((category) =>
-      safeFetchPublicProducts(
-        { categorySlug: category.slug, limit: 4 },
-        cacheOptions,
-      ),
-    ),
-  );
-  const categoryShowcaseItems: CategoryShowcaseItem[] = categories.map(
-    (category, index) => ({
-      ...category,
-      image:
-        categoryProducts[index]?.products.find(
-          (product) => product.primaryImage?.url,
-        )?.primaryImage ?? null,
-    }),
-  );
-
   return (
     <>
       <StorefrontHero />
-      <CategoryShowcase categories={categoryShowcaseItems} />
       <ProductSection
         eyebrow="Odabrano"
         title="Izdvojeno iz ponude"
