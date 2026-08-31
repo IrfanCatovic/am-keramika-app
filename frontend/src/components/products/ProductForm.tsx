@@ -1267,14 +1267,24 @@ export function ProductForm({
           </Link>
           <div className="flex flex-col gap-2 sm:flex-row">
             {mode === "create" ? (
-              <button
-                type="button"
-                disabled={saving}
-                onClick={() => void submitForm("save-and-next")}
-                className="inline-flex min-h-11 items-center justify-center rounded-xl border border-stone-200 px-4 text-sm font-medium text-stone-800 transition hover:bg-stone-50 disabled:opacity-60"
-              >
-                {saving ? "Čuvanje..." : "Sačuvaj i dodaj sledeći"}
-              </button>
+              <>
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={resetForNext}
+                  className="inline-flex min-h-11 items-center justify-center rounded-xl border border-stone-200 px-4 text-sm font-medium text-stone-800 transition hover:bg-stone-50 disabled:opacity-60"
+                >
+                  Resetuj formu
+                </button>
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={() => void submitForm("save-and-next")}
+                  className="inline-flex min-h-11 items-center justify-center rounded-xl border border-stone-200 px-4 text-sm font-medium text-stone-800 transition hover:bg-stone-50 disabled:opacity-60"
+                >
+                  {saving ? "Čuvanje..." : "Sačuvaj i dodaj sledeći"}
+                </button>
+              </>
             ) : null}
             <button
               type="submit"
