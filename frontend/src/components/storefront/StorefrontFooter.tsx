@@ -58,6 +58,10 @@ export function StorefrontFooter({
                 ))}
               </div>
             )}
+            <div className="mt-3 space-y-1 text-xs text-stone-500">
+              <p>Tekući račun: 160-6000002347524-65 — Banca Intesa</p>
+              <p>Tekući račun: 155-0000000082232-82 — Halkbank</p>
+            </div>
           </div>
         </div>
 

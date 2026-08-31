@@ -238,8 +238,8 @@ export function SalonSection() {
 export function TrustSection() {
   const reasons = [
     {
-      title: "Stvaran salon",
-      description: "Posetite nas u Tutinu.",
+      title: "Vaš siguran partner",
+      description: "AM Keramika Tutin.",
     },
     {
       title: "Široka ponuda",
