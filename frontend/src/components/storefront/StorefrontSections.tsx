@@ -8,7 +8,15 @@ import {
   companyConfig,
   companyContactLines,
 } from "@/config/company";
-import type { PublicCategory, PublicProduct } from "@/types/public-catalog";
+import type {
+  PublicCategory,
+  PublicProduct,
+  PublicProductImage,
+} from "@/types/public-catalog";
+
+export type CategoryShowcaseItem = PublicCategory & {
+  image: PublicProductImage | null;
+};
 
 export function StorefrontHero() {
   return (
@@ -17,7 +25,7 @@ export function StorefrontHero() {
       <img
         src={STOREFRONT_HERO_SRC}
         alt={`${companyConfig.name} — poslovnica`}
-        className="absolute inset-0 h-full w-full object-cover object-[center_40%]"
+        className="absolute inset-0 h-full w-full object-cover object-[center_34%] sm:object-[center_40%]"
         fetchPriority="high"
       />
       <div
@@ -38,7 +46,7 @@ export function StorefrontHero() {
           {companyConfig.name}
         </p>
         <h1 className="mt-4 max-w-3xl font-[family-name:var(--font-storefront-display)] text-4xl leading-[1.05] tracking-tight sm:text-5xl lg:text-[3.5rem]">
-          Sve za vaš dom na jednom mestu.
+          Sve za vaš dom na jednom mjestu.
         </h1>
         <p className="mt-5 max-w-xl text-base text-stone-200/90 sm:text-lg">
           Keramika, sanitarije, grijanje i oprema.
@@ -51,10 +59,10 @@ export function StorefrontHero() {
             Pogledajte proizvode
           </Link>
           <Link
-            href="#kategorije"
+            href="#salon"
             className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/30 px-7 text-sm font-medium text-white transition hover:border-[#d4b896]/70 hover:bg-white/5 sm:min-h-11"
           >
-            Istražite kategorije
+            Posjetite salon
           </Link>
         </div>
       </div>
@@ -65,7 +73,7 @@ export function StorefrontHero() {
 export function CategoryShowcase({
   categories,
 }: {
-  categories: PublicCategory[];
+  categories: CategoryShowcaseItem[];
 }) {
   if (categories.length === 0) return null;
   return (
@@ -90,29 +98,64 @@ export function CategoryShowcase({
             Svi proizvodi
           </Link>
         </div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {categories.map((category, index) => (
-            <Link
-              key={category.id}
-              href={`/kategorije/${category.slug}`}
-              prefetch={false}
-              className="group relative overflow-hidden rounded-xl border border-stone-300/70 bg-white px-6 py-7 transition duration-300 hover:-translate-y-0.5 hover:border-stone-400 hover:shadow-[0_18px_40px_rgba(28,25,23,0.07)] sm:py-8"
-            >
-              <div
-                className="pointer-events-none absolute inset-y-0 left-0 w-px bg-gradient-to-b from-transparent via-[#8a6a45]/50 to-transparent opacity-0 transition group-hover:opacity-100"
-                aria-hidden
-              />
-              <p className="font-[family-name:var(--font-storefront-display)] text-sm tabular-nums tracking-[0.18em] text-[#b39a7c] transition group-hover:text-[#8a6a45]">
-                {String(index + 1).padStart(2, "0")}
-              </p>
-              <p className="mt-3 font-[family-name:var(--font-storefront-display)] text-2xl tracking-tight text-stone-900 transition group-hover:text-[#5c4630]">
-                {category.name}
-              </p>
-              <span className="mt-7 inline-flex text-sm text-stone-500 transition group-hover:text-stone-800 sm:mt-8">
-                Pogledajte
-              </span>
-            </Link>
-          ))}
+        <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {categories.map((category, index) => {
+            const imageUrl = category.image?.url;
+
+            return (
+              <Link
+                key={category.id}
+                href={`/kategorije/${category.slug}`}
+                prefetch={false}
+                className={`group relative isolate min-h-52 overflow-hidden rounded-xl border border-stone-300/70 transition duration-300 hover:-translate-y-0.5 hover:border-stone-400 hover:shadow-[0_18px_40px_rgba(28,25,23,0.1)] ${
+                  imageUrl ? "bg-stone-900 text-white" : "bg-white"
+                }`}
+              >
+                {imageUrl ? (
+                  <>
+                    {/* API image URLs are runtime-configured, so Next/Image cannot
+                        safely optimize them without broadening remotePatterns. */}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={imageUrl}
+                      alt=""
+                      className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                      loading="lazy"
+                    />
+                    <div
+                      className="absolute inset-0 bg-gradient-to-t from-[#141311]/90 via-[#141311]/25 to-transparent"
+                      aria-hidden
+                    />
+                  </>
+                ) : null}
+                <div
+                  className={`relative flex min-h-52 flex-col justify-end p-5 ${
+                    imageUrl ? "text-white" : "text-stone-900"
+                  }`}
+                >
+                  <p
+                    className={`font-[family-name:var(--font-storefront-display)] text-sm tabular-nums tracking-[0.18em] ${
+                      imageUrl ? "text-[#e8d4b8]" : "text-[#b39a7c]"
+                    }`}
+                  >
+                    {String(index + 1).padStart(2, "0")}
+                  </p>
+                  <p className="mt-2 max-w-[18rem] font-[family-name:var(--font-storefront-display)] text-2xl leading-tight tracking-tight">
+                    {category.name}
+                  </p>
+                  <span
+                    className={`mt-4 inline-flex text-sm transition ${
+                      imageUrl
+                        ? "text-stone-200 group-hover:text-white"
+                        : "text-stone-500 group-hover:text-stone-800"
+                    }`}
+                  >
+                    Pogledajte
+                  </span>
+                </div>
+              </Link>
+            );
+          })}
         </div>
         <div className="mt-6 text-center sm:hidden">
           <Link
@@ -132,7 +175,7 @@ export function SalonSection() {
   const contact = companyContactLines();
 
   return (
-    <section className="relative overflow-hidden bg-[#141311] text-white">
+    <section id="salon" className="relative scroll-mt-24 overflow-hidden bg-[#141311] text-white">
       <div
         className="pointer-events-none absolute inset-0 marble-veil opacity-50"
         aria-hidden

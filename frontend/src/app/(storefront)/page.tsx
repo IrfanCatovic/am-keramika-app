@@ -10,6 +10,7 @@ import {
   safeFetchPublicCategories,
   safeFetchPublicProducts,
 } from "@/lib/public-catalog-api";
+import type { CategoryShowcaseItem } from "@/components/storefront/StorefrontSections";
 
 export const revalidate = 60;
 
@@ -24,10 +25,28 @@ export default async function StorefrontHomePage() {
     safeFetchPublicProducts({ random: true, limit: 8 }, cacheOptions),
   ]);
 
+  const categoryProducts = await Promise.all(
+    categories.map((category) =>
+      safeFetchPublicProducts(
+        { categorySlug: category.slug, limit: 4 },
+        cacheOptions,
+      ),
+    ),
+  );
+  const categoryShowcaseItems: CategoryShowcaseItem[] = categories.map(
+    (category, index) => ({
+      ...category,
+      image:
+        categoryProducts[index]?.products.find(
+          (product) => product.primaryImage?.url,
+        )?.primaryImage ?? null,
+    }),
+  );
+
   return (
     <>
       <StorefrontHero />
-      <CategoryShowcase categories={categories} />
+      <CategoryShowcase categories={categoryShowcaseItems} />
       <ProductSection
         eyebrow="Odabrano"
         title="Istaknuti proizvodi"
