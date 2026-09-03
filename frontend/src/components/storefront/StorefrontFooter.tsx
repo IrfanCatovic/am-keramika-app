@@ -49,7 +49,7 @@ export function StorefrontFooter({
               target="_blank"
               rel="noreferrer"
               aria-label="AM Keramika na Facebooku"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-stone-400 transition hover:border-[#8a6a45] hover:text-white"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-stone-400 transition duration-200 hover:-translate-y-0.5 hover:border-[#8a6a45] hover:text-white"
             >
               <svg
                 viewBox="0 0 24 24"
@@ -64,7 +64,7 @@ export function StorefrontFooter({
               target="_blank"
               rel="noreferrer"
               aria-label="AM Keramika na Instagramu"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-stone-400 transition hover:border-[#8a6a45] hover:text-white"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-stone-400 transition duration-200 hover:-translate-y-0.5 hover:border-[#8a6a45] hover:text-white"
             >
               <svg
                 viewBox="0 0 24 24"

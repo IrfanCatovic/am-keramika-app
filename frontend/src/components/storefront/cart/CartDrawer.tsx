@@ -42,11 +42,11 @@ export function CartDrawer() {
     <div className="fixed inset-0 z-[60]" role="dialog" aria-modal="true">
       <button
         type="button"
-        className="absolute inset-0 bg-stone-950/45"
+        className="storefront-backdrop-in absolute inset-0 bg-stone-950/45"
         aria-label="Zatvori korpu"
         onClick={closeDrawer}
       />
-      <div className="absolute inset-y-0 right-0 flex w-full max-w-md flex-col border-l border-stone-200 bg-[#f6f4f1] shadow-[0_24px_60px_rgba(28,25,23,0.18)]">
+      <div className="storefront-drawer-in absolute inset-y-0 right-0 flex w-full max-w-md flex-col border-l border-stone-200 bg-[#f6f4f1] shadow-[0_24px_60px_rgba(28,25,23,0.18)]">
         <div className="flex items-center justify-between border-b border-stone-200 px-5 py-4">
           <div>
             <p className="text-[11px] uppercase tracking-[0.18em] text-[#8a6a45]">
@@ -66,7 +66,7 @@ export function CartDrawer() {
         </div>
 
         {feedback ? (
-          <div className="mx-5 mt-4 rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-700">
+          <div className="storefront-fade-up mx-5 mt-4 rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-700">
             <p>{feedback}</p>
             <div className="mt-2 flex flex-wrap gap-3 text-sm">
               <button

@@ -37,26 +37,26 @@ export function StorefrontHero() {
 
       <div className="relative mx-auto flex min-h-[72vh] max-w-7xl flex-col justify-end px-4 pb-14 pt-28 sm:min-h-[82vh] sm:px-6 lg:px-8 lg:pb-20">
         <div className="absolute inset-x-4 top-8 sm:static sm:inset-auto">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#e8d4b8] sm:text-sm">
+          <p className="storefront-fade-up text-xs font-semibold uppercase tracking-[0.28em] text-[#e8d4b8] sm:text-sm">
           {companyConfig.name}
           </p>
-          <h1 className="mt-4 max-w-3xl font-[family-name:var(--font-storefront-display)] text-4xl leading-[1.05] tracking-tight sm:text-5xl lg:text-[3.5rem]">
+          <h1 className="storefront-fade-up storefront-delay-1 mt-4 max-w-3xl font-[family-name:var(--font-storefront-display)] text-4xl leading-[1.05] tracking-tight sm:text-5xl lg:text-[3.5rem]">
             Sve za vaš dom na jednom mestu.
           </h1>
-          <p className="mt-5 max-w-xl text-base text-stone-200/90 sm:text-lg">
+          <p className="storefront-fade-up storefront-delay-2 mt-5 max-w-xl text-base text-stone-200/90 sm:text-lg">
             Keramika, sanitarije, grejanje i oprema.
           </p>
         </div>
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+        <div className="storefront-fade-up storefront-delay-3 mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link
             href="/proizvodi"
-            className="inline-flex min-h-12 items-center justify-center rounded-full bg-white px-7 text-sm font-medium text-[#141311] transition hover:bg-[#ece5db] sm:min-h-11"
+            className="inline-flex min-h-12 items-center justify-center rounded-full bg-white px-7 text-sm font-medium text-[#141311] transition hover:bg-[#ece5db] active:scale-[0.98] sm:min-h-11"
           >
             Pogledajte proizvode
           </Link>
           <Link
             href="#salon"
-            className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/30 px-7 text-sm font-medium text-white transition hover:border-[#d4b896]/70 hover:bg-white/5 sm:min-h-11"
+            className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/30 px-7 text-sm font-medium text-white transition hover:border-[#d4b896]/70 hover:bg-white/5 active:scale-[0.98] sm:min-h-11"
           >
             Posetite salon
           </Link>
@@ -140,13 +140,19 @@ export function CategoryShowcase({
                     {category.name}
                   </p>
                   <span
-                    className={`mt-4 inline-flex text-sm transition ${
+                    className={`mt-4 inline-flex items-center gap-1.5 text-sm transition ${
                       imageUrl
                         ? "text-stone-200 group-hover:text-white"
                         : "text-stone-500 group-hover:text-stone-800"
                     }`}
                   >
                     Pogledajte
+                    <span
+                      aria-hidden
+                      className="inline-block transition-transform duration-300 group-hover:translate-x-1"
+                    >
+                      →
+                    </span>
                   </span>
                 </div>
               </Link>
@@ -267,8 +273,16 @@ export function TrustSection() {
           {reasons.map((reason, index) => (
             <div
               key={reason.title}
-              className={`border-t border-stone-200 py-4 first:border-t-0 sm:border-t-0 sm:px-5 sm:py-1 ${
+              className={`storefront-fade-up border-t border-stone-200 py-4 first:border-t-0 sm:border-t-0 sm:px-5 sm:py-1 ${
                 index > 0 ? "lg:border-l" : ""
+              } ${
+                index === 1
+                  ? "storefront-delay-1"
+                  : index === 2
+                    ? "storefront-delay-2"
+                    : index === 3
+                      ? "storefront-delay-3"
+                      : ""
               }`}
             >
               <p className="font-[family-name:var(--font-storefront-display)] text-xl text-stone-900">
@@ -381,7 +395,7 @@ export function FinalCtaSection() {
         </p>
         <Link
           href="/proizvodi"
-          className="mt-8 inline-flex min-h-12 w-full max-w-xs items-center justify-center rounded-full border border-[#d4b896]/50 px-6 text-sm font-medium text-white transition hover:border-[#d4b896] hover:bg-white/5 sm:min-h-11 sm:w-auto sm:max-w-none"
+          className="mt-8 inline-flex min-h-12 w-full max-w-xs items-center justify-center rounded-full border border-[#d4b896]/50 px-6 text-sm font-medium text-white transition hover:border-[#d4b896] hover:bg-white/5 active:scale-[0.98] sm:min-h-11 sm:w-auto sm:max-w-none"
         >
           Otvorite katalog
         </Link>

@@ -60,7 +60,7 @@ export function PublicProductCard({
       >
         <ProductImage product={product} homepage={homepage} />
         {product.isOnSale && product.discountPercent > 0 ? (
-          <span className="absolute left-3 top-3 rounded-md bg-[#2a2420]/92 px-2 py-1 text-[11px] font-medium tracking-wide text-[#e8d5bc]">
+          <span className="storefront-pop absolute left-3 top-3 rounded-md bg-[#2a2420]/92 px-2 py-1 text-[11px] font-medium tracking-wide text-[#e8d5bc]">
             -{Math.round(product.discountPercent)}%
           </span>
         ) : null}

@@ -39,14 +39,17 @@ export function CartButton({
         onBeforeOpen?.();
         openDrawer();
       }}
-      className={`relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-stone-800/80 text-stone-900 transition hover:bg-stone-900 hover:text-white ${className}`}
+      className={`group relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-stone-800/80 text-stone-900 transition duration-200 hover:bg-stone-900 hover:text-white active:scale-95 ${className}`}
       aria-label={
         showBadge ? `Korpa, ${itemCount} proizvoda` : "Korpa"
       }
     >
-      <BagIcon />
+      <BagIcon className="transition-transform duration-200 group-hover:scale-105" />
       {showBadge ? (
-        <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#141311] px-1 text-[10px] font-medium tabular-nums text-[#e8d4b8]">
+        <span
+          key={itemCount}
+          className="storefront-pop absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#141311] px-1 text-[10px] font-medium tabular-nums text-[#e8d4b8]"
+        >
           {itemCount > 99 ? "99+" : itemCount}
         </span>
       ) : null}

@@ -109,7 +109,7 @@ export function AddToCart({ product }: { product: AddToCartProduct }) {
           type="button"
           disabled={disabled || busy || checking || !(quantity > 0)}
           onClick={() => void handleAdd()}
-          className="inline-flex min-h-11 flex-1 items-center justify-center rounded-full bg-[#141311] px-6 text-sm font-medium text-white transition hover:bg-[#2a2420] disabled:cursor-not-allowed disabled:opacity-45 sm:flex-none sm:px-8"
+          className="inline-flex min-h-11 flex-1 items-center justify-center rounded-full bg-[#141311] px-6 text-sm font-medium text-white transition duration-200 hover:bg-[#2a2420] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45 sm:flex-none sm:px-8"
         >
           {busy || checking ? "Provera…" : "Dodaj u korpu"}
         </button>
