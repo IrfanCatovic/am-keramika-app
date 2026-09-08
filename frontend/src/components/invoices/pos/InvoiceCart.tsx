@@ -8,6 +8,7 @@ export function InvoiceCart({
   lineErrors,
   highlightedProductID,
   onQuantityChange,
+  onPriceOverrideChange,
   onRemove,
   emptyLabel = "Račun je prazan. Dodajte proizvod pretragom.",
   className = "",
@@ -16,6 +17,11 @@ export function InvoiceCart({
   lineErrors: Record<number, string>;
   highlightedProductID?: number | null;
   onQuantityChange: (productID: number, quantity: number) => void;
+  onPriceOverrideChange: (
+    productID: number,
+    enabled: boolean,
+    priceOverride: number | null,
+  ) => void;
   onRemove: (productID: number) => void;
   emptyLabel?: string;
   className?: string;
@@ -40,6 +46,9 @@ export function InvoiceCart({
             highlighted={highlightedProductID === line.productID}
             onQuantityChange={(quantity) =>
               onQuantityChange(line.productID, quantity)
+            }
+            onPriceOverrideChange={(enabled, priceOverride) =>
+              onPriceOverrideChange(line.productID, enabled, priceOverride)
             }
             onRemove={() => onRemove(line.productID)}
           />

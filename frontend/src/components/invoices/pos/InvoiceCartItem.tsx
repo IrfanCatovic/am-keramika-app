@@ -4,6 +4,8 @@ import { formatMoney, formatQuantity, formatUnit } from "@/lib/format";
 import {
   calculatePackagePrice,
   getActualProductQuantity,
+  isValidInvoicePriceOverride,
+  resolveInvoiceFormLineUnitPrice,
 } from "@/lib/product-pricing";
 import { InvoiceFormLine } from "@/types/invoice";
 
@@ -12,12 +14,14 @@ export function InvoiceCartItem({
   error,
   highlighted,
   onQuantityChange,
+  onPriceOverrideChange,
   onRemove,
 }: {
   line: InvoiceFormLine;
   error?: string | null;
   highlighted?: boolean;
   onQuantityChange: (quantity: number) => void;
+  onPriceOverrideChange: (enabled: boolean, priceOverride: number | null) => void;
   onRemove: () => void;
 }) {
   const quantityDetails = getActualProductQuantity(
@@ -25,9 +29,18 @@ export function InvoiceCartItem({
     line.saleByPackage,
     line.packageQuantity,
   );
-  const previewTotal = line.salePrice * quantityDetails.actualQuantity;
+  const overrideEnabled = Boolean(line.priceOverrideEnabled);
+  const unitPrice = resolveInvoiceFormLineUnitPrice(line);
+  const previewTotal = unitPrice * quantityDetails.actualQuantity;
+  const unitLabel = formatUnit(line.unit);
   /** Minus korak −1: na količini 1 ostaje disabled (uklanjanje ide preko kante). */
   const canDecrease = Math.round((line.quantity - 1) * 100) / 100 >= 0.01;
+  const overrideInputValue =
+    line.priceOverride == null || !Number.isFinite(line.priceOverride)
+      ? ""
+      : line.priceOverride;
+  const showOverridePriceHint =
+    overrideEnabled && isValidInvoicePriceOverride(line.priceOverride);
 
   function bump(delta: number) {
     const next = Math.round((line.quantity + delta) * 100) / 100;
@@ -48,7 +61,9 @@ export function InvoiceCartItem({
           ? "border-red-200 bg-red-50/50"
           : highlighted
             ? "border-[#c4a484] bg-[#f8f1e8] ring-1 ring-[#c4a484]/40"
-            : "border-stone-200 bg-white"
+            : overrideEnabled
+              ? "border-[#c4a484]/55 bg-[#faf7f3]"
+              : "border-stone-200 bg-white"
       }`}
     >
       <div className="flex gap-2.5">
@@ -70,25 +85,40 @@ export function InvoiceCartItem({
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <p className="break-words text-sm font-medium text-stone-900">
-                {line.name}
-              </p>
+              <div className="flex flex-wrap items-center gap-1.5">
+                <p className="break-words text-sm font-medium text-stone-900">
+                  {line.name}
+                </p>
+                {overrideEnabled ? (
+                  <span className="inline-flex rounded-md bg-[#2a2420]/90 px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-[#e8d5bc]">
+                    Ručna cena
+                  </span>
+                ) : null}
+              </div>
               <p className="mt-0.5 text-[11px] text-stone-500">
-                {formatMoney(line.salePrice)} / {formatUnit(line.unit)}
+                {overrideEnabled
+                  ? `Redovna cena: ${formatMoney(line.salePrice)} / ${unitLabel}`
+                  : `${formatMoney(line.salePrice)} / ${unitLabel}`}
               </p>
               {line.saleByPackage && line.packageQuantity ? (
                 <div className="mt-1 text-xs text-stone-600">
-                  <p>Potrebno: {formatQuantity(line.quantity)} {formatUnit(line.unit)}</p>
+                  <p>
+                    Potrebno: {formatQuantity(line.quantity)} {unitLabel}
+                  </p>
                   <p>
                     {quantityDetails.packageCount} paketa ×{" "}
-                    {formatQuantity(line.packageQuantity)} {formatUnit(line.unit)}
+                    {formatQuantity(line.packageQuantity)} {unitLabel}
                   </p>
-              <p>Obračun: {formatQuantity(quantityDetails.actualQuantity)} {formatUnit(line.unit)}</p>
                   <p>
-                {formatMoney(line.salePrice)} / {formatUnit(line.unit)} ·{" "}
+                    Obračun: {formatQuantity(quantityDetails.actualQuantity)}{" "}
+                    {unitLabel}
+                  </p>
+                  <p>
+                    {formatMoney(unitPrice)} / {unitLabel} ·{" "}
                     {formatMoney(
-                      calculatePackagePrice(line.salePrice, line.packageQuantity),
-                    )} / paket
+                      calculatePackagePrice(unitPrice, line.packageQuantity),
+                    )}{" "}
+                    / paket
                   </p>
                 </div>
               ) : null}
@@ -148,8 +178,64 @@ export function InvoiceCartItem({
             </p>
           </div>
 
+          <label className="mt-2.5 flex cursor-pointer items-center gap-2 text-xs text-stone-700">
+            <input
+              type="checkbox"
+              checked={overrideEnabled}
+              onChange={(event) => {
+                if (event.target.checked) {
+                  onPriceOverrideChange(true, line.priceOverride ?? null);
+                } else {
+                  onPriceOverrideChange(false, null);
+                }
+              }}
+              className="h-3.5 w-3.5 rounded border-stone-300 text-stone-900 focus:ring-[#c4a484]"
+            />
+            <span>Popust na kasi</span>
+          </label>
+
+          {overrideEnabled ? (
+            <div className="mt-2 space-y-1.5">
+              <label className="block text-[11px] font-medium text-stone-600">
+                Cena na kasi
+              </label>
+              <div className="flex flex-wrap items-center gap-2">
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step="0.01"
+                  min="0.01"
+                  value={overrideInputValue}
+                  onChange={(event) => {
+                    const raw = event.target.value;
+                    if (raw.trim() === "") {
+                      onPriceOverrideChange(true, null);
+                      return;
+                    }
+                    onPriceOverrideChange(true, Number(raw));
+                  }}
+                  aria-label={`Cena na kasi za ${line.name}`}
+                  className="h-9 w-28 rounded-lg border border-stone-200 bg-white px-2.5 text-sm tabular-nums outline-none ring-[#c4a484]/35 focus:ring-2"
+                />
+                <span className="text-xs text-stone-500">
+                  RSD / {unitLabel}
+                </span>
+              </div>
+              {showOverridePriceHint ? (
+                <div className="text-[11px] leading-relaxed text-stone-500">
+                  <p>
+                    Redovna cena: {formatMoney(line.salePrice)} / {unitLabel}
+                  </p>
+                  <p>
+                    Cena na kasi: {formatMoney(unitPrice)} / {unitLabel}
+                  </p>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
           <p className="mt-1 text-[11px] text-stone-400">
-            Max {formatQuantity(line.stockQuantity)} {formatUnit(line.unit)}
+            Max {formatQuantity(line.stockQuantity)} {unitLabel}
           </p>
 
           {error ? (

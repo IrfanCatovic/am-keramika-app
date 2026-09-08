@@ -38,6 +38,8 @@ import {
 } from "@/lib/invoices-api";
 import {
   getActualProductQuantity,
+  isValidInvoicePriceOverride,
+  previewInvoiceFormLineTotal,
   resolveProductUnitPrice,
 } from "@/lib/product-pricing";
 import { fetchProducts } from "@/lib/products-api";
@@ -454,6 +456,37 @@ export function InvoiceForm({
     });
   }
 
+  function updatePriceOverride(
+    productID: number,
+    enabled: boolean,
+    priceOverride: number | null,
+  ) {
+    setLines((current) =>
+      current.map((line) => {
+        if (line.productID !== productID) {
+          return line;
+        }
+        if (!enabled) {
+          return {
+            ...line,
+            priceOverrideEnabled: false,
+            priceOverride: null,
+          };
+        }
+        return {
+          ...line,
+          priceOverrideEnabled: true,
+          priceOverride,
+        };
+      }),
+    );
+    setLineErrors((errors) => {
+      const next = { ...errors };
+      delete next[productID];
+      return next;
+    });
+  }
+
   function removeLine(productID: number) {
     setLines((current) => current.filter((line) => line.productID !== productID));
     setLineErrors((errors) => {
@@ -482,11 +515,16 @@ export function InvoiceForm({
       } else if (details.actualQuantity > line.stockQuantity) {
         nextErrors[line.productID] =
           `Nema dovoljno robe na stanju za ${details.actualQuantity} ${formatUnit(line.unit)}.`;
+      } else if (
+        line.priceOverrideEnabled &&
+        !isValidInvoicePriceOverride(line.priceOverride)
+      ) {
+        nextErrors[line.productID] = "Unesite ispravnu cenu veću od 0.";
       }
     }
     setLineErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) {
-      setError("Ispravite količine u označenim stavkama.");
+      setError("Ispravite označene stavke.");
       return false;
     }
     return true;
@@ -523,7 +561,9 @@ export function InvoiceForm({
         Number.isFinite(line.quantity) &&
         line.quantity > 0 &&
         lineQuantityDetails(line).actualQuantity <= line.stockQuantity &&
-        (!line.saleByPackage || lineQuantityDetails(line).actualQuantity > 0),
+        (!line.saleByPackage || lineQuantityDetails(line).actualQuantity > 0) &&
+        (!line.priceOverrideEnabled ||
+          isValidInvoicePriceOverride(line.priceOverride)),
     ) &&
     Object.keys(lineErrors).length === 0 &&
     !(
@@ -537,11 +577,7 @@ export function InvoiceForm({
       return;
     }
     const previewTotal = lines.reduce(
-      (sum, line) =>
-        sum +
-        (Number.isFinite(line.quantity)
-          ? line.salePrice * lineQuantityDetails(line).actualQuantity
-          : 0),
+      (sum, line) => sum + previewInvoiceFormLineTotal(line),
       0,
     );
     if (!validatePaymentPreview(previewTotal)) {
@@ -553,10 +589,23 @@ export function InvoiceForm({
     try {
       const payload: Parameters<typeof createInvoice>[0] = {
         customerID: customerMode === "customer" ? customer?.id : null,
-        items: lines.map((line) => ({
-          productID: line.productID,
-          quantity: line.quantity,
-        })),
+        items: lines.map((line) => {
+          const item: {
+            productID: number;
+            quantity: number;
+            priceOverride?: number;
+          } = {
+            productID: line.productID,
+            quantity: line.quantity,
+          };
+          if (
+            line.priceOverrideEnabled &&
+            isValidInvoicePriceOverride(line.priceOverride)
+          ) {
+            item.priceOverride = Math.round(line.priceOverride * 100) / 100;
+          }
+          return item;
+        }),
       };
       if (customerMode === "customer") {
         payload.paymentMode = paymentMode;
@@ -682,11 +731,7 @@ export function InvoiceForm({
         : "Kupac nije izabran";
 
   const previewTotal = lines.reduce(
-    (sum, line) =>
-      sum +
-      (Number.isFinite(line.quantity)
-        ? line.salePrice * lineQuantityDetails(line).actualQuantity
-        : 0),
+    (sum, line) => sum + previewInvoiceFormLineTotal(line),
     0,
   );
 
@@ -750,6 +795,7 @@ export function InvoiceForm({
       lineErrors={lineErrors}
       highlightedProductID={highlightedProductID}
       onQuantityChange={updateQuantity}
+      onPriceOverrideChange={updatePriceOverride}
       onRemove={removeLine}
     />
   );
@@ -886,6 +932,7 @@ export function InvoiceForm({
         error={error}
         canSubmit={canSubmit && !createdInvoice}
         onQuantityChange={updateQuantity}
+        onPriceOverrideChange={updatePriceOverride}
         onRemove={removeLine}
         onSubmit={() => void handleSubmit()}
         submitLabel={submitLabel}

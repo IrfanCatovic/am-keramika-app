@@ -42,7 +42,9 @@ export interface InvoiceItem {
   packageQuantity: number;
   packageCount: number;
   unit?: string;
+  originalUnitPrice?: number | null;
   unitPrice: number;
+  priceOverridden?: boolean;
   totalPrice: number;
 }
 
@@ -103,6 +105,8 @@ export interface InvoiceListParams {
 export interface CreateInvoiceItemPayload {
   productID: number;
   quantity: number;
+  /** Konačna cena po jedinici samo za ovu stavku; ne šalji ako nema popusta na kasi. */
+  priceOverride?: number;
 }
 
 export interface CreateInvoicePayload {
@@ -140,10 +144,15 @@ export interface InvoiceFormLine {
   productID: number;
   name: string;
   unit: string;
+  /** Trenutna effective katalog cena (bez ručne izmene na kasi). */
   salePrice: number;
   stockQuantity: number;
   imageUrl: string | null;
   quantity: number;
   saleByPackage?: boolean;
   packageQuantity?: number;
+  /** Da li je uključen „Popust na kasi“ za ovu stavku. */
+  priceOverrideEnabled?: boolean;
+  /** Ručna konačna cena po jedinici; koristi se samo dok je checkbox uključen. */
+  priceOverride?: number | null;
 }

@@ -293,6 +293,11 @@ export function InvoiceDetailsView({ invoiceId }: { invoiceId: number }) {
               <div className="min-w-0">
                 <p className="break-words font-medium text-stone-900">
                   {item.productName}
+                  {item.priceOverridden ? (
+                    <span className="ml-2 inline-flex align-middle rounded-md bg-[#2a2420]/90 px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-[#e8d5bc]">
+                      Ručna cena
+                    </span>
+                  ) : null}
                 </p>
                 {item.saleByPackage ? (
                   <p className="mt-1 text-xs text-stone-500">
@@ -306,6 +311,25 @@ export function InvoiceDetailsView({ invoiceId }: { invoiceId: number }) {
               {formatUnit(item.unit) ? ` ${formatUnit(item.unit)}` : ''} ×{' '}
                   {formatMoney(item.unitPrice)}
                 </p>
+                {item.priceOverridden ? (
+                  <div className="mt-1 space-y-0.5 text-xs text-stone-500">
+                    {item.originalUnitPrice != null &&
+                    Number.isFinite(item.originalUnitPrice) ? (
+                      <p>
+                        Redovna cena: {formatMoney(item.originalUnitPrice)}
+                        {formatUnit(item.unit)
+                          ? ` / ${formatUnit(item.unit)}`
+                          : ""}
+                      </p>
+                    ) : null}
+                    <p>
+                      Cena na računu: {formatMoney(item.unitPrice)}
+                      {formatUnit(item.unit)
+                        ? ` / ${formatUnit(item.unit)}`
+                        : ""}
+                    </p>
+                  </div>
+                ) : null}
               </div>
               <p className="text-sm font-semibold tabular-nums text-stone-900">
                 {formatMoney(item.totalPrice)}

@@ -161,3 +161,47 @@ export function getActualProductQuantity(
   return calculatePackagedQuantity(requestedQuantity, packageQuantity);
 }
 
+/** Validna ručna cena na kasi: konačan broj strogo veći od 0. */
+export function isValidInvoicePriceOverride(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value) && value > 0;
+}
+
+/**
+ * Konačna jedinična cena stavke na formi računa.
+ * Ako je uključen popust na kasi i cena je validna → override; inače katalog effective.
+ */
+export function resolveInvoiceFormLineUnitPrice(line: {
+  salePrice: number;
+  priceOverrideEnabled?: boolean;
+  priceOverride?: number | null;
+}): number {
+  if (
+    line.priceOverrideEnabled &&
+    isValidInvoicePriceOverride(line.priceOverride)
+  ) {
+    return Math.round(line.priceOverride * 100) / 100;
+  }
+  return line.salePrice;
+}
+
+/** Live preview total jedne stavke (override × actualQuantity za pakete). */
+export function previewInvoiceFormLineTotal(line: {
+  quantity: number;
+  salePrice: number;
+  saleByPackage?: boolean;
+  packageQuantity?: number;
+  priceOverrideEnabled?: boolean;
+  priceOverride?: number | null;
+}): number {
+  if (!Number.isFinite(line.quantity)) {
+    return 0;
+  }
+  const unitPrice = resolveInvoiceFormLineUnitPrice(line);
+  const { actualQuantity } = getActualProductQuantity(
+    line.quantity,
+    line.saleByPackage,
+    line.packageQuantity,
+  );
+  return unitPrice * actualQuantity;
+}
+

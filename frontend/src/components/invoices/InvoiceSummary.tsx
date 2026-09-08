@@ -1,6 +1,7 @@
 "use client";
 
 import { formatMoney } from "@/lib/format";
+import { previewInvoiceFormLineTotal } from "@/lib/product-pricing";
 import { InvoiceFormLine } from "@/types/invoice";
 
 export function InvoiceSummary({
@@ -24,9 +25,7 @@ export function InvoiceSummary({
     0,
   );
   const previewTotal = lines.reduce(
-    (sum, line) =>
-      sum +
-      (Number.isFinite(line.quantity) ? line.salePrice * line.quantity : 0),
+    (sum, line) => sum + previewInvoiceFormLineTotal(line),
     0,
   );
 

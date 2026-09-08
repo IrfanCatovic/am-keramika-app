@@ -4,7 +4,10 @@ import { useEffect, type ReactNode } from "react";
 
 import { InvoiceCart } from "@/components/invoices/pos/InvoiceCart";
 import { formatMoney, formatQuantity } from "@/lib/format";
-import { getActualProductQuantity } from "@/lib/product-pricing";
+import {
+  getActualProductQuantity,
+  previewInvoiceFormLineTotal,
+} from "@/lib/product-pricing";
 import { InvoiceFormLine } from "@/types/invoice";
 
 export function MobileInvoiceCartDrawer({
@@ -19,6 +22,7 @@ export function MobileInvoiceCartDrawer({
   error,
   canSubmit,
   onQuantityChange,
+  onPriceOverrideChange,
   onRemove,
   onSubmit,
   submitLabel,
@@ -37,6 +41,11 @@ export function MobileInvoiceCartDrawer({
   error: string | null;
   canSubmit: boolean;
   onQuantityChange: (productID: number, quantity: number) => void;
+  onPriceOverrideChange: (
+    productID: number,
+    enabled: boolean,
+    priceOverride: number | null,
+  ) => void;
   onRemove: (productID: number) => void;
   onSubmit: () => void;
   submitLabel?: string;
@@ -79,16 +88,7 @@ export function MobileInvoiceCartDrawer({
     0,
   );
   const previewTotal = lines.reduce(
-    (sum, line) =>
-      sum +
-        (Number.isFinite(line.quantity)
-          ? line.salePrice *
-            getActualProductQuantity(
-              line.quantity,
-              line.saleByPackage,
-              line.packageQuantity,
-            ).actualQuantity
-          : 0),
+    (sum, line) => sum + previewInvoiceFormLineTotal(line),
     0,
   );
 
@@ -128,6 +128,7 @@ export function MobileInvoiceCartDrawer({
             lineErrors={lineErrors}
             highlightedProductID={highlightedProductID}
             onQuantityChange={onQuantityChange}
+            onPriceOverrideChange={onPriceOverrideChange}
             onRemove={onRemove}
           />
           {paymentSection}
