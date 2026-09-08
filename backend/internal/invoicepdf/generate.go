@@ -383,8 +383,8 @@ func drawTotals(pdf *fpdf.Fpdf, doc Document) {
 	ensureSpace(pdf, 28)
 	pdf.SetX(120)
 	pdf.SetFont("dejavu", "", 9)
-	writeTotalRow(pdf, "Ukupno", formatMoney(doc.TotalAmount), false)
-	writeTotalRow(pdf, "Plaćeno", formatMoney(doc.PaidAmount), false)
+	writeTotalRow(pdf, "Ukupno", formatMoney(doc.TotalAmount), true)
+	writeTotalRow(pdf, "Plaćeno", formatMoney(doc.PaidAmount), true)
 
 	// Status plaćanja se već vidi ispod datuma (Plaćen / Neplaćen…).
 	// Ovde prikazujemo samo preostali iznos ili storno.

@@ -189,14 +189,16 @@ export function InvoicePrintDocument({
       <section className="mt-6 flex justify-end">
         <dl className="w-full max-w-xs space-y-1.5 text-sm">
           <div className="flex justify-between gap-6">
-            <dt className="text-stone-600">Ukupno</dt>
-            <dd className="font-semibold tabular-nums">
+            <dt className="font-semibold text-stone-900">Ukupno</dt>
+            <dd className="font-semibold tabular-nums text-stone-900">
               {formatMoney(invoice.totalAmount)}
             </dd>
           </div>
           <div className="flex justify-between gap-6">
-            <dt className="text-stone-600">Plaćeno</dt>
-            <dd className="tabular-nums">{formatMoney(invoice.paidAmount)}</dd>
+            <dt className="font-semibold text-stone-900">Plaćeno</dt>
+            <dd className="font-semibold tabular-nums text-stone-900">
+              {formatMoney(invoice.paidAmount)}
+            </dd>
           </div>
           {isCancelled ? (
             <div className="flex justify-between gap-6 border-t border-stone-300 pt-2">
