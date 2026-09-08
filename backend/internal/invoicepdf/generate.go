@@ -219,17 +219,12 @@ func drawHeader(pdf *fpdf.Fpdf, doc Document) {
 	}
 	writeOptionalLine(pdf, textX, company.Email)
 	writeOptionalLine(pdf, textX, company.Website)
-	if tax := strings.TrimSpace(company.TaxID); tax != "" {
-		writeOptionalLine(pdf, textX, "PIB: "+tax)
-	}
-	if mb := strings.TrimSpace(company.RegistrationNumber); mb != "" {
-		writeOptionalLine(pdf, textX, "MB: "+mb)
-	}
 	if bank := strings.TrimSpace(company.BankAccount); bank != "" {
-		writeOptionalLine(pdf, textX, "Tekući račun: "+bank)
+		line := "Tekući račun: " + bank
 		if bankName := strings.TrimSpace(company.BankName); bankName != "" {
-			writeOptionalLine(pdf, textX, "Banka: "+bankName)
+			line += " — " + bankName
 		}
+		writeOptionalLine(pdf, textX, line)
 	}
 	pdf.SetTextColor(0, 0, 0)
 
@@ -391,16 +386,13 @@ func drawTotals(pdf *fpdf.Fpdf, doc Document) {
 	writeTotalRow(pdf, "Ukupno", formatMoney(doc.TotalAmount), false)
 	writeTotalRow(pdf, "Plaćeno", formatMoney(doc.PaidAmount), false)
 
-	label := "Preostalo"
-	value := formatMoney(doc.RemainingAmount)
+	// Status plaćanja se već vidi ispod datuma (Plaćen / Neplaćen…).
+	// Ovde prikazujemo samo preostali iznos ili storno.
 	if doc.Status == "cancelled" {
-		label = "Status"
-		value = statusLabel("cancelled")
-	} else if doc.RemainingAmount <= 0.000001 {
-		label = "Status plaćanja"
-		value = "Plaćeno"
+		writeTotalRow(pdf, "Status", statusLabel("cancelled"), true)
+	} else if doc.RemainingAmount > 0.000001 {
+		writeTotalRow(pdf, "Preostalo", formatMoney(doc.RemainingAmount), true)
 	}
-	writeTotalRow(pdf, label, value, true)
 	pdf.Ln(6)
 }
 

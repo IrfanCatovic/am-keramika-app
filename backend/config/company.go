@@ -41,8 +41,8 @@ func LoadCompanyConfig() CompanyConfig {
 		Email:              envTrim("COMPANY_EMAIL"),
 		TaxID:              withDefault("COMPANY_TAX_ID", "113560128"),
 		RegistrationNumber: withDefault("COMPANY_REGISTRATION_NUMBER", "21890162"),
-		BankName:           envTrim("COMPANY_BANK_NAME"),
-		BankAccount:        envTrim("COMPANY_BANK_ACCOUNT"),
+		BankName:           withDefault("COMPANY_BANK_NAME", "Halkbank"),
+		BankAccount:        withDefault("COMPANY_BANK_ACCOUNT", "155-0000000082232-82"),
 		Website:            envTrim("COMPANY_WEBSITE"),
 	}
 }

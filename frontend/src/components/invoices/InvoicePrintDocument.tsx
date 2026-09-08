@@ -5,9 +5,9 @@ import Image from "next/image";
 import {
   COMPANY_LOGO_SRC,
   companyAddressLines,
+  companyBankLines,
   companyConfig,
   companyContactLines,
-  companyIdLines,
 } from "@/config/company";
 import { formatMoney, formatQuantity, formatUnit } from "@/lib/format";
 import { invoiceCustomerLabel } from "@/lib/invoices-api";
@@ -40,7 +40,7 @@ export function InvoicePrintDocument({
   const isCash = invoice.customerID == null && !invoice.customer;
   const addressLines = companyAddressLines();
   const contactLines = companyContactLines();
-  const idLines = companyIdLines();
+  const bankLines = companyBankLines();
   const remainingSettled =
     !isCancelled && invoice.remainingAmount <= 0.000_001;
 
@@ -79,7 +79,7 @@ export function InvoicePrintDocument({
                 {line}
               </p>
             ))}
-            {idLines.map((line) => (
+            {bankLines.map((line) => (
               <p key={line} className="text-xs text-stone-600">
                 {line}
               </p>
@@ -198,18 +198,21 @@ export function InvoicePrintDocument({
             <dt className="text-stone-600">Plaćeno</dt>
             <dd className="tabular-nums">{formatMoney(invoice.paidAmount)}</dd>
           </div>
-          <div className="flex justify-between gap-6 border-t border-stone-300 pt-2">
-            <dt className="font-medium text-stone-800">
-              {remainingSettled ? "Status plaćanja" : "Preostalo"}
-            </dt>
-            <dd className="font-semibold tabular-nums">
-              {isCancelled
-                ? printStatusLabel("cancelled")
-                : remainingSettled
-                  ? "Plaćeno"
-                  : formatMoney(invoice.remainingAmount)}
-            </dd>
-          </div>
+          {isCancelled ? (
+            <div className="flex justify-between gap-6 border-t border-stone-300 pt-2">
+              <dt className="font-medium text-stone-800">Status</dt>
+              <dd className="font-semibold tabular-nums">
+                {printStatusLabel("cancelled")}
+              </dd>
+            </div>
+          ) : !remainingSettled ? (
+            <div className="flex justify-between gap-6 border-t border-stone-300 pt-2">
+              <dt className="font-medium text-stone-800">Preostalo</dt>
+              <dd className="font-semibold tabular-nums">
+                {formatMoney(invoice.remainingAmount)}
+              </dd>
+            </div>
+          ) : null}
         </dl>
       </section>
 

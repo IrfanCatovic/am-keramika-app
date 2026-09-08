@@ -28,8 +28,9 @@ export const companyConfig = {
   taxId: env('NEXT_PUBLIC_COMPANY_TAX_ID') || '113560128',
   registrationNumber:
     env('NEXT_PUBLIC_COMPANY_REGISTRATION_NUMBER') || '21890162',
-  bankName: env('NEXT_PUBLIC_COMPANY_BANK_NAME'),
-  bankAccount: env('NEXT_PUBLIC_COMPANY_BANK_ACCOUNT'),
+  bankName: env('NEXT_PUBLIC_COMPANY_BANK_NAME') || 'Halkbank',
+  bankAccount:
+    env('NEXT_PUBLIC_COMPANY_BANK_ACCOUNT') || '155-0000000082232-82',
   website: env('NEXT_PUBLIC_COMPANY_WEBSITE'),
 } as const;
 
@@ -64,9 +65,19 @@ export function companyIdLines(
   if (config.registrationNumber) {
     lines.push(`Matični broj: ${config.registrationNumber}`);
   }
+  return lines;
+}
+
+/** Tekući račun za štampu računa (bez PIB/MB). */
+export function companyBankLines(
+  config: CompanyConfig = companyConfig
+): string[] {
+  const lines: string[] = [];
   if (config.bankAccount) {
-    lines.push(`Tekući račun: ${config.bankAccount}`);
-    if (config.bankName) lines.push(`Banka: ${config.bankName}`);
+    const bank = config.bankName
+      ? `${config.bankAccount} — ${config.bankName}`
+      : config.bankAccount;
+    lines.push(`Tekući račun: ${bank}`);
   }
   return lines;
 }
