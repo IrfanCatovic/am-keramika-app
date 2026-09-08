@@ -61,6 +61,15 @@ func TestMapInvoiceResponseWithCustomer(t *testing.T) {
 	if len(resp.Items) != 1 || resp.Items[0].ProductName != "Pločica" || resp.Items[0].Unit != "m2" {
 		t.Fatalf("unexpected items: %+v", resp.Items)
 	}
+	if resp.Items[0].PriceOverridden {
+		t.Fatal("legacy item should map PriceOverridden=false")
+	}
+	if resp.Items[0].OriginalUnitPrice != nil {
+		t.Fatalf("legacy item OriginalUnitPrice should be nil, got %v", resp.Items[0].OriginalUnitPrice)
+	}
+	if resp.Items[0].UnitPrice != 50 {
+		t.Fatalf("unitPrice want 50 got %v", resp.Items[0].UnitPrice)
+	}
 
 	raw, err := json.Marshal(resp)
 	if err != nil {

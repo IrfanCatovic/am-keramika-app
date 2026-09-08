@@ -15,21 +15,24 @@ type CreateInvoiceRequest struct {
 }
 
 type CreateInvoiceItemRequest struct {
-	ProductID uint    `json:"productID" binding:"required"`
-	Quantity  float64 `json:"quantity" binding:"required,gt=0"`
+	ProductID     uint     `json:"productID" binding:"required"`
+	Quantity      float64  `json:"quantity" binding:"required,gt=0"`
+	PriceOverride *float64 `json:"priceOverride"`
 }
 
 type InvoiceItemResponse struct {
-	ProductID         uint    `json:"productID"`
-	ProductName       string  `json:"productName"`
-	Quantity          float64 `json:"quantity"`
-	RequestedQuantity float64 `json:"requestedQuantity"`
-	SaleByPackage     bool    `json:"saleByPackage"`
-	PackageQuantity   float64 `json:"packageQuantity"`
-	PackageCount      int     `json:"packageCount"`
-	Unit              string  `json:"unit"`
-	UnitPrice         float64 `json:"unitPrice"`
-	TotalPrice        float64 `json:"totalPrice"`
+	ProductID         uint     `json:"productID"`
+	ProductName       string   `json:"productName"`
+	Quantity          float64  `json:"quantity"`
+	RequestedQuantity float64  `json:"requestedQuantity"`
+	SaleByPackage     bool     `json:"saleByPackage"`
+	PackageQuantity   float64  `json:"packageQuantity"`
+	PackageCount      int      `json:"packageCount"`
+	Unit              string   `json:"unit"`
+	OriginalUnitPrice *float64 `json:"originalUnitPrice"`
+	UnitPrice         float64  `json:"unitPrice"`
+	PriceOverridden   bool     `json:"priceOverridden"`
+	TotalPrice        float64  `json:"totalPrice"`
 }
 
 type InvoiceResponse struct {

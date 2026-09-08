@@ -53,8 +53,10 @@ func CreateInvoice(c *gin.Context) {
 			strings.Contains(msg, "pozitivan ukupan"),
 			errors.Is(err, pricing.ErrPackageQuantityRequired),
 			errors.Is(err, pricing.ErrInvalidPackageQuantity),
+			errors.Is(err, pricing.ErrInvalidPriceOverride),
 			strings.Contains(msg, "količina nije validna za prodaju po pakovanju"),
-			strings.Contains(msg, "količina mora biti veća od 0"):
+			strings.Contains(msg, "količina mora biti veća od 0"),
+			strings.Contains(msg, "ručna cena"):
 			status = http.StatusBadRequest
 		}
 		c.JSON(status, gin.H{"error": err.Error()})

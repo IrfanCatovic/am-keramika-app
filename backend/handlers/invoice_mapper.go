@@ -49,7 +49,9 @@ func mapInvoiceResponse(invoice models.Invoice) dto.InvoiceResponse {
 			PackageQuantity:   item.PackageQuantity,
 			PackageCount:      item.PackageCount,
 			Unit:              unit,
+			OriginalUnitPrice: item.OriginalUnitPrice,
 			UnitPrice:         item.UnitPrice,
+			PriceOverridden:   item.PriceOverridden,
 			TotalPrice:        item.TotalPrice,
 		})
 	}

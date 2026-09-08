@@ -92,8 +92,21 @@ func CreateInvoice(req dto.CreateInvoiceRequest, createdByUserID uint) (*models.
 			return nil, errors.New("nema dovoljno stoka na skladištu")
 		}
 
-		unitPrice := pricing.GetEffectiveSalePrice(product.SalePrice, product.IsOnSale, product.DiscountPercent)
+		effectiveUnitPrice := pricing.GetEffectiveSalePrice(
+			product.SalePrice,
+			product.IsOnSale,
+			product.DiscountPercent,
+		)
+		unitPrice, originalUnitPrice, priceOverridden, err := pricing.ResolveInvoiceItemUnitPrice(
+			effectiveUnitPrice,
+			item.PriceOverride,
+		)
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
 		totalPrice := pricing.RoundToTwoDecimals(unitPrice * actualQuantity)
+		originalSnapshot := originalUnitPrice
 
 		invoiceItem := models.InvoiceItem{
 			InvoiceID:         invoice.ID,
@@ -103,7 +116,9 @@ func CreateInvoice(req dto.CreateInvoiceRequest, createdByUserID uint) (*models.
 			SaleByPackage:     product.SaleByPackage,
 			PackageQuantity:   packageQuantity,
 			PackageCount:      packageCount,
+			OriginalUnitPrice: &originalSnapshot,
 			UnitPrice:         unitPrice,
+			PriceOverridden:   priceOverridden,
 			TotalPrice:        totalPrice,
 		}
 
