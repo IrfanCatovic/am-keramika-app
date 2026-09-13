@@ -29,12 +29,12 @@ export function CartQuantityControl({
   }
 
   return (
-    <div className="inline-flex items-stretch overflow-hidden rounded-full border border-stone-300 bg-white">
+    <div className="inline-flex h-11 items-stretch overflow-hidden rounded-full border border-stone-300 bg-white">
       <button
         type="button"
         disabled={disabled || value <= 1}
         aria-label="Smanji količinu"
-        className="flex h-11 w-11 items-center justify-center text-stone-700 transition hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-40"
+        className="flex h-full w-11 shrink-0 items-center justify-center text-lg leading-none text-stone-700 transition hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-40"
         onClick={() => {
           if (value > 1) onChange(Math.round((value - 1) * 100) / 100);
         }}
@@ -48,7 +48,7 @@ export function CartQuantityControl({
         disabled={disabled}
         value={display}
         aria-label={unit ? `Količina (${unit})` : "Količina"}
-        className="w-16 border-x border-stone-200 bg-transparent text-center text-sm tabular-nums text-stone-900 outline-none disabled:opacity-50"
+        className="box-border h-full w-14 shrink-0 border-x border-stone-200 bg-transparent px-1 py-0 text-center text-sm leading-[2.75rem] tabular-nums text-stone-900 outline-none disabled:opacity-50"
         onFocus={() => setDraft(formatQty(value))}
         onChange={(e) => setDraft(e.target.value)}
         onBlur={(e) => commit(e.target.value)}
@@ -62,7 +62,7 @@ export function CartQuantityControl({
         type="button"
         disabled={disabled}
         aria-label="Povećaj količinu"
-        className="flex h-11 w-11 items-center justify-center text-stone-700 transition hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-40"
+        className="flex h-full w-11 shrink-0 items-center justify-center text-lg leading-none text-stone-700 transition hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-40"
         onClick={() => onChange(Math.round((value + 1) * 100) / 100)}
       >
         +

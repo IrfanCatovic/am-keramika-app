@@ -92,24 +92,29 @@ export function AddToCart({ product }: { product: AddToCartProduct }) {
         Izaberite količinu i dodajte proizvod u korpu.
       </p>
 
-      <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <label htmlFor={qtyId} className="text-sm font-medium text-stone-700">
-          Potrebna količina
-        </label>
-        <CartQuantityControl
-          id={qtyId}
-          value={quantity}
-          unit={formatUnit(product.unit)}
-          disabled={disabled || busy}
-          onChange={(next) => {
-            void handleQuantityChange(next);
-          }}
-        />
+      <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-3">
+        <div className="flex flex-col items-center gap-2 sm:flex-row sm:items-center sm:gap-3">
+          <label
+            htmlFor={qtyId}
+            className="text-sm font-medium text-stone-700"
+          >
+            Potrebna količina
+          </label>
+          <CartQuantityControl
+            id={qtyId}
+            value={quantity}
+            unit={formatUnit(product.unit)}
+            disabled={disabled || busy}
+            onChange={(next) => {
+              void handleQuantityChange(next);
+            }}
+          />
+        </div>
         <button
           type="button"
           disabled={disabled || busy || checking || !(quantity > 0)}
           onClick={() => void handleAdd()}
-          className="inline-flex min-h-11 flex-1 items-center justify-center rounded-full bg-[#141311] px-6 text-sm font-medium text-white transition duration-200 hover:bg-[#2a2420] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45 sm:flex-none sm:px-8"
+          className="inline-flex min-h-11 w-full items-center justify-center rounded-full bg-[#141311] px-6 text-sm font-medium text-white transition duration-200 hover:bg-[#2a2420] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45 sm:w-auto sm:flex-none sm:px-8"
         >
           {busy || checking ? "Provera…" : "Dodaj u korpu"}
         </button>
