@@ -2,6 +2,8 @@ package repositories
 
 import (
 	"errors"
+	"strconv"
+	"strings"
 	"testing"
 
 	"am-keramika-backend/database"
@@ -122,6 +124,10 @@ func TestCreateSalesReturnStandardNoCashRefund(t *testing.T) {
 	if len(movements) != 1 || movements[0].MovementType != "return" || movements[0].Quantity != 2 {
 		t.Fatalf("movements=%+v", movements)
 	}
+	wantNote := "Povrat robe #" + strconv.FormatUint(uint64(result.SalesReturn.ID), 10)
+	if !strings.HasPrefix(movements[0].Note, wantNote) {
+		t.Fatalf("movement note=%q want prefix %q", movements[0].Note, wantNote)
+	}
 	if movements[0].CreatedByUserID != user.ID {
 		t.Fatalf("movement audit=%d want %d", movements[0].CreatedByUserID, user.ID)
 	}
@@ -176,6 +182,16 @@ func TestCreateSalesReturnCashRefund(t *testing.T) {
 	}
 	if countRows[models.InventoryMovement](t) != 1 {
 		t.Fatal("expected 1 return movement")
+	}
+
+	var refundSum float64
+	if err := database.DB.Model(&models.Refund{}).
+		Select("COALESCE(SUM(amount), 0)").
+		Scan(&refundSum).Error; err != nil {
+		t.Fatalf("sum refunds: %v", err)
+	}
+	if refundSum != 10000 {
+		t.Fatalf("finance refund total=%v want 10000 (sales-return cash must count)", refundSum)
 	}
 }
 

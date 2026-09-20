@@ -218,7 +218,7 @@ function ProductSearchField({
       ) : null}
 
       {open && !item.product ? (
-        <div className="absolute z-20 mt-1 max-h-56 w-full overflow-y-auto rounded-xl border border-stone-200 bg-white shadow-lg">
+        <div className="mt-1 max-h-56 w-full overflow-y-auto rounded-xl border border-stone-200 bg-white shadow-sm">
           {loading ? (
             <p className="px-3 py-2.5 text-sm text-stone-500">Pretraga…</p>
           ) : error ? (

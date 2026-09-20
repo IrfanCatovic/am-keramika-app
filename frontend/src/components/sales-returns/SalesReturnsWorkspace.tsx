@@ -68,10 +68,16 @@ export function SalesReturnsWorkspace() {
   const cashFilter = parseCashFilter(searchParams.get("cashRefunded"));
 
   const [searchInput, setSearchInput] = useState(searchFromUrl);
+  const [urlSearchSnapshot, setUrlSearchSnapshot] = useState(searchFromUrl);
   const [data, setData] = useState<PaginatedSalesReturns | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
+
+  if (searchFromUrl !== urlSearchSnapshot) {
+    setUrlSearchSnapshot(searchFromUrl);
+    setSearchInput(searchFromUrl);
+  }
 
   const syncQuery = useCallback(
     (patch: {
