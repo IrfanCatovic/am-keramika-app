@@ -55,6 +55,8 @@ func main() {
 		&models.Refund{},
 		&models.OnlineOrder{},
 		&models.OnlineOrderItem{},
+		&models.SalesReturn{},
+		&models.SalesReturnItem{},
 	)
 	if err != nil {
 		log.Fatal("Neuspela migracija modela: ", err)
