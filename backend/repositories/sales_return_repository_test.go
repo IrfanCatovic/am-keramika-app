@@ -418,3 +418,152 @@ func TestCreateSalesReturnRejectsDuplicateProductID(t *testing.T) {
 		t.Fatal("duplicate must have no side effects")
 	}
 }
+
+func TestListSalesReturnsPaginationNewestFirstAndFilters(t *testing.T) {
+	setupSalesReturnTestDB(t)
+	user := seedSalesReturnUser(t)
+	p1 := seedSalesReturnProduct(t, "Bojler", "bojler", "kom", 20, 5000, true)
+	p2 := seedSalesReturnProduct(t, "Calacatta", "calacatta", "m²", 40, 1600, true)
+
+	first, err := CreateSalesReturn(dto.CreateSalesReturnRequest{
+		Description:  "stariji povrat",
+		CashRefunded: boolPtr(false),
+		Items:        []dto.CreateSalesReturnItemRequest{{ProductID: p1.ID, Quantity: 1, UnitPrice: 5000}},
+	}, user.ID)
+	if err != nil {
+		t.Fatalf("first: %v", err)
+	}
+	second, err := CreateSalesReturn(dto.CreateSalesReturnRequest{
+		Description:  "Marko Marković - višak robe",
+		CashRefunded: boolPtr(true),
+		Items:        []dto.CreateSalesReturnItemRequest{{ProductID: p2.ID, Quantity: 2, UnitPrice: 1600}},
+	}, user.ID)
+	if err != nil {
+		t.Fatalf("second: %v", err)
+	}
+	third, err := CreateSalesReturn(dto.CreateSalesReturnRequest{
+		Description:  "najnoviji",
+		CashRefunded: boolPtr(false),
+		Items: []dto.CreateSalesReturnItemRequest{
+			{ProductID: p1.ID, Quantity: 1, UnitPrice: 5000},
+			{ProductID: p2.ID, Quantity: 1, UnitPrice: 1600},
+		},
+	}, user.ID)
+	if err != nil {
+		t.Fatalf("third: %v", err)
+	}
+
+	page1, total, err := ListSalesReturns(SalesReturnListQuery{Page: 1, Limit: 2})
+	if err != nil {
+		t.Fatalf("page1: %v", err)
+	}
+	if total != 3 || len(page1) != 2 {
+		t.Fatalf("pagination total=%d len=%d", total, len(page1))
+	}
+	if page1[0].SalesReturn.ID != third.SalesReturn.ID || page1[1].SalesReturn.ID != second.SalesReturn.ID {
+		t.Fatalf("newest first failed: %+v", []uint{page1[0].SalesReturn.ID, page1[1].SalesReturn.ID})
+	}
+	if page1[0].ItemsCount != 2 {
+		t.Fatalf("itemsCount=%d want 2", page1[0].ItemsCount)
+	}
+
+	page2, _, err := ListSalesReturns(SalesReturnListQuery{Page: 2, Limit: 2})
+	if err != nil {
+		t.Fatalf("page2: %v", err)
+	}
+	if len(page2) != 1 || page2[0].SalesReturn.ID != first.SalesReturn.ID {
+		t.Fatalf("page2=%+v", page2)
+	}
+
+	cashTrue, totalTrue, err := ListSalesReturns(SalesReturnListQuery{Page: 1, Limit: 20, CashRefunded: boolPtr(true)})
+	if err != nil {
+		t.Fatalf("cash true: %v", err)
+	}
+	if totalTrue != 1 || cashTrue[0].SalesReturn.ID != second.SalesReturn.ID {
+		t.Fatalf("cashRefunded=true failed")
+	}
+
+	_, totalFalse, err := ListSalesReturns(SalesReturnListQuery{Page: 1, Limit: 20, CashRefunded: boolPtr(false)})
+	if err != nil {
+		t.Fatalf("cash false: %v", err)
+	}
+	if totalFalse != 2 {
+		t.Fatalf("cashRefunded=false total=%d want 2", totalFalse)
+	}
+
+	byDescription, totalDesc, err := ListSalesReturns(SalesReturnListQuery{Page: 1, Limit: 20, Search: "marko"})
+	if err != nil {
+		t.Fatalf("search desc: %v", err)
+	}
+	if totalDesc != 1 || byDescription[0].SalesReturn.ID != second.SalesReturn.ID {
+		t.Fatalf("description search failed")
+	}
+
+	_, totalProd, err := ListSalesReturns(SalesReturnListQuery{Page: 1, Limit: 20, Search: "calacatta"})
+	if err != nil {
+		t.Fatalf("search product: %v", err)
+	}
+	if totalProd != 2 {
+		t.Fatalf("product name search total=%d want 2", totalProd)
+	}
+}
+
+func TestGetSalesReturnByIDUsesSnapshotAndRefundRelation(t *testing.T) {
+	setupSalesReturnTestDB(t)
+	user := seedSalesReturnUser(t)
+	cat := models.Category{Name: "Pločice", Slug: "plocice", IsActive: true}
+	database.DB.Create(&cat)
+	product := models.Product{
+		Name: "Calacatta", Slug: "calacatta", CategoryID: cat.ID, Unit: "m²",
+		SalePrice: 2000, StockQuantity: 5.40, IsActive: true,
+		SaleByPackage: true, PackageQuantity: 1.44,
+	}
+	database.DB.Create(&product)
+
+	created, err := CreateSalesReturn(dto.CreateSalesReturnRequest{
+		Description:  "višak",
+		CashRefunded: boolPtr(true),
+		Items:        []dto.CreateSalesReturnItemRequest{{ProductID: product.ID, Quantity: 20, UnitPrice: 1600}},
+	}, user.ID)
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+
+	database.DB.Model(&product).Updates(map[string]any{
+		"name": "Nova Calacatta", "unit": "kom", "sale_by_package": false, "package_quantity": 9.99,
+	})
+
+	got, err := GetSalesReturnByID(created.SalesReturn.ID)
+	if err != nil {
+		t.Fatalf("get: %v", err)
+	}
+	if got.RefundID == nil || *got.RefundID != *created.RefundID {
+		t.Fatalf("refundID=%v want %v", got.RefundID, created.RefundID)
+	}
+	item := got.SalesReturn.Items[0]
+	if item.ProductName != "Calacatta" || item.Unit != "m²" {
+		t.Fatalf("snapshot overwritten: %+v", item)
+	}
+	if !item.SaleByPackage || item.PackageQuantity != 1.44 || item.Quantity != 20 {
+		t.Fatalf("package snapshot=%+v", item)
+	}
+	if item.UnitPrice != 1600 || item.TotalPrice != 32000 {
+		t.Fatalf("prices=%+v", item)
+	}
+
+	noCashProduct := seedSalesReturnProduct(t, "Slavina", "slavina", "kom", 5, 4500, true)
+	noCash, err := CreateSalesReturn(dto.CreateSalesReturnRequest{
+		CashRefunded: boolPtr(false),
+		Items:        []dto.CreateSalesReturnItemRequest{{ProductID: noCashProduct.ID, Quantity: 1, UnitPrice: 4500}},
+	}, user.ID)
+	if err != nil {
+		t.Fatalf("no cash create: %v", err)
+	}
+	loaded, err := GetSalesReturnByID(noCash.SalesReturn.ID)
+	if err != nil {
+		t.Fatalf("no cash get: %v", err)
+	}
+	if loaded.RefundID != nil {
+		t.Fatalf("non-cash refundID=%v", loaded.RefundID)
+	}
+}

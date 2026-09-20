@@ -162,6 +162,164 @@ func CreateSalesReturn(req dto.CreateSalesReturnRequest, createdByUserID uint) (
 	}, nil
 }
 
+const (
+	DefaultSalesReturnListPage  = 1
+	DefaultSalesReturnListLimit = 20
+	MaxSalesReturnListLimit     = 100
+)
+
+var ErrSalesReturnNotFound = errors.New("povrat robe nije pronađen")
+
+type SalesReturnListQuery struct {
+	Page         int
+	Limit        int
+	Search       string
+	CashRefunded *bool
+}
+
+type SalesReturnListRow struct {
+	SalesReturn models.SalesReturn
+	ItemsCount  int
+}
+
+func ListSalesReturns(q SalesReturnListQuery) ([]SalesReturnListRow, int64, error) {
+	if q.Page <= 0 {
+		q.Page = DefaultSalesReturnListPage
+	}
+	if q.Limit <= 0 {
+		q.Limit = DefaultSalesReturnListLimit
+	}
+	if q.Limit > MaxSalesReturnListLimit {
+		q.Limit = MaxSalesReturnListLimit
+	}
+
+	var total int64
+	if err := buildSalesReturnListQuery(q).Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	var returns []models.SalesReturn
+	offset := (q.Page - 1) * q.Limit
+	err := buildSalesReturnListQuery(q).
+		Preload("CreatedByUser").
+		Order("sales_returns.created_at DESC, sales_returns.id DESC").
+		Limit(q.Limit).
+		Offset(offset).
+		Find(&returns).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	counts, err := salesReturnItemCounts(salesReturnIDs(returns))
+	if err != nil {
+		return nil, 0, err
+	}
+
+	rows := make([]SalesReturnListRow, 0, len(returns))
+	for _, sr := range returns {
+		rows = append(rows, SalesReturnListRow{
+			SalesReturn: sr,
+			ItemsCount:  counts[sr.ID],
+		})
+	}
+	return rows, total, nil
+}
+
+func GetSalesReturnByID(id uint) (*CreateSalesReturnResult, error) {
+	var salesReturn models.SalesReturn
+	err := database.DB.
+		Preload("CreatedByUser").
+		Preload("Items").
+		First(&salesReturn, id).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrSalesReturnNotFound
+		}
+		return nil, err
+	}
+
+	refundID, err := lookupSalesReturnRefundID(salesReturn.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &CreateSalesReturnResult{
+		SalesReturn: salesReturn,
+		RefundID:    refundID,
+	}, nil
+}
+
+func buildSalesReturnListQuery(q SalesReturnListQuery) *gorm.DB {
+	query := database.DB.Model(&models.SalesReturn{})
+
+	if q.CashRefunded != nil {
+		query = query.Where("sales_returns.cash_refunded = ?", *q.CashRefunded)
+	}
+
+	search := strings.ToLower(strings.TrimSpace(q.Search))
+	if search != "" {
+		pattern := "%" + search + "%"
+		query = query.Where(
+			`LOWER(sales_returns.description) LIKE ? OR EXISTS (
+				SELECT 1 FROM sales_return_items
+				WHERE sales_return_items.sales_return_id = sales_returns.id
+					AND sales_return_items.deleted_at IS NULL
+					AND LOWER(sales_return_items.product_name) LIKE ?
+			)`,
+			pattern,
+			pattern,
+		)
+	}
+
+	return query
+}
+
+func salesReturnIDs(returns []models.SalesReturn) []uint {
+	ids := make([]uint, 0, len(returns))
+	for _, sr := range returns {
+		ids = append(ids, sr.ID)
+	}
+	return ids
+}
+
+func salesReturnItemCounts(ids []uint) (map[uint]int, error) {
+	counts := make(map[uint]int, len(ids))
+	if len(ids) == 0 {
+		return counts, nil
+	}
+
+	type itemCountRow struct {
+		SalesReturnID uint
+		Count         int
+	}
+	var rows []itemCountRow
+	err := database.DB.Model(&models.SalesReturnItem{}).
+		Select("sales_return_id, COUNT(*) AS count").
+		Where("sales_return_id IN ?", ids).
+		Group("sales_return_id").
+		Scan(&rows).Error
+	if err != nil {
+		return nil, err
+	}
+	for _, row := range rows {
+		counts[row.SalesReturnID] = row.Count
+	}
+	return counts, nil
+}
+
+func lookupSalesReturnRefundID(salesReturnID uint) (*uint, error) {
+	var refund models.Refund
+	err := database.DB.Select("id").Where("sales_return_id = ?", salesReturnID).First(&refund).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	id := refund.ID
+	return &id, nil
+}
+
 func salesReturnMovementNote(id uint, description string) string {
 	note := fmt.Sprintf("Povrat robe #%d", id)
 	if description != "" {

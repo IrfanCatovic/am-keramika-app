@@ -37,3 +37,21 @@ type SalesReturnResponse struct {
 	CreatedByUser *UserSummaryResponse      `json:"createdByUser,omitempty"`
 	Items         []SalesReturnItemResponse `json:"items"`
 }
+
+type SalesReturnListItemResponse struct {
+	ID            uint                 `json:"id"`
+	Description   string               `json:"description"`
+	TotalAmount   float64              `json:"totalAmount"`
+	CashRefunded  bool                 `json:"cashRefunded"`
+	ItemsCount    int                  `json:"itemsCount"`
+	CreatedAt     string               `json:"createdAt"`
+	CreatedByUser *UserSummaryResponse `json:"createdByUser,omitempty"`
+}
+
+type PaginatedSalesReturnResponse struct {
+	Items      []SalesReturnListItemResponse `json:"items"`
+	Page       int                           `json:"page"`
+	PageSize   int                           `json:"pageSize"`
+	Total      int64                         `json:"total"`
+	TotalPages int                           `json:"totalPages"`
+}
