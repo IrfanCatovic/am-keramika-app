@@ -16,7 +16,8 @@ type CancelInvoiceResponse struct {
 
 type RefundResponse struct {
 	ID            uint                 `json:"id"`
-	InvoiceID     uint                 `json:"invoiceID"`
+	InvoiceID     *uint                `json:"invoiceID,omitempty"`
+	SalesReturnID *uint                `json:"salesReturnID,omitempty"`
 	Amount        float64              `json:"amount"`
 	Reason        string               `json:"reason"`
 	CreatedAt     string               `json:"createdAt,omitempty"`
@@ -35,7 +36,8 @@ type InvoiceCancellationResponse struct {
 
 type RefundListItemResponse struct {
 	ID            uint                 `json:"id"`
-	InvoiceID     uint                 `json:"invoiceID"`
+	InvoiceID     *uint                `json:"invoiceID,omitempty"`
+	SalesReturnID *uint                `json:"salesReturnID,omitempty"`
 	Amount        float64              `json:"amount"`
 	Reason        string               `json:"reason"`
 	CreatedAt     string               `json:"createdAt"`

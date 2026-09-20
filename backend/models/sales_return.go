@@ -3,12 +3,14 @@ package models
 import "gorm.io/gorm"
 
 // SalesReturn represents one customer return visit with one or more products.
-// It does not depend on an Invoice and does not create Refund / stock side effects by itself.
+// It does not depend on an Invoice. Stock / Refund side effects are applied
+// in the create-return transaction, not by the model itself.
 type SalesReturn struct {
 	gorm.Model
 
-	TotalAmount float64 `gorm:"not null"`
-	Description string  `gorm:"size:1000"`
+	TotalAmount  float64 `gorm:"not null"`
+	Description  string  `gorm:"size:1000"`
+	CashRefunded bool    `gorm:"not null;default:false"`
 
 	CreatedByUserID uint
 	CreatedByUser   User `gorm:"foreignKey:CreatedByUserID"`

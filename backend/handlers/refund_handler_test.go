@@ -36,6 +36,8 @@ func setupRefundHandlerTestDB(t *testing.T) {
 		&models.Customer{},
 		&models.Invoice{},
 		&models.Refund{},
+		&models.SalesReturn{},
+		&models.SalesReturnItem{},
 	); err != nil {
 		t.Fatalf("migrate: %v", err)
 	}
@@ -100,7 +102,7 @@ func TestGetRefundsStaffAuthAndList(t *testing.T) {
 	}
 	database.DB.Create(&invoice)
 	database.DB.Create(&models.Refund{
-		InvoiceID: invoice.ID, CreatedByUserID: user.ID, Amount: 2000, Reason: "Storno",
+		InvoiceID: &invoice.ID, CreatedByUserID: user.ID, Amount: 2000, Reason: "Storno",
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/refunds?page=1&limit=10", nil)

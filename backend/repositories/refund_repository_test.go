@@ -28,6 +28,8 @@ func setupRefundTestDB(t *testing.T) {
 		&models.Invoice{},
 		&models.Refund{},
 		&models.InvoiceCancellation{},
+		&models.SalesReturn{},
+		&models.SalesReturnItem{},
 	); err != nil {
 		t.Fatalf("migrate: %v", err)
 	}
@@ -55,7 +57,7 @@ func seedRefundFixture(t *testing.T) (*models.User, *models.Customer, *models.In
 		t.Fatalf("invoice: %v", err)
 	}
 	refund := models.Refund{
-		InvoiceID:       invoice.ID,
+		InvoiceID:       &invoice.ID,
 		CreatedByUserID: user.ID,
 		Amount:          10000,
 		Reason:          "Storno",
@@ -81,7 +83,7 @@ func TestListRefundsPaginationAndFilters(t *testing.T) {
 	}
 	database.DB.Create(&invoice2)
 	database.DB.Create(&models.Refund{
-		InvoiceID:       invoice2.ID,
+		InvoiceID:       &invoice2.ID,
 		CreatedByUserID: user2.ID,
 		Amount:          5000,
 		Reason:          "Storno 2",
@@ -101,7 +103,7 @@ func TestListRefundsPaginationAndFilters(t *testing.T) {
 	if err != nil {
 		t.Fatalf("filter invoice: %v", err)
 	}
-	if totalInv != 1 || byInvoice[0].InvoiceID != invoice.ID {
+	if totalInv != 1 || byInvoice[0].InvoiceID == nil || *byInvoice[0].InvoiceID != invoice.ID {
 		t.Fatalf("invoice filter failed")
 	}
 

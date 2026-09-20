@@ -18,11 +18,12 @@ import (
 
 func mapRefundResponse(refund models.Refund) dto.RefundResponse {
 	response := dto.RefundResponse{
-		ID:        refund.ID,
-		InvoiceID: refund.InvoiceID,
-		Amount:    refund.Amount,
-		Reason:    refund.Reason,
-		CreatedAt: config.FormatBusinessDateTime(refund.CreatedAt),
+		ID:            refund.ID,
+		InvoiceID:     refund.InvoiceID,
+		SalesReturnID: refund.SalesReturnID,
+		Amount:        refund.Amount,
+		Reason:        refund.Reason,
+		CreatedAt:     config.FormatBusinessDateTime(refund.CreatedAt),
 	}
 	if refund.CreatedByUser.ID != 0 {
 		response.CreatedByUser = mapUserSummary(refund.CreatedByUser)
@@ -47,21 +48,24 @@ func mapInvoiceCancellationResponse(cancellation models.InvoiceCancellation) dto
 
 func mapRefundListItem(refund models.Refund) dto.RefundListItemResponse {
 	item := dto.RefundListItemResponse{
-		ID:        refund.ID,
-		InvoiceID: refund.InvoiceID,
-		Amount:    refund.Amount,
-		Reason:    refund.Reason,
-		CreatedAt: config.FormatBusinessDateTime(refund.CreatedAt),
+		ID:            refund.ID,
+		InvoiceID:     refund.InvoiceID,
+		SalesReturnID: refund.SalesReturnID,
+		Amount:        refund.Amount,
+		Reason:        refund.Reason,
+		CreatedAt:     config.FormatBusinessDateTime(refund.CreatedAt),
 	}
 	if refund.CreatedByUser.ID != 0 {
 		item.CreatedByUser = mapUserSummary(refund.CreatedByUser)
 	}
-	if refund.Invoice.CustomerID != nil {
-		item.CustomerID = refund.Invoice.CustomerID
-	}
-	if refund.Invoice.Customer != nil {
-		name := refund.Invoice.Customer.Name
-		item.CustomerName = &name
+	if refund.Invoice != nil {
+		if refund.Invoice.CustomerID != nil {
+			item.CustomerID = refund.Invoice.CustomerID
+		}
+		if refund.Invoice.Customer != nil {
+			name := refund.Invoice.Customer.Name
+			item.CustomerName = &name
+		}
 	}
 	return item
 }

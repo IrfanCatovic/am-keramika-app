@@ -288,7 +288,7 @@ func TestCreateInvoiceMovementFailureRollsBackStockAndInvoice(t *testing.T) {
 
 func TestCreateInvoiceCustomerThenCancelSaleAndReturnBalance(t *testing.T) {
 	setupCreateInvoiceTestDB(t)
-	if err := database.DB.AutoMigrate(&models.InvoiceCancellation{}, &models.Refund{}); err != nil {
+	if err := database.DB.AutoMigrate(&models.InvoiceCancellation{}, &models.Refund{}, &models.SalesReturn{}, &models.SalesReturnItem{}); err != nil {
 		t.Fatalf("migrate cancel models: %v", err)
 	}
 
@@ -598,7 +598,7 @@ func TestCreateInvoiceAllocationFailureRollsBack(t *testing.T) {
 
 func TestCreateInvoiceCustomerPartialThenCancelRefundsPaidAmount(t *testing.T) {
 	setupCreateInvoiceTestDB(t)
-	if err := database.DB.AutoMigrate(&models.InvoiceCancellation{}, &models.Refund{}); err != nil {
+	if err := database.DB.AutoMigrate(&models.InvoiceCancellation{}, &models.Refund{}, &models.SalesReturn{}, &models.SalesReturnItem{}); err != nil {
 		t.Fatalf("migrate cancel: %v", err)
 	}
 	user, customer, _, p2 := seedInvoiceCreateFixtures(t)

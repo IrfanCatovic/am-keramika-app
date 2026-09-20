@@ -480,8 +480,9 @@ func CancelInvoice(id uint, req dto.CancelInvoiceRequest, createdByUserID uint) 
 
 	var refundID uint
 	if refundedAmount > 0 {
+		invoiceID := invoice.ID
 		refund := models.Refund{
-			InvoiceID:       invoice.ID,
+			InvoiceID:       &invoiceID,
 			CreatedByUserID: createdByUserID,
 			Amount:          refundedAmount,
 			Reason:          req.Reason,

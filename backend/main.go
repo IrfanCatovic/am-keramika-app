@@ -176,6 +176,8 @@ func main() {
 			staff.GET("/payments", handlers.GetAllPayments)
 			staff.GET("/payments/:id", handlers.GetPaymentByID)
 
+			staff.POST("/sales-returns", handlers.CreateSalesReturn)
+
 			staff.GET("/online-orders/pending-count", handlers.GetOnlineOrdersPendingCount)
 			staff.GET("/online-orders", handlers.GetOnlineOrders)
 			staff.GET("/online-orders/:id", handlers.GetOnlineOrderByID)

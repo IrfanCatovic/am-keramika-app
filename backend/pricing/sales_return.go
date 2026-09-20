@@ -6,11 +6,12 @@ import (
 )
 
 var (
-	ErrSalesReturnEmptyItems       = errors.New("povrat mora imati najmanje jednu stavku")
-	ErrSalesReturnDuplicateProduct = errors.New("isti proizvod ne sme biti više puta u istom povratu")
-	ErrSalesReturnInvalidQuantity  = errors.New("količina mora biti veća od 0")
-	ErrSalesReturnInvalidUnitPrice = errors.New("cena povrata mora biti veća od 0")
-	ErrSalesReturnProductNotFound  = errors.New("proizvod nije pronađen")
+	ErrSalesReturnEmptyItems           = errors.New("povrat mora imati najmanje jednu stavku")
+	ErrSalesReturnDuplicateProduct     = errors.New("isti proizvod ne sme biti više puta u istom povratu")
+	ErrSalesReturnInvalidQuantity      = errors.New("količina mora biti veća od 0")
+	ErrSalesReturnInvalidUnitPrice     = errors.New("cena povrata mora biti veća od 0")
+	ErrSalesReturnProductNotFound      = errors.New("proizvod nije pronađen")
+	ErrSalesReturnCashRefundedRequired = errors.New("mora se navesti da li je novac vraćen kupcu")
 )
 
 // SalesReturnProductSnapshot holds product fields needed to build return line snapshots.

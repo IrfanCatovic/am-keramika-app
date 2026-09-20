@@ -42,6 +42,8 @@ func setupAuthTestDB(t *testing.T) {
 		&models.Refund{},
 		&models.Customer{},
 		&models.InventoryMovement{},
+		&models.SalesReturn{},
+		&models.SalesReturnItem{},
 	); err != nil {
 		t.Fatalf("migrate: %v", err)
 	}

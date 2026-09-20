@@ -51,6 +51,8 @@ func setupMVPSmokeDB(t *testing.T) {
 		&models.PaymentAllocation{},
 		&models.InvoiceCancellation{},
 		&models.Refund{},
+		&models.SalesReturn{},
+		&models.SalesReturnItem{},
 	); err != nil {
 		t.Fatalf("migrate: %v", err)
 	}

@@ -246,7 +246,7 @@ func TestCreateInvoicePriceOverrideUpdatesCustomerDebt(t *testing.T) {
 
 func TestCancelInvoiceUsesSnapshotNotCurrentProductPrice(t *testing.T) {
 	setupCreateInvoiceTestDB(t)
-	if err := database.DB.AutoMigrate(&models.InvoiceCancellation{}, &models.Refund{}); err != nil {
+	if err := database.DB.AutoMigrate(&models.InvoiceCancellation{}, &models.Refund{}, &models.SalesReturn{}, &models.SalesReturnItem{}); err != nil {
 		t.Fatalf("migrate cancel models: %v", err)
 	}
 	user, customer, p1, _ := seedInvoiceCreateFixtures(t)

@@ -340,13 +340,18 @@ func GetFinancialTransactionsReport(startDate time.Time, endDate time.Time) (*dt
 	}
 
 	for _, refund := range refunds {
-		invoiceIDs := []uint{refund.InvoiceID}
+		invoiceIDs := make([]uint, 0)
+		if refund.InvoiceID != nil {
+			invoiceIDs = append(invoiceIDs, *refund.InvoiceID)
+		}
 
-		customerID := refund.Invoice.CustomerID
-
-		var customerName *string //var koja cuva ime kupca
-		if refund.Invoice.Customer != nil {
-			customerName = &refund.Invoice.Customer.Name
+		var customerID *uint
+		var customerName *string
+		if refund.Invoice != nil {
+			customerID = refund.Invoice.CustomerID
+			if refund.Invoice.Customer != nil {
+				customerName = &refund.Invoice.Customer.Name
+			}
 		}
 		transaction := dto.FinancialTransactionResponse{
 			ID:           refund.ID,
