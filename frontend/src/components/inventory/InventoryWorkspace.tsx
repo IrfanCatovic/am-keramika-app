@@ -10,6 +10,7 @@ import {
 } from "@/components/inventory/InventoryFilters";
 import { InventoryHistoryList } from "@/components/inventory/InventoryHistoryList";
 import { InventoryStockList } from "@/components/inventory/InventoryStockList";
+import { SalesReturnModal } from "@/components/inventory/SalesReturnModal";
 import { InlineError, ListSkeleton } from "@/components/ui/EmptyState";
 import {
   fetchCategories,
@@ -86,6 +87,8 @@ export function InventoryWorkspace() {
   const [adjustProduct, setAdjustProduct] =
     useState<InventoryProductRow | null>(null);
   const [adjustOpen, setAdjustOpen] = useState(false);
+  const [salesReturnOpen, setSalesReturnOpen] = useState(false);
+  const [salesReturnKey, setSalesReturnKey] = useState(0);
 
   const visibleGroups = categoryID ? groups : [];
 
@@ -308,6 +311,16 @@ export function InventoryWorkspace() {
             Pregled stanja, korekcije i istorije kretanja.
           </p>
         </div>
+        <button
+          type="button"
+          onClick={() => {
+            setSalesReturnKey((value) => value + 1);
+            setSalesReturnOpen(true);
+          }}
+          className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl bg-stone-900 px-4 text-sm font-medium text-white transition hover:bg-stone-800"
+        >
+          Povrat robe
+        </button>
       </div>
 
       {summary ? (
@@ -462,6 +475,16 @@ export function InventoryWorkspace() {
         }}
         onSuccess={() => {
           setSuccessMessage("Stanje lagera je ažurirano.");
+          setReloadToken((value) => value + 1);
+        }}
+      />
+
+      <SalesReturnModal
+        key={salesReturnKey}
+        open={salesReturnOpen}
+        onClose={() => setSalesReturnOpen(false)}
+        onSuccess={() => {
+          setSuccessMessage("Povrat robe je uspešno evidentiran.");
           setReloadToken((value) => value + 1);
         }}
       />
